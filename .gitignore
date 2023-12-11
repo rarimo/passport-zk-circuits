@@ -1,0 +1,14 @@
+./*_cpp
+*.r1cs
+*.sym
+proof.json
+*.wasm
+*witness.js
+*calculator.js
+node_modules
+package-lock.json
+package.json
+*.zkey
+*.ptau
+*.wtns
+.DS_Store
