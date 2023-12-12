@@ -12,3 +12,4 @@ package.json
 *.ptau
 *.wtns
 .DS_Store
+build
