@@ -13,5 +13,3 @@ template HashLeftRight() {
     hasher.inputs[1] <== right;
     hash <== hasher.out;
 }
-
-component main = HashLeftRight();

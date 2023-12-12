@@ -13,5 +13,3 @@ template DualMux() {
     out[0] <== (in[1] - in[0]) * order + in[0];
     out[1] <== (in[0] - in[1]) * order + in[1];
 }
-
-component main = DualMux();
