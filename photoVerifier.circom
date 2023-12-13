@@ -1,8 +1,8 @@
 pragma circom  2.1.6;
 
-include "node_modules/circomlib/circuits/comparators.circom";
 include "node_modules/circomlib/circuits/eddsaposeidon.circom";
 include "node_modules/circomlib/circuits/poseidon.circom";
+include "merkleTree/merkleTree.circom";
 
 template PhotoVerifier(depth) {
     signal input realPhotoHash;     // Poseidon Hash
@@ -12,7 +12,7 @@ template PhotoVerifier(depth) {
 
     signal input providerMerkleRoot;
     signal input providerMerkleBranch[depth];  // Tree depth = 8 => 2**8 = 256 verifiers MAX
-    signal input merkleOrder[depth]; // 0 - left | 1 - right
+    signal input providerMerkleOrder[depth]; // 0 - left | 1 - right
 
 
     component providerResponseHasher = Poseidon(2);
@@ -32,6 +32,23 @@ template PhotoVerifier(depth) {
     signatureVerifier.M   <== providerResponseHasher.out;
 
     signatureVerifier.enabled <== 1;
+
+    // Prove that Public Key (point A) is in the MT
+
+    component pubKeyHasher = Poseidon(2);
+
+    pubKeyHasher.inputs[0] <== providerSignature[2];
+    pubKeyHasher.inputs[1] <== providerSignature[3];
+
+    component merkleTreeVerifier = MerkleTreeVerifier(depth);
+
+    merkleTreeVerifier.leaf <== pubKeyHasher.out;
+    merkleTreeVerifier.merkleRoot <== providerMerkleRoot;
+    
+    for (var i = 0; i < depth; i++) {
+        merkleTreeVerifier.merkleBranches[i] <== providerMerkleBranch[i];
+        merkleTreeVerifier.merkleOrder[i]    <== providerMerkleOrder[i]; 
+    }
 }
 
 component main = PhotoVerifier(1);
