@@ -51,4 +51,4 @@ template PhotoVerifier(depth) {
     }
 }
 
-component main = PhotoVerifier(1);
+// component main {public [providerMerkleRoot]} = PhotoVerifier(1);

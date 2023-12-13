@@ -13,3 +13,4 @@ package.json
 *.wtns
 .DS_Store
 build
+*.dev
