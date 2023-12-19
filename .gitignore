@@ -6,8 +6,6 @@ proof.json
 *witness.js
 *calculator.js
 node_modules
-package-lock.json
-package.json
 *.zkey
 *.ptau
 *.wtns
