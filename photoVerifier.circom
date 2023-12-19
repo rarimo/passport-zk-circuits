@@ -2,6 +2,7 @@ pragma circom  2.1.6;
 
 include "node_modules/circomlib/circuits/eddsaposeidon.circom";
 include "node_modules/circomlib/circuits/poseidon.circom";
+include "node_modules/circomlib/circuits/bitify.circom";
 include "merkleTree/merkleTree.circom";
 
 template PhotoVerifier(depth) {
@@ -12,8 +13,17 @@ template PhotoVerifier(depth) {
 
     signal input providerMerkleRoot;
     signal input providerMerkleBranch[depth];  // Tree depth = 8 => 2**8 = 256 verifiers MAX
-    signal input providerMerkleOrder[depth]; // 0 - left | 1 - right
+    signal input providerMerkleOrder; // 0 - left | 1 - right
 
+    component num2Bits = Num2Bits(depth);
+
+    num2Bits.in <== providerMerkleOrder;
+    
+    signal providerMerkleOrderArray[depth];
+
+    for (var i = 0; i < depth; i++) {
+        providerMerkleOrderArray[i] <== num2Bits.out[i];
+    }
 
     component providerResponseHasher = Poseidon(2);
     providerResponseHasher.inputs[0] <== realPhotoHash;
@@ -47,8 +57,8 @@ template PhotoVerifier(depth) {
     
     for (var i = 0; i < depth; i++) {
         merkleTreeVerifier.merkleBranches[i] <== providerMerkleBranch[i];
-        merkleTreeVerifier.merkleOrder[i]    <== providerMerkleOrder[i]; 
+        merkleTreeVerifier.merkleOrder[i]    <== providerMerkleOrderArray[i]; 
     }
 }
 
-// component main {public [providerMerkleRoot]} = PhotoVerifier(1);
+component main {public [providerMerkleRoot]} = PhotoVerifier(1);
