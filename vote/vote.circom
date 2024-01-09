@@ -47,7 +47,7 @@ template Vote(levels) {
         tree.pathIndices[i] <== pathIndices[i];
     }
 
-    // Add hidden signals to make sure that tampering with vote will invalidate the snark proof
+    // Add hidden signals to make sure that tampering with a vote will invalidate the snark proof
     // Squares are used to prevent optimizer from removing those constraints
 
     signal voteSquare;
