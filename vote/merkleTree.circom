@@ -6,7 +6,7 @@ template HashLeftRight() {
     signal input right;
     signal output hash;
 
-    component hasher = MiMCSponge(2, 1);
+    component hasher = MiMCSponge(2, 220, 1);
     hasher.ins[0] <== left;
     hasher.ins[1] <== right;
     hasher.k <== 0;
@@ -20,7 +20,7 @@ template DualMux() {
     signal input s;
     signal output out[2];
 
-    s * (1 - s) === 0
+    s * (1 - s) === 0;
     out[0] <== (in[1] - in[0])*s + in[0];
     out[1] <== (in[0] - in[1])*s + in[1];
 }
