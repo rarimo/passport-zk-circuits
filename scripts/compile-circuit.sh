@@ -31,10 +31,10 @@ mkdir -p ${BUILD_DIR}
 # Compiling circuit with .r1cs and .wasm files as result
 echo -e "\nCompiling the circuits..."
 
-circom ${CIRCUIT_FILE} --r1cs --wasm --sym -o ${BUILD_DIR}
+circom ${CIRCUIT_FILE} --r1cs --wasm --c --sym -o ${BUILD_DIR}
 
 mv ${BUILD_DIR}/${CIRCUIT_NAME}_js/${CIRCUIT_NAME}.wasm ${BUILD_DIR}/${CIRCUIT_NAME}.wasm
 
-snarkjs r1cs print ${BUILD_DIR}/${CIRCUIT_NAME}.r1cs ${BUILD_DIR}/${CIRCUIT_NAME}.sym
+# snarkjs r1cs print ${BUILD_DIR}/${CIRCUIT_NAME}.r1cs ${BUILD_DIR}/${CIRCUIT_NAME}.sym
 
 echo -e "\nCircuit compiled ${BUILD_DIR}"

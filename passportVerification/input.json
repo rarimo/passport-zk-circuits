@@ -1,0 +1,6 @@
+{
+    "in" : ["DG1 data in binary"],
+    "currDateYear"  : 23,
+    "currDateMonth" : 1,
+    "currDateDay"   : 24
+}

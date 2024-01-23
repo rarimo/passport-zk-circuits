@@ -9,7 +9,7 @@ BUILD_DIR=""
 # Define the build directory where intermediate files will be stored
 if [ -d . ]; then
     BUILD_DIR="./$CIRCUIT_NAME.dev"
-    POWERS_FILE=./powers.dev/$SETUP_POWERS.ptau
+    POWERS_FILE=../powers.dev/$SETUP_POWERS.ptau
 elif [ -d .. ]; then
     BUILD_DIR="../$CIRCUIT_NAME.dev"
     POWERS_FILE=../powers.dev/$SETUP_POWERS.ptau
