@@ -1,6 +1,6 @@
 {
-    "in" : ["DG1 data in binary"],
-    "currDateYear"  : 23,
+    "in":["DG1 in binary format"],
+    "currDateYear" : 24,
     "currDateMonth" : 1,
-    "currDateDay"   : 24
+    "currDateDay" : 25
 }
