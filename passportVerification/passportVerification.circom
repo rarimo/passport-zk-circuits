@@ -20,14 +20,17 @@ template SignatureVerification(N) {
     component bits2NumExpDayDigit1   = Bits2Num(4);
     component bits2NumExpDayDigit2   = Bits2Num(4);
 
+    var POSITION = 564;
+    var SHIFT = 8;
     for (var i = 0; i < 4; i++) {
-        bits2NumExpYearDigit1.in[3-i]  <== in[564+i];
-        bits2NumExpYearDigit2.in[3-i]  <== in[572+i];
-        bits2NumExpMonthDigit1.in[3-i] <== in[580+i];
-        bits2NumExpMonthDigit2.in[3-i] <== in[588+i];
-        bits2NumExpDayDigit1.in[3-i]   <== in[596+i];
-        bits2NumExpDayDigit2.in[3-i]   <== in[604+i];
+        bits2NumExpYearDigit1.in[3-i]  <== in[POSITION + 0*SHIFT + i];
+        bits2NumExpYearDigit2.in[3-i]  <== in[POSITION + 1*SHIFT + i];
+        bits2NumExpMonthDigit1.in[3-i] <== in[POSITION + 2*SHIFT + i];
+        bits2NumExpMonthDigit2.in[3-i] <== in[POSITION + 3*SHIFT + i];
+        bits2NumExpDayDigit1.in[3-i]   <== in[POSITION + 4*SHIFT + i];
+        bits2NumExpDayDigit2.in[3-i]   <== in[POSITION + 5*SHIFT + i];
     }
+
     signal TEN <== 10;
     signal expYear  <== bits2NumExpYearDigit1.out  * TEN + bits2NumExpYearDigit2.out;
     signal expMonth <== bits2NumExpMonthDigit1.out * TEN + bits2NumExpMonthDigit2.out;
@@ -41,15 +44,17 @@ template SignatureVerification(N) {
     component bits2NumBirthMonthDigit2 = Bits2Num(4);
     component bits2NumBirthDayDigit1   = Bits2Num(4);
     component bits2NumBirthDayDigit2   = Bits2Num(4);
-    var SHIFT = 24;
+    
+    POSITION = 496+4;
     for (var i = 0; i < 4; i++) {
-        bits2NumBirthYearDigit1.in[3-i]  <== in[SHIFT+612+i];
-        bits2NumBirthYearDigit2.in[3-i]  <== in[SHIFT+620+i];
-        bits2NumBirthMonthDigit1.in[3-i] <== in[SHIFT+628+i];
-        bits2NumBirthMonthDigit2.in[3-i] <== in[SHIFT+636+i];
-        bits2NumBirthDayDigit1.in[3-i]   <== in[SHIFT+644+i];
-        bits2NumBirthDayDigit2.in[3-i]   <== in[SHIFT+652+i];
+        bits2NumBirthYearDigit1.in[3-i]  <== in[POSITION + 0*SHIFT + i];
+        bits2NumBirthYearDigit2.in[3-i]  <== in[POSITION + 1*SHIFT + i];
+        bits2NumBirthMonthDigit1.in[3-i] <== in[POSITION + 2*SHIFT + i];
+        bits2NumBirthMonthDigit2.in[3-i] <== in[POSITION + 3*SHIFT + i];
+        bits2NumBirthDayDigit1.in[3-i]   <== in[POSITION + 4*SHIFT + i];
+        bits2NumBirthDayDigit2.in[3-i]   <== in[POSITION + 5*SHIFT + i];
     }
+
     signal birthYear  <== bits2NumBirthYearDigit1.out  * TEN + bits2NumBirthYearDigit2.out;
     signal birthMonth <== bits2NumBirthMonthDigit1.out * TEN + bits2NumBirthMonthDigit2.out;
     signal birthDay   <== bits2NumBirthDayDigit1.out   * TEN + bits2NumBirthDayDigit2.out;
