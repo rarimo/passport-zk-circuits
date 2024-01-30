@@ -93,7 +93,7 @@ template PassportVerification(N) {
     isAdult.secondMonth <== currDateMonth;
     isAdult.secondDay   <== currDateDay;
 
-    // isAdult.out === 1;
+    isAdult.out === 1;
 
     // ---------
     // CRED_EXP < PASSPORT_EXP

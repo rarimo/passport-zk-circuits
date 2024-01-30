@@ -65,10 +65,6 @@ template Sha1(nBits) {
         }
     }
 
-    for (k = 0; k < 160; k++) {
-        log(sha1compression[nBlocks - 1].out[k]);
-    }
-
     for (i = 0; i < 5; i++) {
         for (k = 0; k < 32; k++) {
             out[(31 - k) + i * 32] <== sha1compression[nBlocks - 1].out[k + i * 32];
