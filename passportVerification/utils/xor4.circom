@@ -21,9 +21,9 @@ template Xor4(n) {
     out_xor4 = out_xor3 - 2*d*out_xor3 + d
     */
 
-    for (var k=0; k<n; k++) {
+    for (var k = 0; k < n; k++) {
         mid[k] <== b[k]*c[k];
-        a_temp[k] <== a[k] * (1 -2*b[k]  -2*c[k] +4*mid[k]) + b[k] + c[k] -2*mid[k];
-        out[k] <== a_temp[k] -2*d[k]*a_temp[k] + d[k];
+        a_temp[k] <== a[k] * (1 - 2 * b[k] - 2 * c[k] + 4 * mid[k]) + b[k] + c[k] - 2 * mid[k];
+        out[k] <== a_temp[k] - 2 * d[k] * a_temp[k] + d[k];
     }
 }

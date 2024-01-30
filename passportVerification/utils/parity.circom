@@ -11,13 +11,13 @@ template Parity_t(n) {
      component xor3 = Xor3(32);
      var k;
 
-     for (k=0; k<32; k++) {
+     for (k = 0; k < 32; k++) {
           xor3.a[k] <== a[k];
           xor3.b[k] <== b[k];
           xor3.c[k] <== c[k];
      }
 
-     for (k=0; k<32; k++) {
+     for (k = 0; k < 32; k++) {
           out[k] <== xor3.out[k];
      }
 }

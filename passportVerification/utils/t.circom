@@ -21,7 +21,7 @@ template T(t) {
      component f = f_t(t);
 
      var k;
-     for (k=0; k<32; k++) {
+     for (k = 0; k < 32; k++) {
           rotatel_5.in[k] <== a[k];
           f.b[k] <== b[k];
           f.c[k] <== c[k];
@@ -31,16 +31,16 @@ template T(t) {
      component sum_binary = BinSum(32, 5);
      var nout = 35; // in BinSum: nbits((2**32 -1)*5);
 
-     for (k=0; k<32; k++) {
-          sum_binary.in[0][k] <== rotatel_5.out[31-k];
-          sum_binary.in[1][k] <== f.out[31-k];
-          sum_binary.in[2][k] <== e[31-k];
-          sum_binary.in[3][k] <== k_t[31-k];
-          sum_binary.in[4][k] <== w[31-k];
+     for (k = 0; k < 32; k++) {
+          sum_binary.in[0][k] <== rotatel_5.out[31  - k];
+          sum_binary.in[1][k] <== f.out[31 - k];
+          sum_binary.in[2][k] <== e[31 - k];
+          sum_binary.in[3][k] <== k_t[31 - k];
+          sum_binary.in[4][k] <== w[31 - k];
      }
 
      component sum = Bits2Num(nout);
-     for (k=0; k<nout; k++) {
+     for (k = 0; k < nout; k++) {
           sum.in[k] <== sum_binary.out[k];
      }
 
@@ -55,14 +55,14 @@ template T(t) {
      less_than.in[0] <== sum_modulo;
      less_than.in[1] <== 2**32;
 
-     sum.out === quotient*2**32 + sum_modulo;
+     sum.out === quotient * 2**32 + sum_modulo;
      1 === less_than.out;
      
      // reconvert to bit array
      component sum_binary_modulo = Num2Bits(32);
      sum_binary_modulo.in <== sum_modulo; 
 
-     for (k=0; k<32; k++) {
+     for (k = 0; k < 32; k++) {
           out[k] <== sum_binary_modulo.out[31-k];
      }
 

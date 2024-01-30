@@ -9,6 +9,11 @@ template PassportVerification(N) {
     signal input currDateYear;
     signal input currDateMonth;
     signal input currDateDay;
+
+    signal input credValidYear;
+    signal input credValidMonth;
+    signal input credValidDay;
+
     signal input in[N];
     signal output out[3];
 
@@ -23,12 +28,12 @@ template PassportVerification(N) {
     var POSITION = 564;
     var SHIFT = 8;
     for (var i = 0; i < 4; i++) {
-        bits2NumExpYearDigit1.in[3-i]  <== in[POSITION + 0*SHIFT + i];
-        bits2NumExpYearDigit2.in[3-i]  <== in[POSITION + 1*SHIFT + i];
-        bits2NumExpMonthDigit1.in[3-i] <== in[POSITION + 2*SHIFT + i];
-        bits2NumExpMonthDigit2.in[3-i] <== in[POSITION + 3*SHIFT + i];
-        bits2NumExpDayDigit1.in[3-i]   <== in[POSITION + 4*SHIFT + i];
-        bits2NumExpDayDigit2.in[3-i]   <== in[POSITION + 5*SHIFT + i];
+        bits2NumExpYearDigit1.in[3-i]  <== in[POSITION + 0 * SHIFT + i];
+        bits2NumExpYearDigit2.in[3-i]  <== in[POSITION + 1 * SHIFT + i];
+        bits2NumExpMonthDigit1.in[3-i] <== in[POSITION + 2 * SHIFT + i];
+        bits2NumExpMonthDigit2.in[3-i] <== in[POSITION + 3 * SHIFT + i];
+        bits2NumExpDayDigit1.in[3-i]   <== in[POSITION + 4 * SHIFT + i];
+        bits2NumExpDayDigit2.in[3-i]   <== in[POSITION + 5 * SHIFT + i];
     }
 
     signal TEN <== 10;
@@ -47,12 +52,12 @@ template PassportVerification(N) {
     
     POSITION = 496+4;
     for (var i = 0; i < 4; i++) {
-        bits2NumBirthYearDigit1.in[3-i]  <== in[POSITION + 0*SHIFT + i];
-        bits2NumBirthYearDigit2.in[3-i]  <== in[POSITION + 1*SHIFT + i];
-        bits2NumBirthMonthDigit1.in[3-i] <== in[POSITION + 2*SHIFT + i];
-        bits2NumBirthMonthDigit2.in[3-i] <== in[POSITION + 3*SHIFT + i];
-        bits2NumBirthDayDigit1.in[3-i]   <== in[POSITION + 4*SHIFT + i];
-        bits2NumBirthDayDigit2.in[3-i]   <== in[POSITION + 5*SHIFT + i];
+        bits2NumBirthYearDigit1.in[3-i]  <== in[POSITION + 0 * SHIFT + i];
+        bits2NumBirthYearDigit2.in[3-i]  <== in[POSITION + 1 * SHIFT + i];
+        bits2NumBirthMonthDigit1.in[3-i] <== in[POSITION + 2 * SHIFT + i];
+        bits2NumBirthMonthDigit2.in[3-i] <== in[POSITION + 3 * SHIFT + i];
+        bits2NumBirthDayDigit1.in[3-i]   <== in[POSITION + 4 * SHIFT + i];
+        bits2NumBirthDayDigit2.in[3-i]   <== in[POSITION + 5 * SHIFT + i];
     }
 
     signal birthYear  <== bits2NumBirthYearDigit1.out  * TEN + bits2NumBirthYearDigit2.out;
@@ -90,6 +95,19 @@ template PassportVerification(N) {
 
     isAdult.out === 1;
 
+    // ---------
+    // CRED_EXP < PASSPORT_EXP
+
+    component isCredExpValid = DateIsLess();
+
+    isCredExpValid.firstYear  <== credValidYear;
+    isCredExpValid.firstMonth <== credValidMonth;
+    isCredExpValid.firstDay   <== credValidDay;
+
+    isCredExpValid.secondYear  <== expYear;
+    isCredExpValid.secondMonth <== expMonth;
+    isCredExpValid.secondDay   <== expDay;    
+
     // --------
     // OUT PASSPORT ISSUER CODE [56..80], 3*8 = 24 bits
 
@@ -122,4 +140,4 @@ template PassportVerification(N) {
     out[1] <== bits2NumSecond.out;
 }
 
-component main {public [currDateDay, currDateMonth, currDateYear]} = PassportVerification(744);
+component main {public [currDateDay, currDateMonth, currDateYear, credValidYear, credValidMonth, credValidDay]} = PassportVerification(744);
