@@ -1,10 +1,10 @@
 pragma circom  2.1.6;
 
+include "../node_modules/circomlib/circuits/sha256/sha256.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "./passportVerificationCore.circom";
-include "./utils/sha1.circom";
 
-template PassportVerificationSHA1(N) {
+template PassportVerificationSHA256(N) {
     signal input currDateYear;
     signal input currDateMonth;
     signal input currDateDay;
@@ -29,25 +29,31 @@ template PassportVerificationSHA1(N) {
     passportVerificationCore.credValidDay   <== credValidDay;
 
     out[2] <== passportVerificationCore.out;
-
     // -------
 
-    component hasher = Sha1(N);
+    component hasher = Sha256(N);
 
     hasher.in <== in;
 
-    component bits2NumHash = Bits2Num(160);
+    component bits2NumFirst = Bits2Num(128);
+    component bits2NumSecond = Bits2Num(128);
 
-    for (var i = 0; i < 160; i++) {
-        bits2NumHash.in[160 - 1 - i] <== hasher.out[i];
+    for (var i = 0; i < 128; i++) {
+        bits2NumFirst.in[127 - i] <== hasher.out[i];
     }
 
-    out[0] <== bits2NumHash.out;
+    for (var i = 0; i < 128; i++) {
+        bits2NumSecond.in[127 - i] <== hasher.out[128 + i];
+    }
+
+    out[0] <== bits2NumFirst.out;
+    out[1] <== bits2NumSecond.out;
 }
 
 component main {public [currDateDay, 
-                        currDateMonth,
+                        currDateMonth, 
                         currDateYear, 
                         credValidYear, 
                         credValidMonth, 
-                        credValidDay]} = PassportVerificationSHA1(744);
+                        credValidDay]
+                        } = PassportVerification(744);
