@@ -3,7 +3,6 @@ pragma circom 2.1.3;
 include "../../node_modules/circomlib/circuits/bitify.circom";
 
 template H(x) {
-
     signal output out[32];
     var c[5] = [
         0x67452301,
@@ -16,10 +15,9 @@ template H(x) {
     component bitify = Num2Bits(32);
     bitify.in <== c[x];
 
-    for (var k=0; k<32; k++) {
-        out[k] <== bitify.out[31-k];
+    for (var k = 0; k < 32; k++) {
+        out[k] <== bitify.out[31 - k];
     }
-
 }
 
 template K(t) {
@@ -36,18 +34,18 @@ template K(t) {
 
     if (20 <= t && t <= 39) {
         bitify.in <== k[1];
-    }     
+    }
 
     if (40 <= t && t <= 59) {
         bitify.in <== k[2];
     } 
-            
-    if (60 <= t && t <= 79) {
+
+    if (60 <= t && t <= 79) {
         bitify.in <== k[3];
     }
 
-    for (var k=0; k<32; k++) {
-        out[k] <== bitify.out[31-k];
+    for (var k=0; k < 32; k++) {
+        out[k] <== bitify.out[31 - k];
     }
 
 }

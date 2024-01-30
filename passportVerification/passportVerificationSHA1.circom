@@ -1,13 +1,19 @@
 pragma circom  2.1.6;
 
+
+include "./utils/sha1.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "./dateComparison.circom";
-include "./utils/sha1.circom";
 
-template PassportVerificationSHA1(N) {
+template PassportVerification(N) {
     signal input currDateYear;
     signal input currDateMonth;
     signal input currDateDay;
+
+    signal input credValidYear;
+    signal input credValidMonth;
+    signal input credValidDay;
+
     signal input in[N];
     signal output out[3];
 
@@ -22,12 +28,12 @@ template PassportVerificationSHA1(N) {
     var POSITION = 564;
     var SHIFT = 8;
     for (var i = 0; i < 4; i++) {
-        bits2NumExpYearDigit1.in[3-i]  <== in[POSITION + 0*SHIFT + i];
-        bits2NumExpYearDigit2.in[3-i]  <== in[POSITION + 1*SHIFT + i];
-        bits2NumExpMonthDigit1.in[3-i] <== in[POSITION + 2*SHIFT + i];
-        bits2NumExpMonthDigit2.in[3-i] <== in[POSITION + 3*SHIFT + i];
-        bits2NumExpDayDigit1.in[3-i]   <== in[POSITION + 4*SHIFT + i];
-        bits2NumExpDayDigit2.in[3-i]   <== in[POSITION + 5*SHIFT + i];
+        bits2NumExpYearDigit1.in[3-i]  <== in[POSITION + 0 * SHIFT + i];
+        bits2NumExpYearDigit2.in[3-i]  <== in[POSITION + 1 * SHIFT + i];
+        bits2NumExpMonthDigit1.in[3-i] <== in[POSITION + 2 * SHIFT + i];
+        bits2NumExpMonthDigit2.in[3-i] <== in[POSITION + 3 * SHIFT + i];
+        bits2NumExpDayDigit1.in[3-i]   <== in[POSITION + 4 * SHIFT + i];
+        bits2NumExpDayDigit2.in[3-i]   <== in[POSITION + 5 * SHIFT + i];
     }
 
     signal TEN <== 10;
@@ -46,12 +52,12 @@ template PassportVerificationSHA1(N) {
     
     POSITION = 496+4;
     for (var i = 0; i < 4; i++) {
-        bits2NumBirthYearDigit1.in[3-i]  <== in[POSITION + 0*SHIFT + i];
-        bits2NumBirthYearDigit2.in[3-i]  <== in[POSITION + 1*SHIFT + i];
-        bits2NumBirthMonthDigit1.in[3-i] <== in[POSITION + 2*SHIFT + i];
-        bits2NumBirthMonthDigit2.in[3-i] <== in[POSITION + 3*SHIFT + i];
-        bits2NumBirthDayDigit1.in[3-i]   <== in[POSITION + 4*SHIFT + i];
-        bits2NumBirthDayDigit2.in[3-i]   <== in[POSITION + 5*SHIFT + i];
+        bits2NumBirthYearDigit1.in[3-i]  <== in[POSITION + 0 * SHIFT + i];
+        bits2NumBirthYearDigit2.in[3-i]  <== in[POSITION + 1 * SHIFT + i];
+        bits2NumBirthMonthDigit1.in[3-i] <== in[POSITION + 2 * SHIFT + i];
+        bits2NumBirthMonthDigit2.in[3-i] <== in[POSITION + 3 * SHIFT + i];
+        bits2NumBirthDayDigit1.in[3-i]   <== in[POSITION + 4 * SHIFT + i];
+        bits2NumBirthDayDigit2.in[3-i]   <== in[POSITION + 5 * SHIFT + i];
     }
 
     signal birthYear  <== bits2NumBirthYearDigit1.out  * TEN + bits2NumBirthYearDigit2.out;
@@ -87,7 +93,20 @@ template PassportVerificationSHA1(N) {
     isAdult.secondMonth <== currDateMonth;
     isAdult.secondDay   <== currDateDay;
 
-    isAdult.out === 1;
+    // isAdult.out === 1;
+
+    // ---------
+    // CRED_EXP < PASSPORT_EXP
+
+    component isCredExpValid = DateIsLess();
+
+    isCredExpValid.firstYear  <== credValidYear;
+    isCredExpValid.firstMonth <== credValidMonth;
+    isCredExpValid.firstDay   <== credValidDay;
+
+    isCredExpValid.secondYear  <== expYear;
+    isCredExpValid.secondMonth <== expMonth;
+    isCredExpValid.secondDay   <== expDay;    
 
     // --------
     // OUT PASSPORT ISSUER CODE [56..80], 3*8 = 24 bits
@@ -95,10 +114,10 @@ template PassportVerificationSHA1(N) {
     component passportIssuer = Bits2Num(24);
 
     for (var i = 0; i < 24; i++) {
-        passportIssuer.in[i] <== in[56+i];
+        passportIssuer.in[i] <== in[56 + i];
     }
 
-    out[1] <== passportIssuer.out;
+    out[2] <== passportIssuer.out;
 
     // -------
 
@@ -109,10 +128,10 @@ template PassportVerificationSHA1(N) {
     component bits2NumHash = Bits2Num(160);
 
     for (var i = 0; i < 160; i++) {
-        bits2NumHash.in[160-1-i] <== hasher.out[i];
+        bits2NumHash.in[160 - 1 - i] <== hasher.out[i];
     }
 
     out[0] <== bits2NumHash.out;
 }
 
-component main {public [currDateDay, currDateMonth, currDateYear]} = PassportVerificationSHA1(744);
+component main {public [currDateDay, currDateMonth, currDateYear, credValidYear, credValidMonth, credValidDay]} = PassportVerification(744);

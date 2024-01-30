@@ -4,7 +4,7 @@ template RotL(n, l) {
     signal input in[n];
     signal output out[n];
 
-    for (var i=(n-1); i >= 0; i--) {
-        out[i] <== in[ (i+l)%n ];
+    for (var i = n - 1; i >= 0; i--) {
+        out[i] <== in[(i + l) % n];
     }
 }
