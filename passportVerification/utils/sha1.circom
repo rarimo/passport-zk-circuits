@@ -1,4 +1,4 @@
-pragma circom 2.1.3;
+pragma circom 2.1.6;
 
 include "constants.circom";
 include "sha1compression.circom";
@@ -39,7 +39,6 @@ template Sha1(nBits) {
     component sha1compression[nBlocks];
     
     for (i = 0; i < nBlocks; i++) {
-        
         sha1compression[i] = Sha1compression();
 
         if (i == 0) {

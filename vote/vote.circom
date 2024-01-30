@@ -1,7 +1,8 @@
 pragma circom  2.1.6;
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/poseidon.circom";
-include "merkleTree.circom";
+
+include "../merkleTree/merkleTree.circom";
 
 template CommitmentHasher() {
     signal input nullifier;
@@ -35,12 +36,12 @@ template Vote(levels) {
     hasher.secret <== secret;
     hasher.nullifierHash === nullifierHash;
 
-    component tree = MerkleTreeChecker(levels);
+    component tree = MerkleTreeVerifier(levels);
     tree.leaf <== hasher.commitment;
-    tree.root <== root;
+    tree.merkleRoot <== root;
     for (var i = 0; i < levels; i++) {
-        tree.pathElements[i] <== pathElements[i];
-        tree.pathIndices[i] <== pathIndices[i];
+        tree.merkleBranches[i] <== pathElements[i];
+        tree.merkleOrder[i] <== pathIndices[i];
     }
 
     // Add hidden signals to make sure that tampering with a vote will invalidate the snark proof

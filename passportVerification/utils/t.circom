@@ -1,4 +1,4 @@
-pragma circom 2.1.3;
+pragma circom 2.1.6;
 
 include "./rotate.circom";
 include "../../node_modules/circomlib/circuits/binsum.circom";
@@ -63,6 +63,6 @@ template T(t) {
      sum_binary_modulo.in <== sum_modulo; 
 
      for (k = 0; k < 32; k++) {
-          out[k] <== sum_binary_modulo.out[31-k];
+          out[k] <== sum_binary_modulo.out[31 - k];
      }
 }

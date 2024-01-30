@@ -44,7 +44,7 @@ template DateIsLess() {
     // ----------
     signal isLess1 <== isYearLess;
     signal isLess2 <== (isYearEqual * isMonthLess);
-    signal temp <== isYearEqual * isMonthEqual;
+    signal temp    <== isYearEqual * isMonthEqual;
     signal isLess3 <== (temp * isDayLess);
     
     out <== isLess1 + isLess2 + isLess3;

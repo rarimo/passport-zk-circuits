@@ -1,4 +1,4 @@
-pragma circom 2.1.3;
+pragma circom 2.1.6;
 
 template Xor4(n) {
     signal input a[n];
@@ -22,7 +22,7 @@ template Xor4(n) {
     */
 
     for (var k = 0; k < n; k++) {
-        mid[k] <== b[k]*c[k];
+        mid[k] <== b[k] * c[k];
         a_temp[k] <== a[k] * (1 - 2 * b[k] - 2 * c[k] + 4 * mid[k]) + b[k] + c[k] - 2 * mid[k];
         out[k] <== a_temp[k] - 2 * d[k] * a_temp[k] + d[k];
     }
