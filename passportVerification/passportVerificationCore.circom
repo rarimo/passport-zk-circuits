@@ -1,11 +1,9 @@
 pragma circom  2.1.6;
 
-
-include "../node_modules/circomlib/circuits/sha256/sha256.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "./dateComparison.circom";
 
-template PassportVerification(N) {
+template PassportVerificationCore(N) {
     signal input currDateYear;
     signal input currDateMonth;
     signal input currDateDay;
@@ -15,7 +13,7 @@ template PassportVerification(N) {
     signal input credValidDay;
 
     signal input in[N];
-    signal output out[3];
+    signal output out;
 
     // DATE OF EXPIRACY DECODING
     component bits2NumExpYearDigit1  = Bits2Num(4);
@@ -52,12 +50,12 @@ template PassportVerification(N) {
     
     POSITION = 496+4;
     for (var i = 0; i < 4; i++) {
-        bits2NumBirthYearDigit1.in[3-i]  <== in[POSITION + 0 * SHIFT + i];
-        bits2NumBirthYearDigit2.in[3-i]  <== in[POSITION + 1 * SHIFT + i];
-        bits2NumBirthMonthDigit1.in[3-i] <== in[POSITION + 2 * SHIFT + i];
-        bits2NumBirthMonthDigit2.in[3-i] <== in[POSITION + 3 * SHIFT + i];
-        bits2NumBirthDayDigit1.in[3-i]   <== in[POSITION + 4 * SHIFT + i];
-        bits2NumBirthDayDigit2.in[3-i]   <== in[POSITION + 5 * SHIFT + i];
+        bits2NumBirthYearDigit1.in[3 - i]  <== in[POSITION + 0 * SHIFT + i];
+        bits2NumBirthYearDigit2.in[3 - i]  <== in[POSITION + 1 * SHIFT + i];
+        bits2NumBirthMonthDigit1.in[3 - i] <== in[POSITION + 2 * SHIFT + i];
+        bits2NumBirthMonthDigit2.in[3 - i] <== in[POSITION + 3 * SHIFT + i];
+        bits2NumBirthDayDigit1.in[3 - i]   <== in[POSITION + 4 * SHIFT + i];
+        bits2NumBirthDayDigit2.in[3 - i]   <== in[POSITION + 5 * SHIFT + i];
     }
 
     signal birthYear  <== bits2NumBirthYearDigit1.out  * TEN + bits2NumBirthYearDigit2.out;
@@ -106,7 +104,7 @@ template PassportVerification(N) {
 
     isCredExpValid.secondYear  <== expYear;
     isCredExpValid.secondMonth <== expMonth;
-    isCredExpValid.secondDay   <== expDay;    
+    isCredExpValid.secondDay   <== expDay;
 
     // --------
     // OUT PASSPORT ISSUER CODE [56..80], 3*8 = 24 bits
@@ -117,33 +115,5 @@ template PassportVerification(N) {
         passportIssuer.in[i] <== in[56 + i];
     }
 
-    out[2] <== passportIssuer.out;
-
-    // -------
-
-    component hasher = Sha256(N);
-
-    hasher.in <== in;
-
-    component bits2NumFirst = Bits2Num(128);
-    component bits2NumSecond = Bits2Num(128);
-
-    for (var i = 0; i < 128; i++) {
-        bits2NumFirst.in[127 - i] <== hasher.out[i];
-    }
-
-    for (var i = 0; i < 128; i++) {
-        bits2NumSecond.in[127 - i] <== hasher.out[128 + i];
-    }
-
-    out[0] <== bits2NumFirst.out;
-    out[1] <== bits2NumSecond.out;
+    out <== passportIssuer.out;
 }
-
-component main {public [currDateDay, 
-                        currDateMonth, 
-                        currDateYear, 
-                        credValidYear, 
-                        credValidMonth, 
-                        credValidDay]
-                        } = PassportVerification(744);
