@@ -28,12 +28,12 @@ template PassportVerification(N) {
     var POSITION = 564;
     var SHIFT = 8;
     for (var i = 0; i < 4; i++) {
-        bits2NumExpYearDigit1.in[3-i]  <== in[POSITION + 0 * SHIFT + i];
-        bits2NumExpYearDigit2.in[3-i]  <== in[POSITION + 1 * SHIFT + i];
-        bits2NumExpMonthDigit1.in[3-i] <== in[POSITION + 2 * SHIFT + i];
-        bits2NumExpMonthDigit2.in[3-i] <== in[POSITION + 3 * SHIFT + i];
-        bits2NumExpDayDigit1.in[3-i]   <== in[POSITION + 4 * SHIFT + i];
-        bits2NumExpDayDigit2.in[3-i]   <== in[POSITION + 5 * SHIFT + i];
+        bits2NumExpYearDigit1.in[3 - i]  <== in[POSITION + 0 * SHIFT + i];
+        bits2NumExpYearDigit2.in[3 - i]  <== in[POSITION + 1 * SHIFT + i];
+        bits2NumExpMonthDigit1.in[3 - i] <== in[POSITION + 2 * SHIFT + i];
+        bits2NumExpMonthDigit2.in[3 - i] <== in[POSITION + 3 * SHIFT + i];
+        bits2NumExpDayDigit1.in[3 - i]   <== in[POSITION + 4 * SHIFT + i];
+        bits2NumExpDayDigit2.in[3 - i]   <== in[POSITION + 5 * SHIFT + i];
     }
 
     signal TEN <== 10;
@@ -114,7 +114,7 @@ template PassportVerification(N) {
     component passportIssuer = Bits2Num(24);
 
     for (var i = 0; i < 24; i++) {
-        passportIssuer.in[i] <== in[56+i];
+        passportIssuer.in[i] <== in[56 + i];
     }
 
     out[2] <== passportIssuer.out;
@@ -129,15 +129,21 @@ template PassportVerification(N) {
     component bits2NumSecond = Bits2Num(128);
 
     for (var i = 0; i < 128; i++) {
-        bits2NumFirst.in[127-i] <== hasher.out[i];
+        bits2NumFirst.in[127 - i] <== hasher.out[i];
     }
 
     for (var i = 0; i < 128; i++) {
-        bits2NumSecond.in[127-i] <== hasher.out[128 + i];
+        bits2NumSecond.in[127 - i] <== hasher.out[128 + i];
     }
 
     out[0] <== bits2NumFirst.out;
     out[1] <== bits2NumSecond.out;
 }
 
-component main {public [currDateDay, currDateMonth, currDateYear, credValidYear, credValidMonth, credValidDay]} = PassportVerification(744);
+component main {public [currDateDay, 
+                        currDateMonth, 
+                        currDateYear, 
+                        credValidYear, 
+                        credValidMonth, 
+                        credValidDay]
+                        } = PassportVerification(744);

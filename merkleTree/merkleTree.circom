@@ -26,5 +26,5 @@ template MerkleTreeVerifier(depth) {
         hashers[i].right <== selectors[i].out[1];
     }
 
-    merkleRoot === hashers[depth-1].hash;
+    merkleRoot === hashers[depth - 1].hash;
 }

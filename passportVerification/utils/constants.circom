@@ -1,4 +1,4 @@
-pragma circom 2.1.3;
+pragma circom 2.1.6;
 
 include "../../node_modules/circomlib/circuits/bitify.circom";
 
@@ -44,8 +44,7 @@ template K(t) {
         bitify.in <== k[3];
     }
 
-    for (var k=0; k < 32; k++) {
+    for (var k = 0; k < 32; k++) {
         out[k] <== bitify.out[31 - k];
     }
-
 }

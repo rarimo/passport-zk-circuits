@@ -1,4 +1,4 @@
-pragma circom 2.1.3;
+pragma circom 2.1.6;
 
 include "./rotate.circom";  
 include "./xor4.circom";
@@ -61,7 +61,6 @@ template Sha1compression() {
         }
     }
 
-
     // Initialize five working variables
     for (k = 0; k < 32; k++) {
         a[0][k] <== hin[k];
@@ -72,7 +71,6 @@ template Sha1compression() {
     }
 
     for (t = 0; t <= 79; t++) {
-
         for (k = 0; k < 32; k++) {
             t_tmp[t].a[k] <== a[t][k];
             t_tmp[t].b[k] <== b[t][k];
@@ -92,12 +90,9 @@ template Sha1compression() {
             b[t + 1][k] <== a[t][k];            
             a[t + 1][k] <== t_tmp[t].out[k];
         }
-
-
     }
 
     for (k = 0; k < 32; k++) {
-
         fsum[0].in[0][k] <== hin[31 * 1 - k];
         fsum[0].in[1][k] <== a[80][31 - k];
         
@@ -112,7 +107,6 @@ template Sha1compression() {
         
         fsum[4].in[0][k] <== hin[31 * 5 - k + 4];
         fsum[4].in[1][k] <== e[80][31 - k];
-
     } 
 
     for (k=0; k<32; k++) {
@@ -122,5 +116,4 @@ template Sha1compression() {
         out[k + 32 * 3] <== fsum[3].out[k];
         out[k + 32 * 4] <== fsum[4].out[k];
     }
-
 }
