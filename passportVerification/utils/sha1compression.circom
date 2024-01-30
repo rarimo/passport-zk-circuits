@@ -6,7 +6,6 @@ include "./constants.circom";
 include "./t.circom";
 
 template Sha1compression() {
-
     signal input hin[160];
     signal input inp[512];
     signal output out[160];

@@ -65,5 +65,4 @@ template T(t) {
      for (k = 0; k < 32; k++) {
           out[k] <== sum_binary_modulo.out[31-k];
      }
-
 }
