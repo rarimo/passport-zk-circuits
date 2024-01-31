@@ -5,5 +5,6 @@
     "currDateDay"    : 25,
     "credValidYear"  : 25,
     "credValidMonth" : 1,
-    "credValidDay"   : 25
+    "credValidDay"   : 25,
+    "ageLowerbound"  : 18
 }

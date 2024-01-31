@@ -13,6 +13,8 @@ template PassportVerificationSHA1(N) {
     signal input credValidMonth;
     signal input credValidDay;
 
+    signal input ageLowerbound;
+
     signal input in[N];
     signal output out[3];
 
@@ -27,6 +29,8 @@ template PassportVerificationSHA1(N) {
     passportVerificationCore.credValidYear  <== credValidYear;
     passportVerificationCore.credValidMonth <== credValidMonth;
     passportVerificationCore.credValidDay   <== credValidDay;
+
+    passportVerificationCore.ageLowerbound  <== ageLowerbound;
 
     out[2] <== passportVerificationCore.out;
 
