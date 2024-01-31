@@ -22,24 +22,24 @@ template CommitmentHasher() {
 }
 
 // Verifies that commitment that corresponds to given secret and nullifier is included in the merkle tree of deposits
-template Vote(levels) {
-    signal input root;                 // public; MiMC hash for the tree
+template Vote(depth) {
+    signal input root;                 // public; Poseidon hash for the tree
     signal input nullifierHash;        // public; Poseidon Hash
     signal input vote;                 // public; not taking part in any computations; binds the vote to the proof
     signal input nullifier;            // private
     signal input secret;               // private
-    signal input pathElements[levels]; // private
-    signal input pathIndices[levels];  // private; 0 - left, 1 - right
+    signal input pathElements[depth]; // private
+    signal input pathIndices[depth];  // private; 0 - left, 1 - right
 
     component hasher = CommitmentHasher();
     hasher.nullifier <== nullifier;
     hasher.secret <== secret;
     hasher.nullifierHash === nullifierHash;
 
-    component tree = MerkleTreeVerifier(levels);
+    component tree = MerkleTreeVerifier(depth);
     tree.leaf <== hasher.commitment;
     tree.merkleRoot <== root;
-    for (var i = 0; i < levels; i++) {
+    for (var i = 0; i < depth; i++) {
         tree.merkleBranches[i] <== pathElements[i];
         tree.merkleOrder[i] <== pathIndices[i];
     }

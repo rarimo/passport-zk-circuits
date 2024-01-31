@@ -8,54 +8,76 @@ Install the `circomlib` package before running the circuits.
 npm install circomlib
 ```
 
-To compile circuit run
-```circom *name*.circom```
+**scripts** directory contains scripts to simplify interaction with circuits.
 
-With these options we generate three types of files:
+- ***compile-circuit*** - compiles circom circuit (receive *R1CS*, *WASM* & *CPP* for witness generation);  Usage: ```compile-circuit <circuit_name>```
+  
+- ***trusted-setup*** - *Powers-of-Tau* ceremony for trusted setup generation. Usage: ```trusted-setup <power>```
+  
+- ***export-keys*** - generates proving and verification keys. Do not forget to perform a trusted setup first. Usage: ```export-keys <circuit_name> <power>```
 
-`--r1cs`: it generates a file that contains the R1CS constraint system of the circuit in binary format.
+- ***gen-witness*** - generates witness. Can be done without a trusted setup. Do not forget to compile circuit first. Usage: ```gen-witness <circuit_name> <inputs>```
 
-`--wasm`: it generates a directory that contains the Wasm code (multiplier2.wasm) and other files needed to generate the witness.
+- ***prove*** - generates witness and proof. Do not forget to compile the circuit and export keys first. Usage: ```prove <circuit_name> <inputs>```
 
-`--sym` : it generates a symbols file required for debugging or for printing the constraint system in an annotated mode.
+- ***verify*** - verifies the proof. Usage: ```verify <circuit_name>```
 
-`--c` : it generates a directory that contains several files needed to compile the C code to generate the witness.
+## Circuits
 
-## Circuits Architecture
+### Voting circuits
 
-![CircuitsArchitectureImg](imgs/RedSunsetCircuits.png)
+Voting circuits are used to prove that the user has registered for the voting. Technically, it is used to prove that the user knows the preimage of the leaf in the Merkle Tree.
 
-`PhotoVerifier` component:
-    The component is responsible for verifying that the user has pass the verification of photo correspondency with some allowed provider. Providers use their key pair to sign a response in case of successful verification. Hashes of their public keys are used to construct a Merkle Tree and generate proofs of verification without disclosing data about photoes being used.
+The Merkle Tree is built upon participants registration. After proving that the user is eligible to vote, `commitment` is added to the tree.
 
-Input signals
+*commitment = Poseidon(nullifier, secret)*.
 
-`realPhotoHash` - Poseidon Hash of the real photo
+By using the knowledge of the commitment preimage and generating the corresponding proof, users can express their votes.
 
-`passPhotoHash` -  Poseidon Hash of the passport photo
+#### Circuit parameter
 
-`providerSignature[5]` - EdDSA signature of *Poseidon(realPhotoHash, passPhotoHash)*.
-Presented in the form ***[R8.X, R8.Y, A.X, A.Y, S]***
+**depth** - depth of a Merkle Tree used to prove leaf inclusion.
 
-`providerMerkleRoot` (public) - Merkle Root used to prove that data was verified by an eligble provider;
+#### Inputs
 
-`providerMerkleBranch[depth]` - Merke Branch (Inclusion Proof)
+- ***root***: *public*; Poseidon Hash is used for tree hashing;
 
-`providerMerkleOrder[depth]` - Order of leaves hashing 0 - left | 1 - right
+- ***nullifierHash***: *public*; Poseidon Hash is used for the *nullifier* hashing;
 
------------
-***merkleTree*** - used for inclusion proof verification. Utilizes *dualMux* & *hashLeftRight* components.
+- ***vote***: *public*; not taking part in any computations; binds the vote to the proof
 
-***dualMux*** - swaps elements if order is 1:
+- ***nullifier***: *private*
 
-- input: 2 signals [in[0], in[1]]
+- ***secret***: *private*
 
-- if order == 0 returns [in[0], in[1]]
+- ***pathElements[levels]***: *private*; Merkle Branch
 
-- if order == 1 returns [in[1], in[0]]
+- ***pathIndices[levels]***: *private*; `0` - left, `1` - right
 
-***hashLeftRight*** - hashes two input components:
+### Passport Verification circuits
 
-- input: 2 signals [in[0], in[1]]
+Passport Verification circuits are used to prove that user is eligible to vote. Currently following checks are made:
 
-- returns Poseidon(in[0], in[1])
+- Date of passport expiracy is less than the current date;
+
+- Current date is after date of birth + **18** years; (for now **18** years is a constant);
+
+- Passport issuer code is used as an output signal;
+
+### Circuit public inputs
+
+- **currentDateYear**
+
+- **currentDateMonth**
+
+- **currentDateDay**
+
+- **credValidYear**
+
+- **credValidMonth**
+
+- **credValidDay**
+
+Current date is needed to timestamp the date of proof generation. Circuit proves that at this date the user is eligible to vote (and will be eligible by the protocol rules at least till the credValid date).
+
+Passport is separated into *DataGroups*. Hashes of these datagroups is stored in **SOD** *(Security Object of the Document)*. All neccesary data is stored in *Data Group 1 (DG1)*. Currently **SHA1** and **SHA256** hashes are supported.
