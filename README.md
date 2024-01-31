@@ -78,6 +78,12 @@ Passport Verification circuits are used to prove that user is eligible to vote. 
 
 - **credValidDay**
 
-Current date is needed to timestamp the date of proof generation. Circuit proves that at this date the user is eligible to vote (and will be eligible by the protocol rules at least till the credValid date).
+- **ageLowerbound** - age limit for voting rights. The circuit verifies that the passport owner is older than *ageLowerbound* years at the *currentDate*.
 
-Passport is separated into *DataGroups*. Hashes of these datagroups is stored in **SOD** *(Security Object of the Document)*. All neccesary data is stored in *Data Group 1 (DG1)*. Currently **SHA1** and **SHA256** hashes are supported.
+### Circuits private inputs
+
+- **in** - passport **DG1** serialized in binary.
+
+The current date is needed to timestamp the date of proof generation. The circuit proves that at this date, the user is eligible to vote (and will be eligible by the protocol rules at least until the credValid date).
+
+Passport data is separated into *DataGroups*. The hashes of these datagroups are stored in **SOD** *(Security Object of the Document)*. All neccesary data is stored in *Data Group 1 (DG1)*. Currently, **SHA1** and **SHA256** hashes are supported.
