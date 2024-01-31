@@ -12,6 +12,8 @@ template PassportVerificationCore(N) {
     signal input credValidMonth;
     signal input credValidDay;
 
+    signal input ageLowerbound;
+
     signal input in[N];
     signal output out;
 
@@ -81,9 +83,7 @@ template PassportVerificationCore(N) {
 
     component isAdult = DateIsLess();
 
-    signal ADULT_YEARS <== 18; 
-
-    isAdult.firstYear  <== birthYear + ADULT_YEARS;
+    isAdult.firstYear  <== birthYear + ageLowerbound;
     isAdult.firstMonth <== birthMonth;
     isAdult.firstDay   <== birthDay;
 
