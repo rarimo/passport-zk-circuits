@@ -13,8 +13,9 @@ template CommitmentHasher() {
     component commitmentHasher = Poseidon(2);
     component nullifierHasher = Poseidon(1);
     
-    commitmentHasher.inputs[0] <== nullifier;
-    commitmentHasher.inputs[1] <== secret;
+    commitmentHasher.inputs[0] <== secret;
+    commitmentHasher.inputs[1] <== nullifier;
+    
     nullifierHasher.inputs[0] <== nullifier;
 
     commitment <== commitmentHasher.out;
@@ -28,16 +29,20 @@ template Vote(depth) {
     signal input vote;                 // public; not taking part in any computations; binds the vote to the proof
     signal input nullifier;            // private
     signal input secret;               // private
-    signal input pathElements[depth]; // private
-    signal input pathIndices[depth];  // private; 0 - left, 1 - right
+    signal input pathElements[depth];  // private
+    signal input pathIndices[depth];   // private; 0 - left, 1 - right
 
-    component hasher = CommitmentHasher();
-    hasher.nullifier <== nullifier;
-    hasher.secret <== secret;
-    hasher.nullifierHash === nullifierHash;
+    component commitmentHasher = CommitmentHasher();
+    commitmentHasher.nullifier <== nullifier;
+    commitmentHasher.secret <== secret;
+    commitmentHasher.nullifierHash === nullifierHash;
 
     component tree = MerkleTreeVerifier(depth);
-    tree.leaf <== hasher.commitment;
+
+    component leafHasher = Poseidon(1);
+
+    leafHasher.inputs[0] <== commitmentHasher.commitment;
+    tree.leaf <== leafHasher.out;
     tree.merkleRoot <== root;
     for (var i = 0; i < depth; i++) {
         tree.merkleBranches[i] <== pathElements[i];
