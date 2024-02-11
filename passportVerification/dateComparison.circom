@@ -25,7 +25,7 @@ template DateIsLess() {
     signal isMonthLess <== monthLess.out;
 
     component dayLess = LessThan(8);
-    dayLess.in[0] <== firstMonth;
+    dayLess.in[0] <== firstDay;
     dayLess.in[1] <== secondDay;
     signal isDayLess <== dayLess.out;
 
@@ -37,8 +37,8 @@ template DateIsLess() {
     signal isYearEqual <== yearEqual.out;
 
     component monthEqual = IsEqual();
-    monthEqual.in[0] <== firstYear;
-    monthEqual.in[1] <== secondYear;
+    monthEqual.in[0] <== firstMonth;
+    monthEqual.in[1] <== secondMonth;
     signal isMonthEqual <== monthEqual.out;
 
     // ----------
@@ -46,6 +46,10 @@ template DateIsLess() {
     signal isLess2 <== (isYearEqual * isMonthLess);
     signal temp    <== isYearEqual * isMonthEqual;
     signal isLess3 <== (temp * isDayLess);
-    
-    out <== isLess1 + isLess2 + isLess3;
+
+    component greaterThen = GreaterThan(3);
+    greaterThen.in[0] <== isLess1 + isLess2 + isLess3;
+    greaterThen.in[1] <== 0;
+
+    out <== greaterThen.out;
 }

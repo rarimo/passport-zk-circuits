@@ -2,6 +2,7 @@ pragma circom  2.1.6;
 
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "./dateComparison.circom";
+include "../node_modules/circomlib/circuits/comparators.circom";
 
 template PassportVerificationCore(N) {
     signal input currDateYear;
@@ -83,7 +84,16 @@ template PassportVerificationCore(N) {
 
     component isAdult = DateIsLess();
 
-    isAdult.firstYear  <== birthYear + ageLowerbound;
+    signal tempYear <== birthYear + ageLowerbound;
+
+    component lessEqThan = LessEqThan(8);
+
+    signal YEAR_LIMIT <== 100;
+
+    lessEqThan.in[0] <== YEAR_LIMIT;
+    lessEqThan.in[1] <== tempYear;
+
+    isAdult.firstYear  <== tempYear - lessEqThan.out * YEAR_LIMIT;
     isAdult.firstMonth <== birthMonth;
     isAdult.firstDay   <== birthDay;
 
@@ -105,6 +115,8 @@ template PassportVerificationCore(N) {
     isCredExpValid.secondYear  <== expYear;
     isCredExpValid.secondMonth <== expMonth;
     isCredExpValid.secondDay   <== expDay;
+
+    isCredExpValid.out === 1;
 
     // --------
     // OUT PASSPORT ISSUER CODE [56..80], 3*8 = 24 bits
