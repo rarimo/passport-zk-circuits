@@ -84,16 +84,15 @@ template PassportVerificationCore(N) {
 
     component isAdult = DateIsLess();
 
-    signal tempYear <== birthYear + ageLowerbound;
+    component prevCentury = LessThan(8);
+    prevCentury.in[0] <== currDateYear;
+    prevCentury.in[1] <== birthYear;
 
-    component lessEqThan = LessEqThan(8);
+    signal prevCenturyYear <== prevCentury.out * ageLowerbound;
+    signal allowedYear     <== birthYear + ageLowerbound;
+    signal currCenturyYear <== (prevCentury.out ^ 1) * allowedYear;
 
-    signal YEAR_LIMIT <== 100;
-
-    lessEqThan.in[0] <== YEAR_LIMIT;
-    lessEqThan.in[1] <== tempYear;
-
-    isAdult.firstYear  <== tempYear - lessEqThan.out * YEAR_LIMIT;
+    isAdult.firstYear  <== prevCenturyYear + currCenturyYear;
     isAdult.firstMonth <== birthMonth;
     isAdult.firstDay   <== birthDay;
 
