@@ -85,9 +85,9 @@ template PassportVerificationCore(N) {
     // The date year in a passport is stored with double digits (like "12")
     // To differ 19** and 20** we use normalization:
     // If year is less than currentYear, then we consider it 20**
-    // Example: birthYear = 14, currDateYear = 24 ==> currDateYearNormalized = 124
+    // Example: birthYear = 14, currDateYear = 24 ==> currDateYearNormalized = 24
     // Otherwise, we consider it 19**
-    // Example: birthYear = 79, currDateYear = 24 ==> currDateYearNormalized = 79
+    // Example: birthYear = 79, currDateYear = 24 ==> currDateYearNormalized = 124
 
     component isAdult = DateIsLess();
 
