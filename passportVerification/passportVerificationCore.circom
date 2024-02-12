@@ -82,22 +82,29 @@ template PassportVerificationCore(N) {
     // ---------
     // BIRTH_DATE + 18 < CURRENT DATE
 
+    // The date year in a passport is stored with double digits (like "12")
+    // To differ 19** and 20** we use normalization:
+    // If year is less than currentYear, then we consider it 20**
+    // Example: birthYear = 14, currDateYear = 24 ==> currDateYearNormalized = 24
+    // Otherwise, we consider it 19**
+    // Example: birthYear = 79, currDateYear = 24 ==> currDateYearNormalized = 124
+
     component isAdult = DateIsLess();
 
-    signal tempYear <== birthYear + ageLowerbound;
+    component isPrevCentury = LessThan(8);
 
-    component lessEqThan = LessEqThan(8);
+    signal CENTURY <== 100;
 
-    signal YEAR_LIMIT <== 100;
+    isPrevCentury.in[0] <== currDateYear;
+    isPrevCentury.in[1] <== birthYear;
 
-    lessEqThan.in[0] <== YEAR_LIMIT;
-    lessEqThan.in[1] <== tempYear;
+    signal currDateYearNormalized <== currDateYear + isPrevCentury.out * CENTURY;    
 
-    isAdult.firstYear  <== tempYear - lessEqThan.out * YEAR_LIMIT;
+    isAdult.firstYear  <== birthYear + ageLowerbound;
     isAdult.firstMonth <== birthMonth;
     isAdult.firstDay   <== birthDay;
 
-    isAdult.secondYear  <== currDateYear;
+    isAdult.secondYear  <== currDateYearNormalized;
     isAdult.secondMonth <== currDateMonth;
     isAdult.secondDay   <== currDateDay;
 
