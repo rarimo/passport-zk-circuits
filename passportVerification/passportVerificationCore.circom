@@ -84,9 +84,7 @@ template PassportVerificationCore(N) {
 
     component isAdult = DateIsLess();
 
-    signal tempYear <== birthYear + ageLowerbound;
-
-    component lessEqThan = LessEqThan(8);
+    component isPrevCentury = LessThan(8);
 
     // In a passport, the birth year is stored in the form of double digits (like "18").
     // If the birth year is less than the currDateYear, we consider:
@@ -96,16 +94,14 @@ template PassportVerificationCore(N) {
     // Otherwise birthYearFormat = 19**
     // example: birthYear = 34, birthbirthYearNormalized = 34
 
-    signal BIRTH_YEAR_LIMIT <== currDateYear;
     signal CENTURY <== 100;
 
-    lessEqThan.in[0] <== birthYear;
-    lessEqThan.in[1] <== BIRTH_YEAR_LIMIT;
+    isPrevCentury.in[0] <== birthYear;
+    isPrevCentury.in[1] <== currDateDay;
 
-    signal birthYearNormalized  <== birthYear + CENTURY * lessEqThan.out;
-    signal currDateYearNormalized <== currDateYear + CENTURY;
+    signal currDateYearNormalized <== currDateYear + CENTURY * isPrevCentury.out;
 
-    isAdult.firstYear  <== birthYearNormalized;
+    isAdult.firstYear  <== birthYear + ageLowerbound;
     isAdult.firstMonth <== birthMonth;
     isAdult.firstDay   <== birthDay;
 
