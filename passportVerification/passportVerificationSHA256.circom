@@ -60,5 +60,4 @@ component main {public [currDateDay,
                         credValidYear, 
                         credValidMonth, 
                         credValidDay,
-                        ageLowerbound]
-                        } = PassportVerificationSHA256(744);
+                        ageLowerbound]} = PassportVerificationSHA256(744);
