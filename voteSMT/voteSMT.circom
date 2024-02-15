@@ -127,7 +127,6 @@ template SMTVerifierLevel() {
 
 template SMTVerifier(nLevels) {
     signal input root;
-    signal input nullifierHash;
 
     signal input vote; // option voter has choosen -- not used in any computations
     signal input votingAddress; // address of the voting contract -- not used in any computations
@@ -137,7 +136,13 @@ template SMTVerifier(nLevels) {
 
     signal input siblings[nLevels];
 
+    signal output nullifierHash;
+
     var i;
+
+    component nullifierHasher = Poseidon(1);
+    nullifierHasher.inputs[0] <== nullifier;
+    nullifierHash <== nullifierHasher.out;
 
     component commitmentHasher = CommitmentHasher();
 
@@ -207,7 +212,6 @@ template SMTVerifier(nLevels) {
     signal votingAddressSquare <== votingAddress * votingAddress;
 }
 
-component main {public [root, 
-                        nullifierHash,
+component main {public [root,
                         vote,
                         votingAddress]} = SMTVerifier(80);
