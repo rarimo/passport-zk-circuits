@@ -12,18 +12,13 @@ template CommitmentHasher() {
     signal input nullifier;
 
     signal output commitment;
-    signal output nullifierHash;
 
     component commitmentHasher = Poseidon(2);
-    component nullifierHasher = Poseidon(1);
-
-    nullifierHasher.inputs[0] <== nullifier;
 
     commitmentHasher.inputs[0] <== secret;
     commitmentHasher.inputs[1] <== nullifier;
 
     commitment <== commitmentHasher.out;
-    nullifierHash <== nullifierHasher.out;
 }
 
 template SMTHash1() {
@@ -126,6 +121,8 @@ template SMTVerifierLevel() {
 }
 
 template SMTVerifier(nLevels) {
+    signal output nullifierHash;
+
     signal input root;
 
     signal input vote; // option voter has choosen -- not used in any computations
@@ -135,8 +132,6 @@ template SMTVerifier(nLevels) {
     signal input nullifier;
 
     signal input siblings[nLevels];
-
-    signal output nullifierHash;
 
     var i;
 
@@ -148,8 +143,6 @@ template SMTVerifier(nLevels) {
 
     commitmentHasher.secret <== secret;
     commitmentHasher.nullifier <== nullifier;
-
-    commitmentHasher.nullifierHash === nullifierHash;
 
     component leafHasher = Poseidon(1);
     leafHasher.inputs[0] <== commitmentHasher.commitment;
