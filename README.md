@@ -1,6 +1,6 @@
-# ZkCircuits
+# passport-zk-circuits
 
-Zero-Knowledge Proof Circuits for the Voting system using Circom
+Circuits for a voting system based on the passport scanning
 
 Install the `circomlib` package before running the circuits.
 
