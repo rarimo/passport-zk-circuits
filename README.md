@@ -87,3 +87,9 @@ Passport Verification circuits are used to prove that user is eligible to vote. 
 The current date is needed to timestamp the date of proof generation. The circuit proves that at this date, the user is eligible to vote (and will be eligible by the protocol rules at least until the credValid date).
 
 Passport data is separated into *DataGroups*. The hashes of these datagroups are stored in **SOD** *(Security Object of the Document)*. All neccesary data is stored in *Data Group 1 (DG1)*. Currently, **SHA1** and **SHA256** hashes are supported.
+
+### Testing
+
+To run tests enter ***tests*** directory and run:
+
+```mocha -p -r ts-node/register '../tests/passportTests.js'```
