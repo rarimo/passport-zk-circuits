@@ -18,24 +18,24 @@ template VoteSMT(treeDepth) {
     signal output nullifierHash; 
 
     // SMT inclusion verification
-    component _SMTVerifier = SMTVerifier(treeDepth);
+    component smtVerifier = SMTVerifier(treeDepth);
 
-    _SMTVerifier.root <== root;
-    _SMTVerifier.secret <== secret;
-    _SMTVerifier.nullifier <== nullifier;
+    smtVerifier.root <== root;
+    smtVerifier.secret <== secret;
+    smtVerifier.nullifier <== nullifier;
 
-    _SMTVerifier.siblings <== siblings;
+    smtVerifier.siblings <== siblings;
 
-    _SMTVerifier.isVerified === 1;
+    smtVerifier.isVerified === 1;
     
     // Setting the nullifierHash as an output to prevent double voting
-    nullifierHash <== _SMTVerifier.nullifierHash;
+    nullifierHash <== smtVerifier.nullifierHash;
     
     // Adding constraints on voting parameters
     // Squares are used to prevent optimizer from removing those constraints
     // The voting parameters are not used in any computation
-    // signal _vote <== vote * vote;
-    // signal _votingAddress <== votingAddress * votingAddress;
+    signal voteSquare <== vote * vote;
+    signal votingAddressSquare <== votingAddress * votingAddress;
 }
 
 component main {public [root,

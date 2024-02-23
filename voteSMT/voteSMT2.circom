@@ -19,41 +19,42 @@ template VoteSMT2(treeDepth) {
     signal output nullifierHash; 
 
     // SMT inclusion verification. 1st tree check
-    component _SMTVerifier_1 = SMTVerifier(treeDepth);
+    component smtVerifier1 = SMTVerifier(treeDepth);
 
-    _SMTVerifier_1.root <== root1;
-    _SMTVerifier_1.secret <== secret;
-    _SMTVerifier_1.nullifier <== nullifier;
+    smtVerifier1.root <== root1;
+    smtVerifier1.secret <== secret;
+    smtVerifier1.nullifier <== nullifier;
 
-    _SMTVerifier_1.siblings <== siblings;
+    smtVerifier1.siblings <== siblings;
 
     // SMT inclusion verification. 2nd tree check
-    component _SMTVerifier_2 = SMTVerifier(treeDepth);
+    component smtVerifier2 = SMTVerifier(treeDepth);
 
-    _SMTVerifier_2.root <== root2;
-    _SMTVerifier_2.secret <== secret;
-    _SMTVerifier_2.nullifier <== nullifier;
+    smtVerifier2.root <== root2;
+    smtVerifier2.secret <== secret;
+    smtVerifier2.nullifier <== nullifier;
 
-    _SMTVerifier_2.siblings <== siblings;
+    smtVerifier2.siblings <== siblings;
 
     // Check whether there is any successful inclusion in the provided tree roots
-    signal totalInclusion <== _SMTVerifier_1.isVerified + _SMTVerifier_2.isVerified;
+    signal totalInclusion <== smtVerifier1.isVerified + smtVerifier2.isVerified;
 
-    component isAnyVerified = LessThan(3);
-    
-    isAnyVerified.in[0] <== 0;
-    isAnyVerified.in[1] <== totalInclusion;
+    component isEqual = IsEqual();
 
-    isAnyVerified.out === 1;
+    isEqual.in[0] <== totalInclusion;
+    isEqual.in[1] <== 1;
+
+    // totalInclusion should be 1 if the commitment is included into one of the trees.
+    isEqual.out === 1;
     
     // Setting the nullifierHash as an output to prevent double voting
-    nullifierHash <== _SMTVerifier_1.nullifierHash;
+    nullifierHash <== smtVerifier1.nullifierHash;
     
     // Adding constraints on voting parameters
     // Squares are used to prevent optimizer from removing those constraints
     // The voting parameters are not used in any computation
-    signal _vote <== vote * vote;
-    signal _votingAddress <== votingAddress * votingAddress;
+    signal voteSquare <== vote * vote;
+    signal votingAddressSquare <== votingAddress * votingAddress;
 }
 
 component main {public [root1,
