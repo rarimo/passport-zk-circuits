@@ -40,4 +40,4 @@ template VoteSMT(treeDepth) {
 
 component main {public [root,
                         vote,
-                        votingAddress]} = VoteSMT(80);
+                        votingAddress]} = VoteSMT(20);
