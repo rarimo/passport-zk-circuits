@@ -47,6 +47,7 @@ template PassportVerificationSHA1(N) {
     }
 
     out[0] <== bits2NumHash.out;
+    out[1] <== 0;
 }
 
 component main {public [currDateDay, 
