@@ -1,7 +1,7 @@
 pragma circom  2.1.6;
 
 include "../node_modules/circomlib/circuits/bitify.circom";
-include "./passportVerificationCore.circom";
+include "./passportVerificationValidity.circom";
 include "./utils/sha1.circom";
 
 template PassportVerificationSHA1(N) {
@@ -18,21 +18,21 @@ template PassportVerificationSHA1(N) {
     signal input in[N];
     signal output out[3];
 
-    component passportVerificationCore = PassportVerificationCore(N);
+    component passportVerificationValidity = PassportVerificationValidity(N);
 
-    passportVerificationCore.in <== in;
+    passportVerificationValidity.in <== in;
 
-    passportVerificationCore.currDateYear   <== currDateYear;
-    passportVerificationCore.currDateMonth  <== currDateMonth;
-    passportVerificationCore.currDateDay    <== currDateDay;
+    passportVerificationValidity.currDateYear   <== currDateYear;
+    passportVerificationValidity.currDateMonth  <== currDateMonth;
+    passportVerificationValidity.currDateDay    <== currDateDay;
 
-    passportVerificationCore.credValidYear  <== credValidYear;
-    passportVerificationCore.credValidMonth <== credValidMonth;
-    passportVerificationCore.credValidDay   <== credValidDay;
+    passportVerificationValidity.credValidYear  <== credValidYear;
+    passportVerificationValidity.credValidMonth <== credValidMonth;
+    passportVerificationValidity.credValidDay   <== credValidDay;
 
-    passportVerificationCore.ageLowerbound  <== ageLowerbound;
+    passportVerificationValidity.ageLowerbound  <== ageLowerbound;
 
-    out[2] <== passportVerificationCore.out;
+    out[2] <== passportVerificationValidity.out;
 
     // -------
 
@@ -50,9 +50,9 @@ template PassportVerificationSHA1(N) {
     out[1] <== 0;
 }
 
-component main {public [currDateDay, 
+component main {public [currDateDay,
                         currDateMonth,
-                        currDateYear, 
+                        currDateYear,
                         credValidYear, 
                         credValidMonth, 
                         credValidDay,
