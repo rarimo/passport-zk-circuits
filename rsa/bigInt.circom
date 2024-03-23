@@ -4,7 +4,7 @@ include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/gates.circom";
 
-include "./bigint_func.circom";
+include "./bigIntFunc.circom";
 
 // addition mod 2**n with carry bit
 template ModSum(n) {
