@@ -13,9 +13,9 @@ template PassportHashVerifier() {
 
     // signedAttributes passport hash == encapsulatedContent hash
 
-    // for (var i = 0; i < 256; i++) {
-    //     encapsulatedContentHasher.out[i] === signedAttributes[592-255+i];
-    // }
+    for (var i = 0; i < 256; i++) {
+        encapsulatedContentHasher.out[i] === signedAttributes[592-256+i];
+    }
 
 }
 
