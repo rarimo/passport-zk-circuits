@@ -13,6 +13,15 @@ template PassportVerificationSHA1(N) {
     signal input credValidMonth;
     signal input credValidDay;
 
+    signal input currDateYear;
+    signal input currDateMonth;
+    signal input currDateDay;
+
+    signal input credValidYear;
+    signal input credValidMonth;
+    signal input credValidDay;
+
+
     signal input ageLowerbound;
 
     signal input in[N];
