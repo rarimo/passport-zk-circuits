@@ -4,7 +4,7 @@ include "../node_modules/circomlib/circuits/bitify.circom";
 include "./dateComparison.circom";
 include "../node_modules/circomlib/circuits/comparators.circom";
 
-template PassportVerificationCore(N) {
+template PassportVerificationValidity(N) {
     signal input currDateYear;
     signal input currDateMonth;
     signal input currDateDay;
