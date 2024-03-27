@@ -6,10 +6,11 @@ include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../rsa/rsa.circom";
 include "../merkleTree/merkleTree.circom";
 
-template PassportHashVerifier(w, nb, e_bits, hashLen, dg1DigestLen, depth) {
-    signal input encapsulatedContent[2688];
-    signal input dg1Digest[dg1DigestLen];
-    signal input signedAttributes[592];
+template PassportVerificationHash(w, nb, e_bits, hashLen, depth) {
+    signal input encapsulatedContent[2688]; // 2688 bits
+    signal input dg1[744];                  // 744 bits
+    signal input dg15[1320];                // 1320 bits
+    signal input signedAttributes[592];     // 592 bits
     signal input exp[nb];
     signal input sign[nb];
     signal input modulus[nb];
@@ -17,10 +18,30 @@ template PassportHashVerifier(w, nb, e_bits, hashLen, dg1DigestLen, depth) {
     signal input icaoMerkleInclusionBranches[depth];
     signal input icaoMerkleInclusionOrder[depth];
 
-    // Check DG1 hash inclusion
+    // Hash DG1 -> SHA256
+    component dg1Hasher = Sha256(744);
+    
+    for (var i = 0; i < 744; i++) {
+        dg1Hasher.in[i] <== dg1[i];
+    }
+
+    // Hash DG15 -> SHA256
+    component dg15Hasher = Sha256(1320);
+
+    for (var i = 0; i < 1320; i++) {
+        dg15Hasher.in[i] <== dg15[i];
+    }
+
+    // Check DG1 hash inclusion into encapsulatedContent
     var DG1_SHIFT = 248;
-    for (var i = 0; i < dg1DigestLen; i++) {
-        encapsulatedContent[DG1_SHIFT + i] === dg1Digest[i];
+    for (var i = 0; i < hashLen * nb; i++) {
+        encapsulatedContent[DG1_SHIFT + i] === dg1Hasher.out[i];
+    }
+
+    // Check DG15 hash inclusion into encapsulatedContent
+    var DG15_SHIFT = 2432;
+    for (var i = 0; i < hashLen * nb; i++) {
+        encapsulatedContent[DG15_SHIFT + i] === dg15Hasher.out[i];
     }
     
     // Hash encupsulated content
@@ -110,4 +131,4 @@ template PassportHashVerifier(w, nb, e_bits, hashLen, dg1DigestLen, depth) {
     // signal rsaPubKeyHash <== rsaPubKeyHasher.out;
 }
 
-component main = PassportHashVerifier(64, 64, 17, 4, 256, 3);
+component main = PassportVerificationHash(64, 64, 17, 4, 3, 3);
