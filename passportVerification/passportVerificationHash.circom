@@ -76,59 +76,27 @@ template PassportVerificationHash(w, nb, e_bits, hashLen, depth) {
 
     rsaVerifier.hashed <== signedAttributesHashChunks;
 
-    component pubKeyHasher = Poseidon(16);
+    component pubKeyHasher[4];
 
-    for (var i = 0; i < 16; i++) {
-        pubKeyHasher.inputs[i] <== modulus[i];
+    for (var j = 0; j < 4; j++) {
+        pubKeyHasher[j] = Poseidon(16);
+        for (var i = 0; i < 16; i++) {
+            pubKeyHasher[j].inputs[i] <== modulus[j * 16 + i];
+        }
+    }
+
+    component pubKeyHasherTotal = Poseidon(4);
+
+    for (var j = 0; j < 4; j++) {
+        pubKeyHasherTotal.inputs[j] <== pubKeyHasher[j].out;
     }
 
     component merkleTreeVerifier = MerkleTreeVerifier(depth);
     
-    merkleTreeVerifier.leaf <== pubKeyHasher.out;
+    merkleTreeVerifier.leaf <== pubKeyHasherTotal.out;
     merkleTreeVerifier.merkleRoot <== icaoMerkleRoot;
     merkleTreeVerifier.merkleBranches <== icaoMerkleInclusionBranches;
     merkleTreeVerifier.merkleOrder <== icaoMerkleInclusionOrder;
-
-    // TODO: improve key packing to include more bits. Current hashed bits = 16 * 64 = 1024.
-    // var numberBlocks = (nb + 2) \ 3;
-    // var BLOCK_SIZE = 3;
-    // component rsaPubKeyHasher[nb];
-    // signal totalHash;
-    // signal lastValue;
-
-
-    // for (var i = 0; i < nb; i++) {
-    //     // var currentIndex = i * 3;
-
-    //     if (i == 0) {
-    //         rsaPubKeyHasher[i] = Poseidon(1);
-    //         rsaPubKeyHasher.inputs[0] <== modulus[i];
-    //     } else {
-    //         rsaPubKeyHasher[i] = Poseidon(2);
-    //         rsaPubKeyHasher[i].inputs[0] <== rsaPubKeyHasher[i-1].out;
-    //         rsaPubKeyHasher[i].inputs[1] <== modulus[i];
-    //         // rsaPubKeyHasher[i].in[1] <== modulus[currentIndex] + modulus[currentIndex] * 2**64 + modulus[currentIndex] * 2**128;
-    //         // currentHash[i] <== rsaPubKeyHasher[i].out;
-    //     } 
-    //     // else {
-        //     var residualBlocks = nb - (numberBlocks - 1) * BLOCK_SIZE;
-
-        //     if (residualBlocks == 1) {
-        //         lastValue <== modulus[currentIndex];
-        //     } else if (residualBlocks == 2) {
-        //         lastValue <== modulus[currentIndex] + modulus[currentIndex] * 2**64;
-        //     } else {
-        //         lastValue <== modulus[currentIndex] + modulus[currentIndex] * 2**64 + modulus[currentIndex] * 2**128;
-        //     }
-        //     rsaPubKeyHasher[i].in[0] <== currentHash[i - 1];
-        //     rsaPubKeyHasher[i].in[1] <== lastValue;
-            
-        //     currentHash[i] <== rsaPubKeyHasher[i].out;
-        // }
-        // rsaPubKeyHasher.input[i] <== modulus[currentIndex] + modulus[currentIndex] * 2**64 + modulus[currentIndex] * 2**128;
-    // }
-
-    // signal rsaPubKeyHash <== rsaPubKeyHasher.out;
 }
 
-component main = PassportVerificationHash(64, 64, 17, 4, 3, 3);
+component main = PassportVerificationHash(64, 64, 17, 4, 3);
