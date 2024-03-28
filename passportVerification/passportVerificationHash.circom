@@ -98,5 +98,3 @@ template PassportVerificationHash(w, nb, e_bits, hashLen, depth) {
     merkleTreeVerifier.merkleBranches <== icaoMerkleInclusionBranches;
     merkleTreeVerifier.merkleOrder <== icaoMerkleInclusionOrder;
 }
-
-component main = PassportVerificationHash(64, 64, 17, 4, 3);
