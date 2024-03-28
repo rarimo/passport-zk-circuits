@@ -16,6 +16,7 @@ template PassportVerificationHash(w, nb, e_bits, hashLen, depth) {
     var DG1_DIGEST_POSITION_SHIFT = 248;
     var DG15_DIGEST_POSITION_SHIFT = 2432;
     var HASH_BITS = nb * hasLen; // 64 * 4 = 256 (SHA256)
+    // ------------------
 
     // input signals
     signal input encapsulatedContent[ENCAPSULATED_CONTENT_SIZE];

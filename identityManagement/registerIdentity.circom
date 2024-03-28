@@ -34,16 +34,18 @@ template RegisterIdentity(w, nb, e_bits, hashLen, depth) {
     var DG15_PK_SHIFT = 248; // shift in ASN1 encoded content to pk value
 
     // 1024 bit RSA key is splitted into | 200 bit | 200 bit | 200 bit | 200 bit | 224 bit |
+    var CHUNK_SIZE = 200;
+    var LAST_CHUNK_SIZE = 224;
     for (var j = 0; j < 4; j++) {
-        dg15Chunking[j] = Bits2Num(200);
-        for (var i = 0; i < 200; i++) {
-            dg15Chunking[j].in[i] <== dg15[DG15_PK_SHIFT + j * 200 + i];
+        dg15Chunking[j] = Bits2Num(CHUNK_SIZE);
+        for (var i = 0; i < CHUNK_SIZE; i++) {
+            dg15Chunking[j].in[i] <== dg15[DG15_PK_SHIFT + j * CHUNK_SIZE + i];
         }
     }
 
-    dg15Chunking[4] = Bits2Num(224);
-    for (var i = 0; i < 224; i++) {
-        dg15Chunking[4].in[i] <== dg15[DG15_PK_SHIFT + 4 * 200 + i];
+    dg15Chunking[4] = Bits2Num(LAST_CHUNK_SIZE);
+    for (var i = 0; i < LAST_CHUNK_SIZE; i++) {
+        dg15Chunking[4].in[i] <== dg15[DG15_PK_SHIFT + 4 * CHUNK_SIZE + i];
     }
 
     // Poseidon5 is applied on chunks
