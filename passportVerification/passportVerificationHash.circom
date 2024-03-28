@@ -6,56 +6,68 @@ include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../rsa/rsa.circom";
 include "../merkleTree/merkleTree.circom";
 
+// Default (64, 64, 17, 4, 20)
 template PassportVerificationHash(w, nb, e_bits, hashLen, depth) {
-    signal input encapsulatedContent[2688]; // 2688 bits
-    signal input dg1[744];                  // 744 bits
-    signal input dg15[1320];                // 1320 bits
-    signal input signedAttributes[592];     // 592 bits
+    // *magic numbers* list
+    var DG1_SIZE = 744;                   // bits
+    var DG15_SIZE = 1320;
+    var SIGNED_ATTRIBUTES_SIZE = 592;
+    var ENCAPSULATED_CONTENT_SIZE = 2688;
+    var DG1_DIGEST_POSITION_SHIFT = 248;
+    var DG15_DIGEST_POSITION_SHIFT = 2432;
+    var HASH_BITS = nb * hasLen; // 64 * 4 = 256 (SHA256)
+
+    // input signals
+    signal input encapsulatedContent[ENCAPSULATED_CONTENT_SIZE];
+    signal input dg1[DG1_SIZE];
+    signal input dg15[DG15_SIZE];
+    signal input signedAttributes[SIGNED_ATTRIBUTES_SIZE];
     signal input exp[nb];
     signal input sign[nb];
     signal input modulus[nb];
     signal input icaoMerkleRoot;
     signal input icaoMerkleInclusionBranches[depth];
     signal input icaoMerkleInclusionOrder[depth];
+    // -------
 
     // Hash DG1 -> SHA256
-    component dg1Hasher = Sha256(744);
+    component dg1Hasher = Sha256(DG1_SIZE);
     
-    for (var i = 0; i < 744; i++) {
+    for (var i = 0; i < DG1_SIZE; i++) {
         dg1Hasher.in[i] <== dg1[i];
     }
 
     // Hash DG15 -> SHA256
-    component dg15Hasher = Sha256(1320);
+    component dg15Hasher = Sha256(DG15_SIZE);
 
-    for (var i = 0; i < 1320; i++) {
+    for (var i = 0; i < DG15_SIZE; i++) {
         dg15Hasher.in[i] <== dg15[i];
     }
 
     // Check DG1 hash inclusion into encapsulatedContent
-    var DG1_SHIFT = 248;
+    
     for (var i = 0; i < hashLen * nb; i++) {
-        encapsulatedContent[DG1_SHIFT + i] === dg1Hasher.out[i];
+        encapsulatedContent[DG1_DIGEST_POSITION_SHIFT + i] === dg1Hasher.out[i];
     }
 
     // Check DG15 hash inclusion into encapsulatedContent
-    var DG15_SHIFT = 2432;
+    
     for (var i = 0; i < hashLen * nb; i++) {
-        encapsulatedContent[DG15_SHIFT + i] === dg15Hasher.out[i];
+        encapsulatedContent[DG15_DIGEST_POSITION_SHIFT + i] === dg15Hasher.out[i];
     }
     
     // Hash encupsulated content
-    component encapsulatedContentHasher = Sha256(2688);
+    component encapsulatedContentHasher = Sha256(ENCAPSULATED_CONTENT_SIZE);
     encapsulatedContentHasher.in <== encapsulatedContent;
 
     // signedAttributes passport hash == encapsulatedContent hash
 
-    for (var i = 0; i < 256; i++) {
-        encapsulatedContentHasher.out[i] === signedAttributes[592-256+i];
+    for (var i = 0; i < HASH_BITS; i++) {
+        encapsulatedContentHasher.out[i] === signedAttributes[SIGNED_ATTRIBUTES_SIZE-HASH_BITS+i];
     }
 
     // Hashing signedAttributes
-    component signedAttributesHasher = Sha256(592);
+    component signedAttributesHasher = Sha256(SIGNED_ATTRIBUTES_SIZE);
     signedAttributesHasher.in <== signedAttributes;
 
     component rsaVerifier = RsaVerifyPkcs1v15(w, nb, e_bits, hashLen);
