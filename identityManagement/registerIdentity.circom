@@ -55,4 +55,4 @@ template RegisterIdentity(w, nb, e_bits, hashLen, depth) {
     dg15PubKeyHash <== dg15Hasher.out;
 }
 
-component main = RegisterIdentity(64, 64, 17, 4, 3);
+component main = RegisterIdentity(64, 64, 17, 4, 20);
