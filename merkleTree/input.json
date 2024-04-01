@@ -1,6 +1,6 @@
 {
-    "leaf" : 1,
-    "merkleRoot" : "217234377348884654691879377518794323857294947151490278790710809376325639809",
-    "merkleBranches" : [1],
-    "merkleOrder" : [0]
+    "leaf" : "0x23abdbe688429f40ca7976a2c01673a237725bc7fa4c7dd9250d9b58bd7b30e8",
+    "merkleRoot" : "0x2352c0dd9ac2b17f30891f86803f16fdeb859c7eb104b53a15e3542285ea63be",
+    "merkleBranches" : ["0x0cb97a1a1b80a727f431ccdef3ebc14af31d29331f0099808b3b84c4395e3feb", "0x0c9adeab1a09bfe58f4505f55ae85f07d9a87c1abc4a478f1c6f0b1617cec2f3", "0x1c3d91a52a271cc98acf5596f00a57d3986805e70ff2e9251d6f3aa55da34545"],
+    "merkleOrder" : [1, 0, 0]
 }
