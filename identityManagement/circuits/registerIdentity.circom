@@ -4,11 +4,6 @@ include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../passportVerification/passportVerificationHash.circom";
 include "../../node_modules/circomlib/circuits/babyjub.circom";
 
-// pub signals:
-// [0]  -  dg15PubKeyHash
-// [1]  -  dg1Commitment
-// [2]  -  pkIdentityHash
-// [3]  -  icaoMerkleRoot
 template RegisterIdentity(w, nb, e_bits, hashLen, depth) {
     signal output dg15PubKeyHash;
     signal output dg1Commitment;
