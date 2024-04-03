@@ -35,7 +35,7 @@ template RegisterIdentity(w, nb, e_bits, hashLen, depth) {
     passportVerifier.icaoMerkleInclusionOrder <== icaoMerkleInclusionOrder;
 
     component dg15Chunking[5];
-    var DG15_PK_SHIFT = 248; // shift in ASN1 encoded content to pk value
+    var DG15_PK_SHIFT = 256; // shift in ASN1 encoded content to pk value
 
     // 1024 bit RSA key is splitted into | 200 bit | 200 bit | 200 bit | 200 bit | 224 bit |
     var CHUNK_SIZE = 200;
@@ -43,13 +43,13 @@ template RegisterIdentity(w, nb, e_bits, hashLen, depth) {
     for (var j = 0; j < 4; j++) {
         dg15Chunking[j] = Bits2Num(CHUNK_SIZE);
         for (var i = 0; i < CHUNK_SIZE; i++) {
-            dg15Chunking[j].in[i] <== dg15[DG15_PK_SHIFT + j * CHUNK_SIZE + i];
+            dg15Chunking[j].in[CHUNK_SIZE - 1 - i] <== dg15[DG15_PK_SHIFT + j * CHUNK_SIZE + i];
         }
     }
 
     dg15Chunking[4] = Bits2Num(LAST_CHUNK_SIZE);
     for (var i = 0; i < LAST_CHUNK_SIZE; i++) {
-        dg15Chunking[4].in[i] <== dg15[DG15_PK_SHIFT + 4 * CHUNK_SIZE + i];
+        dg15Chunking[4].in[LAST_CHUNK_SIZE - 1 - i] <== dg15[DG15_PK_SHIFT + 4 * CHUNK_SIZE + i];
     }
 
     // Poseidon5 is applied on chunks
