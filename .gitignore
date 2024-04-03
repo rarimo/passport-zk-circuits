@@ -12,3 +12,5 @@ node_modules
 build
 *.dev
 passportVerification/input.json
+input*.json
+*.dev.zip
