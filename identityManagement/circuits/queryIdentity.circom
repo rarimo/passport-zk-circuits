@@ -3,8 +3,9 @@ pragma circom  2.1.6;
 include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "dg1DataExtractor.circom";
+include "identityStateVerifier.circom";
 
-template QueryIdentity() {
+template QueryIdentity(idTreeDepth) {
     signal output nullifier;    // Poseidon3(sk_i, Poseidon1(sk_i), eventID)
 
     signal output birthDate;
@@ -18,13 +19,18 @@ template QueryIdentity() {
     
     // public signals
     signal input eventID;       // challenge
-    signal input idMerkleRoot;  // identity state Merkle root
+    signal input idStateRoot;  // identity state Merkle root
     signal input selector;      //  blinds personal data
+    signal input timestampLowerbound;  // identity is issued in this time range
+    signal input timestampUpperbound;  // timestamp E [timestampLowerBound, timestampUpperBound)
 
     // private signals
     signal input skIdentity;
-    signal input pkPassport;
+    signal input pkPassportHash;
     signal input dg1[744];      // 744 bits
+    signal input idStateSiblings[80];  // identity tree inclusion proof
+    signal input timestamp;
+    signal input identityCounter;
 
     // selector decoding
     component selectorBits = Num2Bits(12);
@@ -39,6 +45,9 @@ template QueryIdentity() {
     // 5 - citizenship
     // 6 - sex
     // 7 - document number
+    // 8 - verify timestamp lowerbound
+    // 9 - verify timestamp upperbound
+    // 10 - verify 
 
     // Nullifier calculation
     component skIdentityHasher = Poseidon(1);
@@ -52,7 +61,6 @@ template QueryIdentity() {
     nullifier <== nulliferHasher.out * selectorBits.out[0];
 
     // Passport data decoding
-
     component dg1DataExtractor = DG1DataExtractor();
     dg1DataExtractor.dg1 <== dg1;
 
@@ -64,4 +72,15 @@ template QueryIdentity() {
     citizenship <== dg1DataExtractor.citizenship * selectorBits.out[5];
     sex <== dg1DataExtractor.sex * selectorBits.out[6];
     documentNumber <== dg1DataExtractor.documentNumber * selectorBits.out[7];
+
+    // Verify identity ownership
+    component identityStateVerifier = IdentityStateVerifier(idTreeDepth);
+    identityStateVerifier.skIdentity <== skIdentity;
+    identityStateVerifier.pkPassHash <== pkPassportHash;
+    identityStateVerifier.dgCommit <== pkPassportHash;    // change to dgCommit
+    identityStateVerifier.identityCounter <== identityCounter;
+    identityStateVerifier.timestamp <== timestamp;
+
+    identityStateVerifier.idStateRoot <== idStateRoot;
+    identityStateVerifier.idStateSiblings <== idStateSiblings;
 }
