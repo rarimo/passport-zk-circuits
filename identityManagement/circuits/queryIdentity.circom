@@ -23,6 +23,8 @@ template QueryIdentity(idTreeDepth) {
     signal input selector;      //  blinds personal data
     signal input timestampLowerbound;  // identity is issued in this time range
     signal input timestampUpperbound;  // timestamp E [timestampLowerBound, timestampUpperBound)
+    signal input identityCounterLowerbound;
+    signal input identityCounterUpperbound;
 
     // private signals
     signal input skIdentity;
@@ -61,26 +63,49 @@ template QueryIdentity(idTreeDepth) {
 
     nullifier <== nulliferHasher.out * selectorBits.out[0];
 
+    // --------------------------
     // Timestamp lowerbound check
-    component greaterEqThanLower = GreaterEqThan(64); // compare up to 2**64
-    greaterEqThanLower.in[0] <== timestamp;
-    greaterEqThanLower.in[1] <== timestampLowerbound;
+    component greaterEqThanLowerTime = GreaterEqThan(64); // compare up to 2**64
+    greaterEqThanLowerTime.in[0] <== timestamp;
+    greaterEqThanLowerTime.in[1] <== timestampLowerbound;
     
     component timestampLowerboundCheck = ForceEqualIfEnabled();
-    timestampLowerboundCheck.in[0] <== greaterEqThanLower.out;
+    timestampLowerboundCheck.in[0] <== greaterEqThanLowerTime.out;
     timestampLowerboundCheck.in[1] <== 1;
     timestampLowerboundCheck.enabled <== selectorBits.out[8];
 
     // Timestamp upperbound check
-    component lessThanUpper = LessThan(64); // compare up to 2**64
-    lessThanUpper.in[0] <== timestamp;
-    lessThanUpper.in[1] <== timestampUpperbound;
+    component lessThanUpperTime = LessThan(64); // compare up to 2**64
+    lessThanUpperTime.in[0] <== timestamp;
+    lessThanUpperTime.in[1] <== timestampUpperbound;
 
     component timestampUpperboundCheck = ForceEqualIfEnabled();
-    timestampUpperboundCheck.in[0] <== lessThanUpper.out;
+    timestampUpperboundCheck.in[0] <== lessThanUpperTime.out;
     timestampUpperboundCheck.in[1] <== 1;
     timestampUpperboundCheck.enabled <== selectorBits.out[9];
-    
+
+    //---------------------------------
+    // Identity counter lowerbound check
+    component greaterEqThanIdentity = GreaterEqThan(64);
+    greaterEqThanIdentity.in[0] <== identityCounter;
+    greaterEqThanIdentity.in[1] <== identityCounterLowerbound;
+
+    component identityCounterLowerCheck = ForceEqualIfEnabled();
+    identityCounterLowerCheck.in[0] <== greaterEqThanLowerTime.out;
+    identityCounterLowerCheck.in[1] <== 1;
+    identityCounterLowerCheck.enabled <== selectorBits.out[10];
+
+    // Identity counter upperbound
+    component lessThanIdentity = LessThan(64);
+    lessThanIdentity.in[0] <== identityCounter;
+    lessThanIdentity.in[1] <== identityCounterUpperbound;
+
+    component identityCounterUpperCheck = ForceEqualIfEnabled();
+    identityCounterUpperCheck.in[0] <== lessThanIdentity.out;
+    identityCounterUpperCheck.in[1] <== 1;
+    identityCounterUpperCheck.enabled <== selectorBits.out[11];
+
+    // ----------------------
     // Passport data decoding
     component dg1DataExtractor = DG1DataExtractor();
     dg1DataExtractor.dg1 <== dg1;
