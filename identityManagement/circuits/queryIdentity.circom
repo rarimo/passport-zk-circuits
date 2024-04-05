@@ -45,9 +45,10 @@ template QueryIdentity(idTreeDepth) {
     // 5 - citizenship
     // 6 - sex
     // 7 - document number
-    // 8 - verify timestamp lowerbound
-    // 9 - verify timestamp upperbound
-    // 10 - verify 
+    // 8 - timestamp lowerbound
+    // 9 - timestamp upperbound
+    // 10 - identity counter lowerbound
+    // 11 - identity counter upperbound
 
     // Nullifier calculation
     component skIdentityHasher = Poseidon(1);
@@ -60,6 +61,26 @@ template QueryIdentity(idTreeDepth) {
 
     nullifier <== nulliferHasher.out * selectorBits.out[0];
 
+    // Timestamp lowerbound check
+    component greaterEqThanLower = GreaterEqThan(64); // compare up to 2**64
+    greaterEqThanLower.in[0] <== timestamp;
+    greaterEqThanLower.in[1] <== timestampLowerbound;
+    
+    component timestampLowerboundCheck = ForceEqualIfEnabled();
+    timestampLowerboundCheck.in[0] <== greaterEqThanLower.out;
+    timestampLowerboundCheck.in[1] <== 1;
+    timestampLowerboundCheck.enabled <== selectorBits.out[8];
+
+    // Timestamp upperbound check
+    component lessThanUpper = LessThan(64); // compare up to 2**64
+    lessThanUpper.in[0] <== timestamp;
+    lessThanUpper.in[1] <== timestampUpperbound;
+
+    component timestampUpperboundCheck = ForceEqualIfEnabled();
+    timestampUpperboundCheck.in[0] <== lessThanUpper.out;
+    timestampUpperboundCheck.in[1] <== 1;
+    timestampUpperboundCheck.enabled <== selectorBits.out[9];
+    
     // Passport data decoding
     component dg1DataExtractor = DG1DataExtractor();
     dg1DataExtractor.dg1 <== dg1;
@@ -73,11 +94,26 @@ template QueryIdentity(idTreeDepth) {
     sex <== dg1DataExtractor.sex * selectorBits.out[6];
     documentNumber <== dg1DataExtractor.documentNumber * selectorBits.out[7];
 
+    // Retrieve DGCommit: DG1 hash 744 bits => 4 * 186
+    component dg1Chunking[4];
+    component dg1Hasher = Poseidon(5);
+    for (var i = 0; i < 4; i++) {
+        dg1Chunking[i] = Bits2Num(186);
+        for (var j = 0; j < 186; j++) {
+            dg1Chunking[i].in[j] <== dg1[i * 186 + j]; 
+        }
+        dg1Hasher.inputs[i] <== dg1Chunking[i].out;
+    }
+
+    component skIndentityHasher = Poseidon(1);   //skData = Poseidon(skIdentity)
+    skIndentityHasher.inputs[0] <== skIdentity;
+    dg1Hasher.inputs[4] <== skIndentityHasher.out;
+
     // Verify identity ownership
     component identityStateVerifier = IdentityStateVerifier(idTreeDepth);
     identityStateVerifier.skIdentity <== skIdentity;
     identityStateVerifier.pkPassHash <== pkPassportHash;
-    identityStateVerifier.dgCommit <== pkPassportHash;    // change to dgCommit
+    identityStateVerifier.dgCommit <== dg1Hasher.out;    // change to dgCommit
     identityStateVerifier.identityCounter <== identityCounter;
     identityStateVerifier.timestamp <== timestamp;
 
