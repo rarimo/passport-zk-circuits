@@ -34,6 +34,7 @@ template IdentityStateVerifier(idTreeDepth) {
     // Identity tree value
     component valueHasher = Poseidon(3);
     valueHasher.inputs[0] <== dgCommit;
+    log(dgCommit);
     valueHasher.inputs[1] <== identityCounter;
     valueHasher.inputs[2] <== timestamp;
 
@@ -46,5 +47,5 @@ template IdentityStateVerifier(idTreeDepth) {
     smtVerifier.leaf <== valueHasher.out; // todo: add timestamp & identityCnt
     smtVerifier.siblings <== idStateSiblings;
     
-    // smtVerifier.isVerified === 1; // TODO: fix
+    smtVerifier.isVerified === 1; // TODO: fix
 }

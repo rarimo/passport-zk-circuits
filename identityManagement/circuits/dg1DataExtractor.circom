@@ -19,7 +19,7 @@ template DG1DataExtractor() {
 
     signal input dg1[744];
 
-     // BIRTH DATE
+    // BIRTH DATE
     var BIRTH_DATE_SIZE  = 48;
     var BIRTH_DATE_SHIFT = 496;
     component birthDateEncoder = Bits2Num(BIRTH_DATE_SIZE);

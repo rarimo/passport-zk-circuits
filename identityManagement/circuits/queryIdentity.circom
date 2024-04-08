@@ -19,7 +19,8 @@ template QueryIdentity(idTreeDepth) {
     
     // public signals
     signal input eventID;       // challenge
-    signal input idStateRoot;  // identity state Merkle root
+    signal input eventData;     // event data binded to the proof; not involved in comp
+    signal input idStateRoot;   // identity state Merkle root
     signal input selector;      //  blinds personal data
     signal input timestampLowerbound;  // identity is issued in this time range
     signal input timestampUpperbound;  // timestamp E [timestampLowerBound, timestampUpperBound)
@@ -134,11 +135,14 @@ template QueryIdentity(idTreeDepth) {
     skIndentityHasher.inputs[0] <== skIdentity;
     dg1Hasher.inputs[4] <== skIndentityHasher.out;
 
+    // Bind event data
+    signal eventDataSquare <== eventData * eventData;
+
     // Verify identity ownership
     component identityStateVerifier = IdentityStateVerifier(idTreeDepth);
     identityStateVerifier.skIdentity <== skIdentity;
     identityStateVerifier.pkPassHash <== pkPassportHash;
-    identityStateVerifier.dgCommit <== dg1Hasher.out;    // change to dgCommit
+    identityStateVerifier.dgCommit <== dg1Hasher.out;
     identityStateVerifier.identityCounter <== identityCounter;
     identityStateVerifier.timestamp <== timestamp;
 
