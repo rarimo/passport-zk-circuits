@@ -27,21 +27,16 @@ template IdentityStateVerifier(idTreeDepth) {
     component positionHasher = Poseidon(2);
     positionHasher.inputs[0] <== pkPassHash;
     positionHasher.inputs[1] <== pkIdentityHasher.out;
-    log(pkPassHash);
-    log(pkIdentityHasher.out);
     signal treePosition <== positionHasher.out;
 
     // Identity tree value
     component valueHasher = Poseidon(3);
     valueHasher.inputs[0] <== dgCommit;
-    log(dgCommit);
     valueHasher.inputs[1] <== identityCounter;
     valueHasher.inputs[2] <== timestamp;
 
     // Verify identity tree
     component smtVerifier = SMTVerifier(idTreeDepth);
-    log(valueHasher.out);
-    log(treePosition);
     smtVerifier.key <== treePosition;
     smtVerifier.root <== idStateRoot;
     smtVerifier.leaf <== valueHasher.out; // todo: add timestamp & identityCnt
