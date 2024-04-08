@@ -113,16 +113,14 @@ template SMTVerifier(nLevels) {
 
     signal input leaf;
 
+    signal input key;
+
     signal input siblings[nLevels];
 
     signal output isVerified;
 
     var i;
 
-    component leafHasher = Poseidon(1);
-    leafHasher.inputs[0] <== leaf;
-
-    signal key <== leafHasher.out;
     signal value <== leaf;
 
     component hash1New = SMTHash1();
