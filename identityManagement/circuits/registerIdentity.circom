@@ -9,7 +9,8 @@ template RegisterIdentity(w, nb, e_bits, hashLen, depth) {
     signal output dg1Commitment;
     signal output pkIdentityHash;
 
-    signal input encapsulatedContent[2688]; // 2688 bits
+    signal input shift; // 0 if len(encapsulatedContent) is 2688 bit, 1 if len(2704) 
+    signal input encapsulatedContent[2704]; // 2688 bits
     signal input dg1[744];                  // 744 bits
     signal input dg15[1320];                // 1320 bits
     signal input signedAttributes[592];     // 592 bits
@@ -23,6 +24,7 @@ template RegisterIdentity(w, nb, e_bits, hashLen, depth) {
 
     component passportVerifier = PassportVerificationHash(w, nb, e_bits, hashLen, depth);
 
+    passportVerifier.shift <== shift;
     passportVerifier.encapsulatedContent <== encapsulatedContent;
     passportVerifier.dg1 <== dg1;
     passportVerifier.dg15 <== dg15;
@@ -76,7 +78,6 @@ template RegisterIdentity(w, nb, e_bits, hashLen, depth) {
     dg1Hasher.inputs[4] <== skIndentityHasher.out;
 
     dg1Commitment <== dg1Hasher.out;
-
 
     // Forming EdDSA BybyJubJub public key point from private key (identity)
     component pkIdentityCalc = BabyPbk();
