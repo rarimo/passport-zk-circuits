@@ -4,14 +4,14 @@ include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../passportVerification/passportVerificationHash.circom";
 include "../../node_modules/circomlib/circuits/babyjub.circom";
 
-template RegisterIdentity(w, nb, e_bits, hashLen, depth) {
+template RegisterIdentity(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len) {
     signal output dg15PubKeyHash;
     signal output dg1Commitment;
     signal output pkIdentityHash;
 
-    signal input encapsulatedContent[2688]; // 2688 bits
+    signal input encapsulatedContent[encapsulatedContentLen]; // 2688 bits
     signal input dg1[744];                  // 744 bits
-    signal input dg15[1320];                // 1320 bits
+    signal input dg15[dg15Len];             // 1320 bits
     signal input signedAttributes[592];     // 592 bits
     signal input exp[nb];
     signal input sign[nb];
@@ -21,7 +21,7 @@ template RegisterIdentity(w, nb, e_bits, hashLen, depth) {
     signal input icaoMerkleInclusionOrder[depth];
     signal input skIdentity;
 
-    component passportVerifier = PassportVerificationHash(w, nb, e_bits, hashLen, depth);
+    component passportVerifier = PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len);
 
     passportVerifier.encapsulatedContent <== encapsulatedContent;
     passportVerifier.dg1 <== dg1;
