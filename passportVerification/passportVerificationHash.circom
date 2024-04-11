@@ -7,14 +7,14 @@ include "../rsa/rsa.circom";
 include "../merkleTree/merkleTree.circom";
 
 // Default (64, 64, 17, 4, 20)
-template PassportVerificationHash(w, nb, e_bits, hashLen, depth) {
+template PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len) {
     // *magic numbers* list
-    var DG1_SIZE = 744;                   // bits
-    var DG15_SIZE = 1320;
+    var DG1_SIZE = 744;                          // bits
+    var DG15_SIZE = dg15Len;                     // 1320
     var SIGNED_ATTRIBUTES_SIZE = 592;
-    var ENCAPSULATED_CONTENT_SIZE = 2688;
-    var DG1_DIGEST_POSITION_SHIFT = 248;
-    var DG15_DIGEST_POSITION_SHIFT = 2432;
+    var ENCAPSULATED_CONTENT_SIZE = encapsulatedContentLen;  // 2688
+    var DG1_DIGEST_POSITION_SHIFT = dg1Shift;    // 248
+    var DG15_DIGEST_POSITION_SHIFT = dg15Shift;  // 2432
     var HASH_BITS = nb * hashLen; // 64 * 4 = 256 (SHA256)
     // ------------------
 
@@ -43,6 +43,10 @@ template PassportVerificationHash(w, nb, e_bits, hashLen, depth) {
 
     for (var i = 0; i < DG15_SIZE; i++) {
         dg15Hasher.in[i] <== dg15[i];
+    }
+
+    for (var i = 0; i < 256; i++) {
+        log(dg1Hasher.out[i]);
     }
 
     // Check DG1 hash inclusion into encapsulatedContent
