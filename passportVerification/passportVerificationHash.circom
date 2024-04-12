@@ -10,7 +10,7 @@ include "../merkleTree/merkleTree.circom";
 template PassportVerificationHash(w, nb, e_bits, hashLen, depth) {
     // *magic numbers* list
     var DG1_SIZE = 744;                   // bits
-    var DG15_SIZE = 1320;
+    var DG15_SIZE = 2520;
     var SIGNED_ATTRIBUTES_SIZE = 592;
     var ENCAPSULATED_CONTENT_SIZE = 2704;
     var DG1_DIGEST_POSITION_SHIFT = 248;

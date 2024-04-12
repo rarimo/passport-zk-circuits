@@ -12,7 +12,7 @@ template RegisterIdentity(w, nb, e_bits, hashLen, depth) {
     signal input shift; // 0 if len(encapsulatedContent) is 2688 bit, 1 if len(2704) 
     signal input encapsulatedContent[2704]; // 2688 bits
     signal input dg1[744];                  // 744 bits
-    signal input dg15[1320];                // 1320 bits
+    signal input dg15[2520];                // 1320 bits
     signal input signedAttributes[592];     // 592 bits
     signal input exp[nb];
     signal input sign[nb];
