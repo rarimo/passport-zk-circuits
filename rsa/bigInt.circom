@@ -194,6 +194,27 @@ template BigMultNoCarry(n, ma, mb, ka, kb) {
     for (var i = 0; i < ka + kb - 1; i++) {
         out[i] <-- prod_val[i];
     }
+
+    var a_poly[ka + kb - 1];
+    var b_poly[ka + kb - 1];
+    var out_poly[ka + kb - 1];
+    for (var i = 0; i < ka + kb - 1; i++) {
+        out_poly[i] = 0;
+        a_poly[i] = 0;
+        b_poly[i] = 0;
+        for (var j = 0; j < ka + kb - 1; j++) {
+            out_poly[i] = out_poly[i] + out[j] * (i ** j);
+        }
+        for (var j = 0; j < ka; j++) {
+            a_poly[i] = a_poly[i] + a[j] * (i ** j);
+        }
+        for (var j = 0; j < kb; j++) {
+            b_poly[i] = b_poly[i] + b[j] * (i ** j);
+        }
+    }
+    for (var i = 0; i < ka + kb - 1; i++) {
+        out_poly[i] === a_poly[i] * b_poly[i];
+    }
 }
 
 
