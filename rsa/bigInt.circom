@@ -148,28 +148,32 @@ template SplitThree(n, m, k) {
 // represent a = a[0] + a[1] * 2**n + .. + a[k - 1] * 2**(n * k)
 template BigAdd(n, k) {
     assert(n <= 252);
+
     signal input a[k];
     signal input b[k];
     signal output out[k + 1];
 
-    component unit0 = ModSum(n);
-    unit0.a <== a[0];
-    unit0.b <== b[0];
-    out[0] <== unit0.sum;
+    var result[k];
 
-    component unit[k - 1];
-    for (var i = 1; i < k; i++) {
-        unit[i - 1] = ModSumThree(n);
-        unit[i - 1].a <== a[i];
-        unit[i - 1].b <== b[i];
-        if (i == 1) {
-            unit[i - 1].c <== unit0.carry;
-        } else {
-            unit[i - 1].c <== unit[i - 2].carry;
-        }
-        out[i] <== unit[i - 1].sum;
+    for (var i = 0; i < k; i++) {
+        result[i] = a[i] + b[i];
     }
-    out[k] <== unit[k - 2].carry;
+
+    component unit[k];
+
+    var carry = 0;
+
+    for (var i = 0; i < k; i++) {
+        unit[i] = ModSum(n);
+
+        unit[i].a <== result[i];
+        unit[i].b <== carry;
+
+        out[i] <== unit[i].sum;
+        carry = unit[i].carry;
+    }
+
+    out[k] <== carry;
 }
 
 // a and b have n-bit registers
