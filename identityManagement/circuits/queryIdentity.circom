@@ -5,6 +5,26 @@ include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "dg1DataExtractor.circom";
 include "identityStateVerifier.circom";
 
+// QUERY SELECTOR:
+// 0 - nullifier
+// 1 - birth date
+// 2 - expiration date
+// 3 - name
+// 4 - nationality
+// 5 - citizenship
+// 6 - sex
+// 7 - document number
+// 8 - timestamp lowerbound
+// 9 - timestamp upperbound
+// 10 - identity counter lowerbound
+// 11 - identity counter upperbound
+// 12 - passport expiration lowerbound
+// 13 - passport expiration upperbound
+// 14 - birth date upperbound
+// 15 - birth date lowerbound
+// 16 - verify citizenship mask as a whitelist
+// 17 - verify citizenship mask as a blacklist
+
 template QueryIdentity(idTreeDepth) {
     signal output nullifier;    // Poseidon3(sk_i, Poseidon1(sk_i), eventID)
 
@@ -21,11 +41,22 @@ template QueryIdentity(idTreeDepth) {
     signal input eventID;       // challenge
     signal input eventData;     // event data binded to the proof; not involved in comp
     signal input idStateRoot;   // identity state Merkle root
-    signal input selector;      //  blinds personal data
+    signal input selector;      //  blinds personal data | 0 is not used 
+
+    // query parameters (set 0 if not used)
     signal input timestampLowerbound;  // identity is issued in this time range
-    signal input timestampUpperbound;  // timestamp E [timestampLowerBound, timestampUpperBound)
-    signal input identityCounterLowerbound;
-    signal input identityCounterUpperbound;
+    signal input timestampUpperbound;  // timestamp E [timestampLowerbound, timestampUpperbound)
+
+    signal input identityCounterLowerbound; // Number of identities connected to the specific passport
+    signal input identityCounterUpperbound; // identityCounter E [timestampLowerbound, timestampUpperbound)
+
+    signal input birthDateLowerbound;  // birthDateLowerbound < birthDate
+    signal input birthDateUpperbound;  // birthDate < birthDateUpperbound
+
+    signal input expirationDateLowerbound; // expirationDateLowerbound < expirationDate
+    signal input expirationDateUpperbound; // expirationDate < expirationDateUpperbound
+
+    signal input citizenshipMask;      // binary mask to whitelist | blacklist citizenships
 
     // private signals
     signal input skIdentity;
@@ -38,20 +69,6 @@ template QueryIdentity(idTreeDepth) {
     // selector decoding
     component selectorBits = Num2Bits(12);
     selectorBits.in <== selector;
-
-    // SELECTOR:
-    // 0 - nullifier
-    // 1 - birth date
-    // 2 - expiration date
-    // 3 - name
-    // 4 - nationality
-    // 5 - citizenship
-    // 6 - sex
-    // 7 - document number
-    // 8 - timestamp lowerbound
-    // 9 - timestamp upperbound
-    // 10 - identity counter lowerbound
-    // 11 - identity counter upperbound
 
     // Nullifier calculation
     component skIdentityHasher = Poseidon(1);
