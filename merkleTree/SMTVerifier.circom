@@ -6,21 +6,6 @@ include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/switcher.circom";
 include "../node_modules/circomlib/circuits/poseidon.circom";
 
-// TODO: use merkleTree/SMTverifier
-// computes Poseidon(nullifier + secret)
-template CommitmentHasher() {
-    signal input secret;
-    signal input nullifier;
-
-    signal output commitment;
-
-    component commitmentHasher = Poseidon(2);
-
-    commitmentHasher.inputs[0] <== secret;
-    commitmentHasher.inputs[1] <== nullifier;
-
-    commitment <== commitmentHasher.out;
-}
 
 template SMTHash1() {
     signal input key;
@@ -126,8 +111,9 @@ template SMTVerifier(nLevels) {
 
     signal input root;
 
-    signal input secret;
-    signal input nullifier;
+    signal input leaf;
+
+    signal input key;
 
     signal input siblings[nLevels];
 
@@ -135,20 +121,7 @@ template SMTVerifier(nLevels) {
 
     var i;
 
-    component nullifierHasher = Poseidon(1);
-    nullifierHasher.inputs[0] <== nullifier;
-    nullifierHash <== nullifierHasher.out;
-
-    component commitmentHasher = CommitmentHasher();
-
-    commitmentHasher.secret <== secret;
-    commitmentHasher.nullifier <== nullifier;
-
-    component leafHasher = Poseidon(1);
-    leafHasher.inputs[0] <== commitmentHasher.commitment;
-
-    signal key <== leafHasher.out;
-    signal value <== commitmentHasher.commitment;
+    signal value <== leaf;
 
     component hash1New = SMTHash1();
     hash1New.key <== key;
