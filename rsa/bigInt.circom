@@ -289,14 +289,15 @@ template BigMult(n, k) {
         mult.b[i] <== b[i];
     }
 
-    // no carry is possible in the highest order register
-    component longshort = LongToShortNoEndCarry(n, 2 * k - 1);
+    var carry = 0;
+    var mod = ((1 << n) - 1);
+
     for (var i = 0; i < 2 * k - 1; i++) {
-        longshort.in[i] <== mult.out[i];
+        out[i] <-- (mult.out[i] + carry) & mod;
+        carry = (mult.out[i] + carry) >> n;
     }
-    for (var i = 0; i < 2 * k; i++) {
-        out[i] <== longshort.out[i];
-    }
+
+    out[2 * k - 1] <-- carry;
 }
 
 template BigLessThan(n, k){
