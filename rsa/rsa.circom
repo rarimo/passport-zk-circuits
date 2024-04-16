@@ -21,7 +21,7 @@ template RsaVerifyPkcs1v15(w, nb, e_bits, hashLen) {
 
     // 1. Check hashed data
     for (var i = 0; i < hashLen; i++) {
-        // hashed[i] === pm.out[i];  TODO: fix
+        hashed[i] === pm.out[i];
     }
     
     // 2. Check hash prefix and 1 byte 0x00
@@ -42,7 +42,7 @@ template RsaVerifyPkcs1v15(w, nb, e_bits, hashLen) {
     }
 
     for (var i = 7; i < 31; i++) {
-        // pm.out[i] === 18446744073709551615; // 0b1111111111111111111111111111111111111111111111111111111111111111
+        pm.out[i] === 18446744073709551615; // 0b1111111111111111111111111111111111111111111111111111111111111111
     }
     
     // pm.out[31] === 562949953421311; // 0b1111111111111111111111111111111111111111111111111

@@ -45,10 +45,6 @@ template PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedCon
         dg15Hasher.in[i] <== dg15[i];
     }
 
-    for (var i = 0; i < 256; i++) {
-        log(dg1Hasher.out[i]);
-    }
-
     // Check DG1 hash inclusion into encapsulatedContent
     
     for (var i = 0; i < hashLen * nb; i++) {
@@ -86,9 +82,9 @@ template PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedCon
     for (var i = 0; i < hashLen; i++) {
         signedAttributesHashPacking[i] = Bits2Num(w);
         for (var j = 0; j < w; j++) {
-            signedAttributesHashPacking[i].in[j] <== signedAttributesHasher.out[i * w + j];
+            signedAttributesHashPacking[i].in[w - 1 - j] <== signedAttributesHasher.out[i * w + j];
         }
-        signedAttributesHashChunks[i] <== signedAttributesHashPacking[i].out;
+        signedAttributesHashChunks[(hashLen - 1) - i] <== signedAttributesHashPacking[i].out;
     }
 
     rsaVerifier.hashed <== signedAttributesHashChunks;
