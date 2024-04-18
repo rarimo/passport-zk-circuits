@@ -146,30 +146,16 @@ template SplitThree(n, m, k) {
 
 // a[i], b[i] in 0... 2**n-1
 // represent a = a[0] + a[1] * 2**n + .. + a[k - 1] * 2**(n * k)
-template BigAdd(n, k) {
+template BigAddNoCarry(n, k) {
     assert(n <= 252);
+
     signal input a[k];
     signal input b[k];
-    signal output out[k + 1];
+    signal output out[k];
 
-    component unit0 = ModSum(n);
-    unit0.a <== a[0];
-    unit0.b <== b[0];
-    out[0] <== unit0.sum;
-
-    component unit[k - 1];
-    for (var i = 1; i < k; i++) {
-        unit[i - 1] = ModSumThree(n);
-        unit[i - 1].a <== a[i];
-        unit[i - 1].b <== b[i];
-        if (i == 1) {
-            unit[i - 1].c <== unit0.carry;
-        } else {
-            unit[i - 1].c <== unit[i - 2].carry;
-        }
-        out[i] <== unit[i - 1].sum;
+    for (var i = 0; i < k; i++) {
+        out[i] <== a[i] + b[i];
     }
-    out[k] <== unit[k - 2].carry;
 }
 
 // a and b have n-bit registers
@@ -274,6 +260,28 @@ template LongToShortNoEndCarry(n, k) {
     runningCarry[k-1] === out[k];
 }
 
+template BigAdd(n, k) {
+    signal input a[k];
+    signal input b[k];
+    signal output out[k + 1];
+
+    component add = BigAddNoCarry(n, k);
+    for (var i = 0; i < k; i++) {
+        add.a[i] <== a[i];
+        add.b[i] <== b[i];
+    }
+
+    var carry = 0;
+    var mod = ((1 << n) - 1);
+
+    for (var i = 0; i < k; i++) {
+        out[i] <-- (add.out[i] + carry) & mod;
+        carry = (add.out[i] + carry) >> n;
+    }
+
+    out[k] <-- carry;
+}
+
 template BigMult(n, k) {
     signal input a[k];
     signal input b[k];
@@ -285,14 +293,15 @@ template BigMult(n, k) {
         mult.b[i] <== b[i];
     }
 
-    // no carry is possible in the highest order register
-    component longshort = LongToShortNoEndCarry(n, 2 * k - 1);
+    var carry = 0;
+    var mod = ((1 << n) - 1);
+
     for (var i = 0; i < 2 * k - 1; i++) {
-        longshort.in[i] <== mult.out[i];
+        out[i] <-- (mult.out[i] + carry) & mod;
+        carry = (mult.out[i] + carry) >> n;
     }
-    for (var i = 0; i < 2 * k; i++) {
-        out[i] <== longshort.out[i];
-    }
+
+    out[2 * k - 1] <-- carry;
 }
 
 template BigLessThan(n, k){
