@@ -4,20 +4,22 @@ include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "dg1DataExtractor.circom";
 include "identityStateVerifier.circom";
+include "../../dateUtilities/dateComparisonEncoded.circom";
+include "../../node_modules/circomlib/circuits/comparators.circom";
 
 // QUERY SELECTOR:
-// 0 - nullifier
-// 1 - birth date
-// 2 - expiration date
-// 3 - name
-// 4 - nationality
-// 5 - citizenship
-// 6 - sex
-// 7 - document number
-// 8 - timestamp lowerbound
-// 9 - timestamp upperbound
-// 10 - identity counter lowerbound
-// 11 - identity counter upperbound
+// 0 - nullifier   (+)
+// 1 - birth date  (+)
+// 2 - expiration date (+)
+// 3 - name (+)
+// 4 - nationality (+)
+// 5 - citizenship (+)
+// 6 - sex (+)
+// 7 - document number (+)
+// 8 - timestamp lowerbound (+)
+// 9 - timestamp upperbound (+)
+// 10 - identity counter lowerbound (+)
+// 11 - identity counter upperbound (+)
 // 12 - passport expiration lowerbound
 // 13 - passport expiration upperbound
 // 14 - birth date upperbound
@@ -67,8 +69,22 @@ template QueryIdentity(idTreeDepth) {
     signal input identityCounter;
 
     // selector decoding
-    component selectorBits = Num2Bits(12);
+    component selectorBits = Num2Bits(18);
     selectorBits.in <== selector;
+
+    // ----------------------
+    // Passport data decoding
+    component dg1DataExtractor = DG1DataExtractor();
+    dg1DataExtractor.dg1 <== dg1;
+
+    birthDate <== dg1DataExtractor.birthDate * selectorBits.out[1];
+    expirationDate <== dg1DataExtractor.expirationDate * selectorBits.out[2];
+    name <== dg1DataExtractor.name * selectorBits.out[3];
+    nameResidual <== dg1DataExtractor.nameResidual * selectorBits.out[3];
+    nationality <== dg1DataExtractor.nationality * selectorBits.out[4];
+    citizenship <== dg1DataExtractor.citizenship * selectorBits.out[5];
+    sex <== dg1DataExtractor.sex * selectorBits.out[6];
+    documentNumber <== dg1DataExtractor.documentNumber * selectorBits.out[7];
 
     // Nullifier calculation
     component skIdentityHasher = Poseidon(1);
@@ -123,19 +139,25 @@ template QueryIdentity(idTreeDepth) {
     identityCounterUpperCheck.in[1] <== 1;
     identityCounterUpperCheck.enabled <== selectorBits.out[11];
 
-    // ----------------------
-    // Passport data decoding
-    component dg1DataExtractor = DG1DataExtractor();
-    dg1DataExtractor.dg1 <== dg1;
+    // Expiration date lowerbound: expirationDateLowerbound < expirationDate
+    component expirationDateLowerboundCompare = EncodedDateIsLess();
+    expirationDateLowerboundCompare.first <== expirationDateLowerbound;
+    expirationDateLowerboundCompare.second <== expirationDate;
 
-    birthDate <== dg1DataExtractor.birthDate * selectorBits.out[1];
-    expirationDate <== dg1DataExtractor.expirationDate * selectorBits.out[2];
-    name <== dg1DataExtractor.name * selectorBits.out[3];
-    nameResidual <== dg1DataExtractor.nameResidual * selectorBits.out[3];
-    nationality <== dg1DataExtractor.nationality * selectorBits.out[4];
-    citizenship <== dg1DataExtractor.citizenship * selectorBits.out[5];
-    sex <== dg1DataExtractor.sex * selectorBits.out[6];
-    documentNumber <== dg1DataExtractor.documentNumber * selectorBits.out[7];
+    component verifyExpirationDateLowerbound = ForceEqualIfEnabled();
+    verifyExpirationDateLowerbound.in[0] <== expirationDateLowerboundCompare.out;
+    verifyExpirationDateLowerbound.in[1] <== 1;
+    verifyExpirationDateLowerbound.enabled <== selectorBits.out[12];
+
+    // Expiration date upperbound: expirationDate < expirationDateUpperbound
+    component expirationDateUpperboundCompare = EncodedDateIsLess();
+    expirationDateUpperboundCompare.first <== expirationDate;
+    expirationDateUpperboundCompare.second <== expirationDateUpperbound;
+
+    component verifyExpirationDateUpperbound = ForceEqualIfEnabled();
+    verifyExpirationDateUpperbound.in[0] <== expirationDateUpperboundCompare.out;
+    verifyExpirationDateUpperbound.in[1] <== 1;
+    verifyExpirationDateUpperbound.enabled <== selectorBits.out[12];
 
     // Retrieve DGCommit: DG1 hash 744 bits => 4 * 186
     component dg1Chunking[4];
