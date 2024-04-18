@@ -10,14 +10,14 @@ template DateDecoder() {
 
     signal input dateEncoded;
 
-    signal dayDecoded <-- (((dateEncoded >> 8) & 15) * 10) + (dateEncoded & 15);
-    signal monthDecoded <-- (((dateEncoded >> (8*3)) & 15) * 10) + ((dateEncoded >> (8*2)) & 15);
-    signal yearDecoded <-- (((dateEncoded >> (8*5)) & 15) * 10) + ((dateEncoded >> (8*4)) & 15);
+    day <-- (((dateEncoded >> 8) & 15) * 10) + (dateEncoded & 15);
+    month <-- (((dateEncoded >> (8*3)) & 15) * 10) + ((dateEncoded >> (8*2)) & 15);
+    year <-- (((dateEncoded >> (8*5)) & 15) * 10) + ((dateEncoded >> (8*4)) & 15);
     
     component dateEncoder = DateEncoder();
-    dateEncoder.day <== dayDecoded;
-    dateEncoder.month <== monthDecoded;
-    dateEncoder.year <== yearDecoded;
+    dateEncoder.day <== day;
+    dateEncoder.month <== month;
+    dateEncoder.year <== year;
 
     dateEncoder.encoded === dateEncoded;
 }
