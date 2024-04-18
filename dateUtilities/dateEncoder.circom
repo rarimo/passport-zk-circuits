@@ -1,7 +1,7 @@
 pragma circom  2.1.6;
 
 // (day, month, year) -> UTF-8 encoded date "YYMMDD"
-template DateEncode() {
+template DateEncoder() {
     signal output encoded;
     signal input  day;
     signal input  month;
@@ -27,9 +27,7 @@ template DateEncode() {
     signal monthEncoded <== (monthDecimals * 2**8 + monthRest) + (2**4 + 2**5 + 2**12 + 2**13);
     signal yearEncoded <== (yearDecimals * 2**8 + yearRest) + (2**4 + 2**5 + 2**12 + 2**13);
     encoded <== yearEncoded * 2**32 + monthEncoded * 2**16 + dayEncoded;
-    log(encoded);
 }
 
-component main = DateEncode();
 
 // 00110001 00110110 00110000 00110111 00110010 00110010
