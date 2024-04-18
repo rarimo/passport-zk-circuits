@@ -21,5 +21,3 @@ template DateDecoder() {
 
     dateEncoder.encoded === dateEncoded;
 }
-
-component main = DateDecoder();
