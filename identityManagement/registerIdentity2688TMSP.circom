@@ -8,4 +8,4 @@ include "./circuits/registerIdentity.circom";
 // [1]  -  dg1Commitment
 // [2]  -  pkIdentityHash
 // [3]  -  icaoMerkleRoot
-component main { public [icaoMerkleRoot] } = RegisterIdentity(64, 64, 17, 4, 20, 2704, 264, 2448, 2520, 592);
+component main { public [icaoMerkleRoot] } = RegisterIdentity(64, 64, 17, 4, 20, 2688, 248, 2432, 1320, 832);

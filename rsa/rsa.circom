@@ -15,7 +15,6 @@ template RsaVerifyPkcs1v15(w, nb, e_bits, hashLen) {
     component pm = PowerMod(w, nb, e_bits);
     for (var i  = 0; i < nb; i++) {
         pm.base[i] <== sign[i];
-        pm.exp[i] <== exp[i];
         pm.modulus[i] <== modulus[i];
     }
 
