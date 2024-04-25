@@ -7,11 +7,11 @@ include "../rsa/rsa.circom";
 include "../merkleTree/merkleTree.circom";
 
 // Default (64, 64, 17, 4, 20)
-template PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len) {
+template PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen) {
     // *magic numbers* list
     var DG1_SIZE = 744;                          // bits
     var DG15_SIZE = dg15Len;                     // 1320
-    var SIGNED_ATTRIBUTES_SIZE = 592;
+    var SIGNED_ATTRIBUTES_SIZE = signedAttributesLen; // 592  or 
     var ENCAPSULATED_CONTENT_SIZE = encapsulatedContentLen;  // 2688
     var DG1_DIGEST_POSITION_SHIFT = dg1Shift;    // 248
     var DG15_DIGEST_POSITION_SHIFT = dg15Shift;  // 2432

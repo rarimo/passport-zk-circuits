@@ -52,11 +52,11 @@ template QueryIdentity(idTreeDepth) {
     signal input identityCounterLowerbound; // Number of identities connected to the specific passport
     signal input identityCounterUpperbound; // identityCounter E [timestampLowerbound, timestampUpperbound)
 
-    signal input birthDateLowerbound;  // birthDateLowerbound < birthDate
-    signal input birthDateUpperbound;  // birthDate < birthDateUpperbound
+    signal input birthDateLowerbound;  // birthDateLowerbound < birthDate | 0x303030303030 if not used
+    signal input birthDateUpperbound;  // birthDate < birthDateUpperbound | 0x303030303030 if not used
 
-    signal input expirationDateLowerbound; // expirationDateLowerbound < expirationDate
-    signal input expirationDateUpperbound; // expirationDate < expirationDateUpperbound
+    signal input expirationDateLowerbound; // expirationDateLowerbound < expirationDate | 0x303030303030 if not used
+    signal input expirationDateUpperbound; // expirationDate < expirationDateUpperbound | 0x303030303030 if not used
 
     signal input citizenshipMask;      // binary mask to whitelist | blacklist citizenships
 
@@ -124,20 +124,20 @@ template QueryIdentity(idTreeDepth) {
     greaterEqThanIdentity.in[0] <== identityCounter;
     greaterEqThanIdentity.in[1] <== identityCounterLowerbound;
 
-    component identityCounterLowerCheck = ForceEqualIfEnabled();
-    identityCounterLowerCheck.in[0] <== greaterEqThanLowerTime.out;
-    identityCounterLowerCheck.in[1] <== 1;
-    identityCounterLowerCheck.enabled <== selectorBits.out[10];
+    component identityCounterLowerboundCheck = ForceEqualIfEnabled();
+    identityCounterLowerboundCheck.in[0] <== greaterEqThanIdentity.out;
+    identityCounterLowerboundCheck.in[1] <== 1;
+    identityCounterLowerboundCheck.enabled <== selectorBits.out[10];
 
     // Identity counter upperbound
     component lessThanIdentity = LessThan(64);
     lessThanIdentity.in[0] <== identityCounter;
     lessThanIdentity.in[1] <== identityCounterUpperbound;
 
-    component identityCounterUpperCheck = ForceEqualIfEnabled();
-    identityCounterUpperCheck.in[0] <== lessThanIdentity.out;
-    identityCounterUpperCheck.in[1] <== 1;
-    identityCounterUpperCheck.enabled <== selectorBits.out[11];
+    component identityCounterUpperboundCheck = ForceEqualIfEnabled();
+    identityCounterUpperboundCheck.in[0] <== lessThanIdentity.out;
+    identityCounterUpperboundCheck.in[1] <== 1;
+    identityCounterUpperboundCheck.enabled <== selectorBits.out[11];
 
     // Expiration date lowerbound: expirationDateLowerbound < expirationDate
     component expirationDateLowerboundCompare = EncodedDateIsLess();
@@ -157,7 +157,7 @@ template QueryIdentity(idTreeDepth) {
     component verifyExpirationDateUpperbound = ForceEqualIfEnabled();
     verifyExpirationDateUpperbound.in[0] <== expirationDateUpperboundCompare.out;
     verifyExpirationDateUpperbound.in[1] <== 1;
-    verifyExpirationDateUpperbound.enabled <== selectorBits.out[12];
+    verifyExpirationDateUpperbound.enabled <== selectorBits.out[13];
 
     // Retrieve DGCommit: DG1 hash 744 bits => 4 * 186
     component dg1Chunking[4];
