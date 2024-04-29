@@ -14,3 +14,5 @@ build
 passportVerification/input.json
 input*.json
 *.dev.zip
+*.py
+output.txt
