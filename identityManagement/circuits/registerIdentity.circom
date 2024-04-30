@@ -4,7 +4,7 @@ include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../passportVerification/passportVerificationHash.circom";
 include "../../node_modules/circomlib/circuits/babyjub.circom";
 
-template RegisterIdentity(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen) {
+template RegisterIdentity(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen, slaveSignedAttributesLen, signedAttributesKeyShift) {
     signal output dg15PubKeyHash;
     signal output dg1Commitment;
     signal output pkIdentityHash;
@@ -20,21 +20,25 @@ template RegisterIdentity(w, nb, e_bits, hashLen, depth, encapsulatedContentLen,
     signal input icaoMerkleInclusionBranches[depth];
     signal input icaoMerkleInclusionOrder[depth];
     signal input skIdentity;
+    signal input slaveSignedAttributes[slaveSignedAttributesLen];
+    signal input slaveSignature[nb];
+    signal input masterModulus[nb];
 
     component passportVerifier = 
-        PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen);
+        PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen, slaveSignedAttributesLen, signedAttributesKeyShift);
 
     passportVerifier.encapsulatedContent <== encapsulatedContent;
     passportVerifier.dg1 <== dg1;
     passportVerifier.dg15 <== dg15;
     passportVerifier.signedAttributes <== signedAttributes;
-    passportVerifier.exp <== exp;
     passportVerifier.sign <== sign;
     passportVerifier.modulus <== modulus;
     passportVerifier.icaoMerkleRoot <== icaoMerkleRoot;
     passportVerifier.icaoMerkleInclusionBranches <== icaoMerkleInclusionBranches;
     passportVerifier.icaoMerkleInclusionOrder <== icaoMerkleInclusionOrder;
-
+    passportVerifier.slaveSignedAttributes <== slaveSignedAttributes;
+    passportVerifier.slaveSignature <== slaveSignature;
+    passportVerifier.masterModulus <== masterModulus;
 
     if (dg15Len == 1320) { // rsa keys stored
         component dg15Chunking[5];
