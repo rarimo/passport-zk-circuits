@@ -5,9 +5,10 @@ include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../rsa/rsa.circom";
 include "../merkleTree/merkleTree.circom";
+include "../X509Verification/X509Verifier.circom";
 
 // Default (64, 64, 17, 4, 20)
-template PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen) {
+template PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen, slaveSignedAttributesLen, signedAttributesKeyShift) {
     // *magic numbers* list
     var DG1_SIZE = 744;                          // bits
     var DG15_SIZE = dg15Len;                     // 1320
@@ -23,12 +24,15 @@ template PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedCon
     signal input dg1[DG1_SIZE];
     signal input dg15[DG15_SIZE];
     signal input signedAttributes[SIGNED_ATTRIBUTES_SIZE];
-    signal input exp[nb];
     signal input sign[nb];
     signal input modulus[nb];
     signal input icaoMerkleRoot;
     signal input icaoMerkleInclusionBranches[depth];
     signal input icaoMerkleInclusionOrder[depth];
+    signal input slaveSignedAttributes[slaveSignedAttributesLen];
+    signal input slaveSignature[nb];
+    signal input masterModulus[nb];
+
     // -------
 
     // Hash DG1 -> SHA256
@@ -73,7 +77,6 @@ template PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedCon
 
     component rsaVerifier = RsaVerifyPkcs1v15(w, nb, e_bits, hashLen);
 
-    rsaVerifier.exp <== exp;
     rsaVerifier.sign <== sign;
     rsaVerifier.modulus <== modulus;
 
@@ -89,12 +92,20 @@ template PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedCon
 
     rsaVerifier.hashed <== signedAttributesHashChunks;
 
+    // Verify X509 certificate for a public key used to sign a passport
+    component x509Verifier = X509Verifier(64, 64, 17, 4, 9864, 3552);
+    x509Verifier.slaveSignedAttributes <== slaveSignedAttributes;
+    x509Verifier.slaveSignature <== slaveSignature;
+    x509Verifier.masterModulus <== masterModulus;
+
+    // -------
+
     component pubKeyHasher[4];
 
     for (var j = 0; j < 4; j++) {
         pubKeyHasher[j] = Poseidon(16);
         for (var i = 0; i < 16; i++) {
-            pubKeyHasher[j].inputs[i] <== modulus[j * 16 + i];
+            pubKeyHasher[j].inputs[i] <== masterModulus[j * 16 + i];
         }
     }
 
