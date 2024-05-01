@@ -2,6 +2,7 @@ pragma circom  2.1.6;
 
 include "../node_modules/circomlib/circuits/sha256/sha256.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
+include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../rsa/rsa.circom";
 
 // slaveSignedAttributesLen - 9864
@@ -30,6 +31,22 @@ template X509Verifier(w, nb, e_bits, hashLen, slaveSignedAttributesLen, signedAt
     }
 
     rsaVerifier.hashed <== slaveSignedAttributesHashChunks;
+
+    component pubKeyHasher[4];
+    for (var j = 0; j < 4; j++) {
+        pubKeyHasher[j] = Poseidon(16);
+        for (var i = 0; i < 16; i++) {
+            pubKeyHasher[j].inputs[i] <== masterModulus[j * 16 + i];
+        }
+    }
+
+    component pubKeyHasherTotal = Poseidon(4);
+    for (var j = 0; j < 4; j++) {
+        pubKeyHasherTotal.inputs[j] <== pubKeyHasher[j].out;
+    }
+    
+    log(pubKeyHasherTotal.out);
+
 }
 
-// component main = X509Verifier(64, 64, 17, 4, 9864, 3552);
+component main = X509Verifier(64, 64, 17, 4, 9864, 3552);
