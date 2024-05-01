@@ -3,6 +3,7 @@ pragma circom  2.1.6;
 include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "../../node_modules/circomlib/circuits/babyjub.circom";
 include "../../merkleTree/SMTVerifier.circom";
+// include "../../node_modules/@solarity/circom-lib/data-structures/SparseMerkleTree.circom";
 
 template IdentityStateVerifier(idTreeDepth) {
     signal input skIdentity;
@@ -39,8 +40,8 @@ template IdentityStateVerifier(idTreeDepth) {
     component smtVerifier = SMTVerifier(idTreeDepth);
     smtVerifier.key <== treePosition;
     smtVerifier.root <== idStateRoot;
-    smtVerifier.leaf <== valueHasher.out; // todo: add timestamp & identityCnt
+    smtVerifier.leaf <== valueHasher.out;
     smtVerifier.siblings <== idStateSiblings;
     
-    smtVerifier.isVerified === 1; // TODO: fix
+    smtVerifier.isVerified === 1;
 }

@@ -5,7 +5,6 @@ include "../node_modules/circomlib/circuits/bitify.circom";
 
 // Pkcs1v15 + Sha256, e = 65537
 template RsaVerifyPkcs1v15(w, nb, e_bits, hashLen) {
-    signal input exp[nb];
     signal input sign[nb];
     signal input modulus[nb];
 
@@ -15,7 +14,6 @@ template RsaVerifyPkcs1v15(w, nb, e_bits, hashLen) {
     component pm = PowerMod(w, nb, e_bits);
     for (var i  = 0; i < nb; i++) {
         pm.base[i] <== sign[i];
-        pm.exp[i] <== exp[i];
         pm.modulus[i] <== modulus[i];
     }
 
@@ -45,5 +43,5 @@ template RsaVerifyPkcs1v15(w, nb, e_bits, hashLen) {
         pm.out[i] === 18446744073709551615; // 0b1111111111111111111111111111111111111111111111111111111111111111
     }
     
-    // pm.out[31] === 562949953421311; // 0b1111111111111111111111111111111111111111111111111
+    pm.out[31] === 562949953421311; // 0b1111111111111111111111111111111111111111111111111
 }
