@@ -45,8 +45,8 @@ template X509Verifier(w, nb, e_bits, hashLen, slaveSignedAttributesLen, signedAt
         pubKeyHasherTotal.inputs[j] <== pubKeyHasher[j].out;
     }
     
-    log(pubKeyHasherTotal.out);
+    // log(pubKeyHasherTotal.out);
 
 }
 
-component main = X509Verifier(64, 64, 17, 4, 9864, 3552);
+// component main = X509Verifier(64, 64, 17, 4, 9864, 3552);
