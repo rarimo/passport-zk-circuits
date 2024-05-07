@@ -1,0 +1,92 @@
+// LICENSE: GPL-3.0
+pragma circom  2.1.6;
+
+include "../node_modules/circomlib/circuits/poseidon.circom";
+include "../node_modules/circomlib/circuits/comparators.circom";
+include "../merkleTree/merkleTree.circom";
+
+template BuildNullifier() {
+    signal input salt;
+    signal input blinder;
+    signal input documentHash;
+
+    signal output nullifier;
+
+    component hasher = Poseidon(3);
+
+    documentHash ==> hasher.inputs[0];
+    // hasher.inputs[0] <== documentHash;
+    blinder ==> hasher.inputs[1];
+    // hasher.inputs[1] <== blinder;
+    salt ==> hasher.inputs[2];
+    // hasher.inputs[2] <== salt;
+
+    nullifier <== hasher.out;
+}
+
+template CountNullifiers(nullifiersCount, treeDepth) {
+    // Hash of the document to prove nullifiers amount
+    signal input documentHash;
+    // Blinder factor from identity provider
+    signal input blinder;
+    // Salt that was added to the documentHash and blinder to create unique nullifiers in the identity provider
+    signal input salt[nullifiersCount];
+
+    // Root from tree that was built from nullifiers 
+    signal input root;
+    // Missing siblings to build root
+    signal input proofsBranches[nullifiersCount][treeDepth];
+    // Hashing orders to build elements (contains 0 and 1) 
+    signal input proofsOrder[nullifiersCount][treeDepth];
+
+    // Array with flags that shows if proof is built or not, count of 1 in this output indicates the total amount 
+    // of nullifiers that were created for the document
+    signal output verified[nullifiersCount];
+    
+    // Components to build nullifiers
+    component nullifierBuilders[nullifiersCount];
+    // Components to recover Merkle tree root
+    component rootBuilders[nullifiersCount]; 
+    // Components to compare recovered roots with required one
+    component comparators[nullifiersCount]; 
+
+    // Loop over all possible nullifiers 
+    for (var i = 0; i < nullifiersCount; i++) {
+        // Init new nullifier builder
+        nullifierBuilders[i] = BuildNullifier();
+
+        // Set salt from identity provider
+        nullifierBuilders[i].salt <== salt[i];
+        // Set blinder from identity provider
+        nullifierBuilders[i].blinder <== blinder;
+        // Set document hash from which nullifier was built
+        nullifierBuilders[i].documentHash <== documentHash;
+
+        // Create new root recoverer with required tree depth
+        rootBuilders[i] = RootRecoverer(treeDepth);
+
+        // Set raw nullifier as the leaf
+        rootBuilders[i].leaf <== nullifierBuilders[i].nullifier;
+        // Set Merkle branch for that nullifier 
+        rootBuilders[i].merkleBranches <== proofsBranches[i];
+        // Set Merkle order fot the same nullifier
+        rootBuilders[i].merkleOrder <== proofsOrder[i];
+
+        // Init new comparator
+        comparators[i] = IsEqual();
+        // Set required root
+        comparators[i].in[0] <== root;
+        // Set recovered root
+        comparators[i].in[1] <== rootBuilders[i].merkleRoot;
+        log(rootBuilders[i].merkleRoot);
+        // Write to the output array result:
+        // 1 - nullifier exists in the tree (generated from documentHash)
+        // 0 - nullifier is not related to the document
+        verified[i] <== comparators[i].out;
+    }
+
+}
+
+
+// TBD: nullifiers counter and tree depth to set optimal values
+component main = CountNullifiers(4, 2);
