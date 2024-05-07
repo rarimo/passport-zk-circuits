@@ -133,35 +133,20 @@ template PassportVerificationHashPadded(w, nb, e_bits, hashLen, depth, encapsula
 
     rsaVerifier.hashed <== signedAttributesHashChunks;
 
-    // Verify X509 certificate for a public key used to sign a passport
-
-    // -------
-
-    component pubKeyHasher[4];
-
-    for (var j = 0; j < 4; j++) {
-        pubKeyHasher[j] = Poseidon(16);
-        for (var i = 0; i < 16; i++) {
-            pubKeyHasher[j].inputs[i] <== modulus[j * 16 + i];
-        }
+    // Hashing 5 * (3*64) blocks
+    component modulusHasher = Poseidon(5);
+    signal tempModulus[5];
+    for (var i = 0; i < 5; i++) {
+        var currIndex = i * 3;
+        tempModulus[i] <== modulus[currIndex] * 2**128 + modulus[currIndex + 1] * 2**64;
+        modulusHasher.inputs[i] <== tempModulus[i] + modulus[currIndex + 2];
     }
 
-    component pubKeyHasherTotal = Poseidon(4);
 
-    for (var j = 0; j < 4; j++) {
-        pubKeyHasherTotal.inputs[j] <== pubKeyHasher[j].out;
-    }
-
-    // component merkleTreeVerifier = MerkleTreeVerifier(depth);
-    
-    // merkleTreeVerifier.leaf <== pubKeyHasherTotal.out;
-    // merkleTreeVerifier.merkleRoot <== slaveMerkleRoot;
-    // merkleTreeVerifier.merkleBranches <== slaveMerkleInclusionBranches;
-    // merkleTreeVerifier.merkleOrder <== slaveMerkleInclusionOrder;
     component smtVerifier = SMTVerifier(depth);
     smtVerifier.root <== slaveMerkleRoot;
-    smtVerifier.leaf <== pubKeyHasherTotal.out;
-    smtVerifier.key <== pubKeyHasherTotal.out;
+    smtVerifier.leaf <== modulusHasher.out;
+    smtVerifier.key <== modulusHasher.out;
     smtVerifier.siblings <== slaveMerkleInclusionBranches;
 
     smtVerifier.isVerified === 1;
