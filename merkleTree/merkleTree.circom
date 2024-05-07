@@ -3,6 +3,8 @@ pragma circom  2.1.6;
 include "dualMux.circom";
 include "hashLeftRight.circom";
 
+include "../node_modules/circomlib/circuits/comparators.circom";
+
 template MerkleTreeVerifier(depth) {
     signal input leaf;
     signal input merkleRoot;
@@ -27,4 +29,43 @@ template MerkleTreeVerifier(depth) {
     }
 
     // merkleRoot === hashers[depth - 1].hash; //TODO: RESTORE THIS CONTRAINT AFTER TESTS
+}
+
+template LeafPreparartor() {
+    signal input raw;
+    signal output hash;
+
+    component hasher = Poseidon(1);
+
+    raw ==> hasher.inputs[0];
+    hash <== hasher.out;
+}
+
+template RootRecoverer(depth) {
+    signal input leaf;
+    signal input merkleBranches[depth];
+    signal input merkleOrder[depth];
+
+    signal output merkleRoot;
+
+    component selectors[depth];
+    component hashers[depth];
+    component leafHasher = LeafPreparartor();
+    leaf ==> leafHasher.raw;
+
+    for (var i = 0; i < depth; i++) {
+        selectors[i] = DualMux();
+
+        selectors[i].in[0] <== i == 0 ? leafHasher.hash : hashers[i - 1].hash;
+        selectors[i].in[1] <== merkleBranches[i];
+
+        selectors[i].order <== merkleOrder[i];
+
+        hashers[i] = HashLeftRight();
+
+        hashers[i].left <== selectors[i].out[0];
+        hashers[i].right <== selectors[i].out[1];
+    }
+
+    merkleRoot <== hashers[depth - 1].hash;    
 }
