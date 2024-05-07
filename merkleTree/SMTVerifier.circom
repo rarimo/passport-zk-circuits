@@ -107,8 +107,6 @@ template SMTVerifierLevel() {
 }
 
 template SMTVerifier(nLevels) {
-    signal output nullifierHash;
-
     signal input root;
 
     signal input leaf;
