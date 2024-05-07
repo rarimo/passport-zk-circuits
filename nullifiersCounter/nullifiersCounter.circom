@@ -5,6 +5,8 @@ include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/comparators.circom";
 include "../merkleTree/merkleTree.circom";
 
+// BuildNullifier creates a new nullifier from documentHash, blinder and salt in the same way as it 
+// is implemented in identity relayer
 template BuildNullifier() {
     signal input salt;
     signal input blinder;
@@ -15,11 +17,8 @@ template BuildNullifier() {
     component hasher = Poseidon(3);
 
     documentHash ==> hasher.inputs[0];
-    // hasher.inputs[0] <== documentHash;
     blinder ==> hasher.inputs[1];
-    // hasher.inputs[1] <== blinder;
     salt ==> hasher.inputs[2];
-    // hasher.inputs[2] <== salt;
 
     nullifier <== hasher.out;
 }
