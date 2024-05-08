@@ -35,19 +35,23 @@ template CountNullifiers(nullifiersCount, treeDepth) {
     signal input root;
     // Missing siblings to build root
     signal input proofsBranches[nullifiersCount][treeDepth];
-    // Hashing orders to build elements (contains 0 and 1) 
+    // Hashing orders to build elements (contains 0 and 1)
     signal input proofsOrder[nullifiersCount][treeDepth];
 
     // Array with flags that shows if proof is built or not, count of 1 in this output indicates the total amount 
     // of nullifiers that were created for the document
-    signal output verified[nullifiersCount];
+    signal output totalDuplicates;
     
     // Components to build nullifiers
     component nullifierBuilders[nullifiersCount];
     // Components to recover Merkle tree root
-    component rootBuilders[nullifiersCount]; 
+    component merkleTreeVerifiers[nullifiersCount];
     // Components to compare recovered roots with required one
-    component comparators[nullifiersCount]; 
+    component comparators[nullifiersCount];
+    // Components to hash leaves for inclusion proving
+    component leavesHashers[nullifiersCount];
+
+    signal verified[nullifiersCount];
 
     // Loop over all possible nullifiers 
     for (var i = 0; i < nullifiersCount; i++) {
@@ -62,28 +66,34 @@ template CountNullifiers(nullifiersCount, treeDepth) {
         nullifierBuilders[i].documentHash <== documentHash;
 
         // Create new root recoverer with required tree depth
-        rootBuilders[i] = RootRecoverer(treeDepth);
+        merkleTreeVerifiers[i] = MerkleTreeVerifier(treeDepth);
+
+        // Leaves are hashed in the tree
+        leavesHashers[i] = Poseidon(1);
+        leavesHashers[i].inputs[0] <== nullifierBuilders[i].nullifier;
 
         // Set raw nullifier as the leaf
-        rootBuilders[i].leaf <== nullifierBuilders[i].nullifier;
+        merkleTreeVerifiers[i].leaf <== leavesHashers[i].out;
         // Set Merkle branch for that nullifier 
-        rootBuilders[i].merkleBranches <== proofsBranches[i];
+        merkleTreeVerifiers[i].merkleBranches <== proofsBranches[i];
         // Set Merkle order fot the same nullifier
-        rootBuilders[i].merkleOrder <== proofsOrder[i];
+        merkleTreeVerifiers[i].merkleOrder <== proofsOrder[i];
+        // Set Merkle root
+        merkleTreeVerifiers[i].merkleRoot <== root;
 
-        // Init new comparator
-        comparators[i] = IsEqual();
-        // Set required root
-        comparators[i].in[0] <== root;
-        // Set recovered root
-        comparators[i].in[1] <== rootBuilders[i].merkleRoot;
-        log(rootBuilders[i].merkleRoot);
         // Write to the output array result:
         // 1 - nullifier exists in the tree (generated from documentHash)
         // 0 - nullifier is not related to the document
-        verified[i] <== comparators[i].out;
+        verified[i] <== merkleTreeVerifiers[i].isVerified;
     }
+    
+    signal tempSum[nullifiersCount];
+    tempSum[0] <== verified[0];
 
+    for (var i = 1; i < nullifiersCount; i++) {
+        tempSum[i] <== tempSum[i - 1] + verified[i]; 
+    }
+    totalDuplicates <== tempSum[nullifiersCount - 1];
 }
 
 
