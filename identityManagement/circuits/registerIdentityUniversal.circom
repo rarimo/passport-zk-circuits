@@ -38,12 +38,8 @@ template RegisterIdentityUniversal(w, nb, e_bits, hashLen, depth, encapsulatedCo
     passportVerifier.modulus <== modulus;
     passportVerifier.slaveMerkleRoot <== slaveMerkleRoot;
     passportVerifier.slaveMerkleInclusionBranches <== slaveMerkleInclusionBranches;
-    // passportVerifier.slaveMerkleInclusionOrder <== slaveMerkleInclusionOrder;
     passportVerifier.ecdsaShiftEnabled <== ecdsaShiftEnabled;
     passportVerifier.saTimestampEnabled <== saTimestampEnabled;
-    // passportVerifier.slaveSignedAttributes <== slaveSignedAttributes;
-    // passportVerifier.slaveSignature <== slaveSignature;
-    // passportVerifier.masterModulus <== masterModulus;
 
     // RSA HASHING
     component dg15Chunking[5];
@@ -91,7 +87,6 @@ template RegisterIdentityUniversal(w, nb, e_bits, hashLen, depth, encapsulatedCo
     signal dg15HasherRSATemp <== dg15HasherRSA.out * ecdsaShiftDisabled;
     
     dg15PubKeyHash <== dg15HasherECDSATemp + dg15HasherRSATemp;
-    log("DG15 Key hash: ", dg15PubKeyHash);
     
     // DG1 hash 744 bits => 4 * 186
     component dg1Chunking[4];
