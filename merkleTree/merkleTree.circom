@@ -3,7 +3,11 @@ pragma circom  2.1.6;
 include "dualMux.circom";
 include "hashLeftRight.circom";
 
+include "../node_modules/circomlib/circuits/comparators.circom";
+
 template MerkleTreeVerifier(depth) {
+    signal output isVerified;
+
     signal input leaf;
     signal input merkleRoot;
     signal input merkleBranches[depth];
@@ -26,5 +30,9 @@ template MerkleTreeVerifier(depth) {
         hashers[i].right <== selectors[i].out[1];
     }
 
-    // merkleRoot === hashers[depth - 1].hash; //TODO: RESTORE THIS CONTRAINT AFTER TESTS
+    component isEqual = IsEqual();
+    isEqual.in[0] <== merkleRoot;
+    isEqual.in[1] <== hashers[depth - 1].hash;
+
+    isVerified <== isEqual.out;
 }
