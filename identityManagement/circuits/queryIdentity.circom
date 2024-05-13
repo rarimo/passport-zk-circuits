@@ -159,6 +159,26 @@ template QueryIdentity(idTreeDepth) {
     verifyExpirationDateUpperbound.in[1] <== 1;
     verifyExpirationDateUpperbound.enabled <== selectorBits.out[13];
 
+    // Birth date lowerbound: birthDateLowerbound < birthDate
+    component birthDateLowerboundCompare = EncodedDateIsLess();
+    birthDateLowerboundCompare.first <== birthDateLowerbound;
+    birthDateLowerboundCompare.second <== birthDate;
+
+    component verifyBirthDateLowerbound = ForceEqualIfEnabled();
+    verifyBirthDateLowerbound.in[0] <== birthDateLowerboundCompare.out;
+    verifyBirthDateLowerbound.in[1] <== 1;
+    verifyBirthDateLowerbound.enabled <== selectorBits.out[14];
+
+    // Birth date upperbound: birthDate < birthDateUpperbound
+    component birthDateUpperboundCompare = EncodedDateIsLess();
+    birthDateUpperboundCompare.first <== birthDate;
+    birthDateUpperboundCompare.second <== birthDateUpperbound;
+
+    component verifyBirthDateUpperbound = ForceEqualIfEnabled();
+    verifyBirthDateUpperbound.in[0] <== birthDateUpperboundCompare.out;
+    verifyBirthDateUpperbound.in[1] <== 1;
+    verifyBirthDateUpperbound.enabled <== selectorBits.out[15];
+
     // Retrieve DGCommit: DG1 hash 744 bits => 4 * 186
     component dg1Chunking[4];
     component dg1Hasher = Poseidon(5);
