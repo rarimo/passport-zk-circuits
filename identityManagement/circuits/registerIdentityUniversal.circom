@@ -18,13 +18,14 @@ template RegisterIdentityUniversal(w, nb, e_bits, hashLen, depth, encapsulatedCo
     signal input modulus[nb];
     signal input slaveMerkleRoot;
     signal input slaveMerkleInclusionBranches[depth];
-    // signal input slaveMerkleInclusionOrder[depth];
     signal input skIdentity;
     signal input ecdsaShiftEnabled;
     signal input saTimestampEnabled;
-    // signal input slaveSignedAttributes[slaveSignedAttributesLen];
-    // signal input slaveSignature[nb];
-    // signal input masterModulus[nb];
+
+    // ----
+    signal ecdsaShiftDisabled <== (1 - ecdsaShiftEnabled);
+    ecdsaShiftDisabled * ecdsaShiftEnabled === 0;
+    // ----
 
     component passportVerifier = 
         PassportVerificationHashPadded(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen, slaveSignedAttributesLen, signedAttributesKeyShift);
@@ -37,59 +38,55 @@ template RegisterIdentityUniversal(w, nb, e_bits, hashLen, depth, encapsulatedCo
     passportVerifier.modulus <== modulus;
     passportVerifier.slaveMerkleRoot <== slaveMerkleRoot;
     passportVerifier.slaveMerkleInclusionBranches <== slaveMerkleInclusionBranches;
-    // passportVerifier.slaveMerkleInclusionOrder <== slaveMerkleInclusionOrder;
     passportVerifier.ecdsaShiftEnabled <== ecdsaShiftEnabled;
     passportVerifier.saTimestampEnabled <== saTimestampEnabled;
-    // passportVerifier.slaveSignedAttributes <== slaveSignedAttributes;
-    // passportVerifier.slaveSignature <== slaveSignature;
-    // passportVerifier.masterModulus <== masterModulus;
 
-    if (dg15Len == 1320) { // rsa keys stored
-        component dg15Chunking[5];
-        var DG15_PK_SHIFT = 256; // shift in ASN1 encoded content to pk value
+    // RSA HASHING
+    component dg15Chunking[5];
+    var DG15_PK_SHIFT = 256; // shift in ASN1 encoded content to pk value
 
-        // 1024 bit RSA key is splitted into | 200 bit | 200 bit | 200 bit | 200 bit | 224 bit |
-        var CHUNK_SIZE = 200;
-        var LAST_CHUNK_SIZE = 224;
-        for (var j = 0; j < 4; j++) {
-            dg15Chunking[j] = Bits2Num(CHUNK_SIZE);
-            for (var i = 0; i < CHUNK_SIZE; i++) {
-                dg15Chunking[j].in[CHUNK_SIZE - 1 - i] <== dg15[DG15_PK_SHIFT + j * CHUNK_SIZE + i];
-            }
+    // 1024 bit RSA key is splitted into | 200 bit | 200 bit | 200 bit | 200 bit | 224 bit |
+    var CHUNK_SIZE = 200;
+    var LAST_CHUNK_SIZE = 224;
+    for (var j = 0; j < 4; j++) {
+        dg15Chunking[j] = Bits2Num(CHUNK_SIZE);
+        for (var i = 0; i < CHUNK_SIZE; i++) {
+            dg15Chunking[j].in[CHUNK_SIZE - 1 - i] <== dg15[DG15_PK_SHIFT + j * CHUNK_SIZE + i];
         }
-
-        dg15Chunking[4] = Bits2Num(LAST_CHUNK_SIZE);
-        for (var i = 0; i < LAST_CHUNK_SIZE; i++) {
-            dg15Chunking[4].in[LAST_CHUNK_SIZE - 1 - i] <== dg15[DG15_PK_SHIFT + 4 * CHUNK_SIZE + i];
-        }
-
-        // Poseidon5 is applied on chunks
-        component dg15Hasher = Poseidon(5);
-        for (var i = 0; i < 5; i++) {
-            dg15Hasher.inputs[i] <== dg15Chunking[i].out;
-        }
-
-        dg15PubKeyHash <== dg15Hasher.out;
-
-    } else { // Elliptic Curve Active Auth key extraction
-        component xToNum = Bits2Num(248);
-        component yToNum = Bits2Num(248);
-        
-        var EC_FIELD_SIZE = 256;
-
-        for (var i = 0; i < 248; i++) {
-            xToNum.in[247-i] <== dg15[dg15Len - EC_FIELD_SIZE*2 + i + 8];
-            yToNum.in[247-i] <== dg15[dg15Len - EC_FIELD_SIZE + i + 8];
-        }
-
-        component dg15Hasher = Poseidon(2);
-        
-        dg15Hasher.inputs[0] <== xToNum.out;
-        dg15Hasher.inputs[1] <== yToNum.out;
-        
-        dg15PubKeyHash <== dg15Hasher.out;
     }
 
+    dg15Chunking[4] = Bits2Num(LAST_CHUNK_SIZE);
+    for (var i = 0; i < LAST_CHUNK_SIZE; i++) {
+        dg15Chunking[4].in[LAST_CHUNK_SIZE - 1 - i] <== dg15[DG15_PK_SHIFT + 4 * CHUNK_SIZE + i];
+    }
+
+    // Poseidon5 is applied on chunks
+    component dg15HasherRSA = Poseidon(5);
+    for (var i = 0; i < 5; i++) {
+        dg15HasherRSA.inputs[i] <== dg15Chunking[i].out;
+    }
+    
+    // ECDSA HASHING
+    component xToNum = Bits2Num(248);
+    component yToNum = Bits2Num(248);
+    
+    var EC_FIELD_SIZE = 256;
+    var PK_POINT_POSITION = 2008;
+
+    for (var i = 0; i < 248; i++) {
+        xToNum.in[247-i] <== dg15[PK_POINT_POSITION + i + 8];
+        yToNum.in[247-i] <== dg15[PK_POINT_POSITION + EC_FIELD_SIZE + i + 8];
+    }
+
+    component dg15HasherECDSA = Poseidon(2);
+    
+    dg15HasherECDSA.inputs[0] <== xToNum.out;
+    dg15HasherECDSA.inputs[1] <== yToNum.out;
+    
+    signal dg15HasherECDSATemp <== dg15HasherECDSA.out * ecdsaShiftEnabled;
+    signal dg15HasherRSATemp <== dg15HasherRSA.out * ecdsaShiftDisabled;
+    
+    dg15PubKeyHash <== dg15HasherECDSATemp + dg15HasherRSATemp;
     
     // DG1 hash 744 bits => 4 * 186
     component dg1Chunking[4];
