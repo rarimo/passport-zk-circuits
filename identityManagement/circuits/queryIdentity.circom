@@ -142,7 +142,7 @@ template QueryIdentity(idTreeDepth) {
     // Expiration date lowerbound: expirationDateLowerbound < expirationDate
     component expirationDateLowerboundCompare = EncodedDateIsLess();
     expirationDateLowerboundCompare.first <== expirationDateLowerbound;
-    expirationDateLowerboundCompare.second <== expirationDate;
+    expirationDateLowerboundCompare.second <== dg1DataExtractor.expirationDate;
 
     component verifyExpirationDateLowerbound = ForceEqualIfEnabled();
     verifyExpirationDateLowerbound.in[0] <== expirationDateLowerboundCompare.out;
@@ -151,7 +151,7 @@ template QueryIdentity(idTreeDepth) {
 
     // Expiration date upperbound: expirationDate < expirationDateUpperbound
     component expirationDateUpperboundCompare = EncodedDateIsLess();
-    expirationDateUpperboundCompare.first <== expirationDate;
+    expirationDateUpperboundCompare.first <== dg1DataExtractor.expirationDate;
     expirationDateUpperboundCompare.second <== expirationDateUpperbound;
 
     component verifyExpirationDateUpperbound = ForceEqualIfEnabled();
@@ -162,7 +162,7 @@ template QueryIdentity(idTreeDepth) {
     // Birth date lowerbound: birthDateLowerbound < birthDate
     component birthDateLowerboundCompare = EncodedDateIsLess();
     birthDateLowerboundCompare.first <== birthDateLowerbound;
-    birthDateLowerboundCompare.second <== birthDate;
+    birthDateLowerboundCompare.second <== dg1DataExtractor.birthDate;
 
     component verifyBirthDateLowerbound = ForceEqualIfEnabled();
     verifyBirthDateLowerbound.in[0] <== birthDateLowerboundCompare.out;
@@ -171,7 +171,7 @@ template QueryIdentity(idTreeDepth) {
 
     // Birth date upperbound: birthDate < birthDateUpperbound
     component birthDateUpperboundCompare = EncodedDateIsLess();
-    birthDateUpperboundCompare.first <== birthDate;
+    birthDateUpperboundCompare.first <== dg1DataExtractor.birthDate;
     birthDateUpperboundCompare.second <== birthDateUpperbound;
 
     component verifyBirthDateUpperbound = ForceEqualIfEnabled();
