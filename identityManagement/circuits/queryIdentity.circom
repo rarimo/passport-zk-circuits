@@ -6,6 +6,7 @@ include "dg1DataExtractor.circom";
 include "identityStateVerifier.circom";
 include "../../dateUtilities/dateComparisonEncoded.circom";
 include "../../node_modules/circomlib/circuits/comparators.circom";
+include "../../dateUtilities/dateComparisonEncodedNormalized.circom";
 
 // QUERY SELECTOR:
 // 0 - nullifier   (+)
@@ -27,49 +28,55 @@ include "../../node_modules/circomlib/circuits/comparators.circom";
 // 16 - verify citizenship mask as a whitelist
 // 17 - verify citizenship mask as a blacklist
 
+// Passport encoding time is UTF-8 "YYMMDD"
+// Timestamps has 2 times of encoding: 
+// - standard (UNIX) timestamp, like 1716482295 (UT - UNIX timestamp)
+// - passport timestamp, like UTF-8 "010203" -> 0x303130323033 -> 52987820126259 (PT - passport timestamp)
+
 template QueryIdentity(idTreeDepth) {
     signal output nullifier;    // Poseidon3(sk_i, Poseidon1(sk_i), eventID)
 
-    signal output birthDate;
-    signal output expirationDate;
-    signal output name;
-    signal output nameResidual;
-    signal output nationality;
-    signal output citizenship;
-    signal output sex;
-    signal output documentNumber;
+    signal output birthDate;       // *(PT - passport timestamp)
+    signal output expirationDate;  // *(PT - passport timestamp)
+    signal output name;            // 31 bytes | TD3 has 39 = 31 + 8 bytes for name
+    signal output nameResidual;    // 8 bytes
+    signal output nationality;     // UTF-8 encoded | "USA" -> 0x555341 -> 5591873
+    signal output citizenship;     // UTF-8 encoded | "USA" -> 0x555341 -> 5591873
+    signal output sex;             // UTF-8 encoded | "F" -> 0x46 -> 70
+    signal output documentNumber;  // UTF-8 encoded
     
     // public signals
-    signal input eventID;       // challenge
+    signal input eventID;       // challenge | for single eventID -> single nullifier for one identity
     signal input eventData;     // event data binded to the proof; not involved in comp
     signal input idStateRoot;   // identity state Merkle root
-    signal input selector;      //  blinds personal data | 0 is not used 
+    signal input selector;      // blinds personal data | 0 is not used
+    signal input currentTime;   // used to differ 19 and 20th centuries in passport encoded dates
 
     // query parameters (set 0 if not used)
-    signal input timestampLowerbound;  // identity is issued in this time range
-    signal input timestampUpperbound;  // timestamp E [timestampLowerbound, timestampUpperbound)
+    signal input timestampLowerbound;  // identity is issued in this time range  *(UT)
+    signal input timestampUpperbound;  // timestamp E [timestampLowerbound, timestampUpperbound)   *(UT)
 
     signal input identityCounterLowerbound; // Number of identities connected to the specific passport
     signal input identityCounterUpperbound; // identityCounter E [timestampLowerbound, timestampUpperbound)
 
-    signal input birthDateLowerbound;  // birthDateLowerbound < birthDate | 0x303030303030 if not used
-    signal input birthDateUpperbound;  // birthDate < birthDateUpperbound | 0x303030303030 if not used
+    signal input birthDateLowerbound;  // birthDateLowerbound < birthDate | 0x303030303030 if not used   *(PT)
+    signal input birthDateUpperbound;  // birthDate < birthDateUpperbound | 0x303030303030 if not used   *(PT)
 
-    signal input expirationDateLowerbound; // expirationDateLowerbound < expirationDate | 0x303030303030 if not used
-    signal input expirationDateUpperbound; // expirationDate < expirationDateUpperbound | 0x303030303030 if not used
+    signal input expirationDateLowerbound; // expirationDateLowerbound < expirationDate | 0x303030303030 if not used   *(PT)
+    signal input expirationDateUpperbound; // expirationDate < expirationDateUpperbound | 0x303030303030 if not used   *(PT)
 
     signal input citizenshipMask;      // binary mask to whitelist | blacklist citizenships
 
     // private signals
-    signal input skIdentity;
-    signal input pkPassportHash;
-    signal input dg1[744];      // 744 bits
-    signal input idStateSiblings[80];  // identity tree inclusion proof
-    signal input timestamp;
-    signal input identityCounter;
+    signal input skIdentity;          // identity secret (private) key
+    signal input pkPassportHash;      // passport public key (DG15) hash
+    signal input dg1[744];            // 744 bits | DG1 in binary
+    signal input idStateSiblings[80]; // identity tree inclusion proof
+    signal input timestamp;           // identity creation timestamp   *(UT)
+    signal input identityCounter;     // number of times identities were reissuied for the same passport
 
     // selector decoding
-    component selectorBits = Num2Bits(18);
+    component selectorBits = Num2Bits(18); // selector is used to selectively disclose personal data
     selectorBits.in <== selector;
 
     // ----------------------
@@ -86,10 +93,11 @@ template QueryIdentity(idTreeDepth) {
     sex <== dg1DataExtractor.sex * selectorBits.out[6];
     documentNumber <== dg1DataExtractor.documentNumber * selectorBits.out[7];
 
+    // ----------------------
     // Nullifier calculation
     component skIdentityHasher = Poseidon(1);
     skIdentityHasher.inputs[0] <== skIdentity;
-
+    // nullifier => Poseidon3(sk_i, Poseidon1(sk_i), eventID)
     component nulliferHasher = Poseidon(3);
     nulliferHasher.inputs[0] <== skIdentity;
     nulliferHasher.inputs[1] <== skIdentityHasher.out;
