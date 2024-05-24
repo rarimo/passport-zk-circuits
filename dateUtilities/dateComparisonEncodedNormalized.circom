@@ -47,5 +47,3 @@ template EncodedDateIsLessNormalized() {
 
     out <== dateIsLess.out;
 }
-
-component main = EncodedDateIsLessNormalized();

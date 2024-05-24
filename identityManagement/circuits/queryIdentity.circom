@@ -50,7 +50,7 @@ template QueryIdentity(idTreeDepth) {
     signal input eventData;     // event data binded to the proof; not involved in comp
     signal input idStateRoot;   // identity state Merkle root
     signal input selector;      // blinds personal data | 0 is not used
-    signal input currentTime;   // used to differ 19 and 20th centuries in passport encoded dates
+    signal input currentDate;   // used to differ 19 and 20th centuries in passport encoded dates *(PT)
 
     // query parameters (set 0 if not used)
     signal input timestampLowerbound;  // identity is issued in this time range  *(UT)
@@ -168,9 +168,10 @@ template QueryIdentity(idTreeDepth) {
     verifyExpirationDateUpperbound.enabled <== selectorBits.out[13];
 
     // Birth date lowerbound: birthDateLowerbound < birthDate
-    component birthDateLowerboundCompare = EncodedDateIsLess();
+    component birthDateLowerboundCompare = EncodedDateIsLessNormalized();
     birthDateLowerboundCompare.first <== birthDateLowerbound;
     birthDateLowerboundCompare.second <== dg1DataExtractor.birthDate;
+    birthDateLowerboundCompare.currentDate <== currentDate;
 
     component verifyBirthDateLowerbound = ForceEqualIfEnabled();
     verifyBirthDateLowerbound.in[0] <== birthDateLowerboundCompare.out;
@@ -178,9 +179,10 @@ template QueryIdentity(idTreeDepth) {
     verifyBirthDateLowerbound.enabled <== selectorBits.out[14];
 
     // Birth date upperbound: birthDate < birthDateUpperbound
-    component birthDateUpperboundCompare = EncodedDateIsLess();
+    component birthDateUpperboundCompare = EncodedDateIsLessNormalized();
     birthDateUpperboundCompare.first <== dg1DataExtractor.birthDate;
     birthDateUpperboundCompare.second <== birthDateUpperbound;
+    birthDateUpperboundCompare.currentDate <== currentDate;
 
     component verifyBirthDateUpperbound = ForceEqualIfEnabled();
     verifyBirthDateUpperbound.in[0] <== birthDateUpperboundCompare.out;
