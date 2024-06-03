@@ -39,7 +39,7 @@ template RsaVerifyPkcs1v15(w, nb, e_bits, hashLen) {
         num2bits_6.out[i] === 1;
     }
 
-    for (var i = 7; i < 32; i++) {
+    for (var i = 7; i < nb-1; i++) {
         pm.out[i] === 18446744073709551615; // 0b1111111111111111111111111111111111111111111111111111111111111111
     }
 }
