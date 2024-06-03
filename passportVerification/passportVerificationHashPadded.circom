@@ -1,12 +1,11 @@
 pragma circom 2.1.6;
 
-// include "../node_modules/circomlib/circuits/sha256/sha256.circom";
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../rsa/rsa.circom";
 include "../sha256/sha256NoPadding.circom";
 include "../merkleTree/SMTVerifier.circom";
-include "../X509Verification/X509Verifier.circom";
+include "../x509Verification/X509Verifier.circom";
 
 // Default (64, 64, 17, 4, 20)
 template PassportVerificationHashPadded(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen, slaveSignedAttributesLen, signedAttributesKeyShift) {
@@ -32,6 +31,7 @@ template PassportVerificationHashPadded(w, nb, e_bits, hashLen, depth, encapsula
     // signal input slaveMerkleInclusionOrder[depth];
     signal input ecdsaShiftEnabled;  // 0 - RSA AA | 1 - ECDSA AA
     signal input saTimestampEnabled; // 0 - no timestamp, 1 - with
+    signal input parametersAnyNullShiftEnabled; // 0 - no tag parameters ANY NUL (asn1 opcode 0x0500) | 1 - present
 
     // -------
 
@@ -67,8 +67,8 @@ template PassportVerificationHashPadded(w, nb, e_bits, hashLen, depth, encapsula
     // -- ECDSA check
     signal encapsulatedContentTempECDSA[hashLen * nb];
     for (var i = 0; i < hashLen * nb; i++) {
-        encapsulatedContentTempECDSA[i] <== encapsulatedContent[DG1_DIGEST_POSITION_SHIFT + i] * ecdsaShiftEnabled;
-        encapsulatedContentTempECDSA[i] === dg1Hasher.out[i] * ecdsaShiftEnabled;
+        encapsulatedContentTempECDSA[i] <== encapsulatedContent[DG1_DIGEST_POSITION_SHIFT + i] * parametersAnyNullShiftEnabled;
+        encapsulatedContentTempECDSA[i] === dg1Hasher.out[i] * parametersAnyNullShiftEnabled;
     }
 
     // -- RSA check
@@ -141,7 +141,6 @@ template PassportVerificationHashPadded(w, nb, e_bits, hashLen, depth, encapsula
         tempModulus[i] <== modulus[currIndex] * 2**128 + modulus[currIndex + 1] * 2**64;
         modulusHasher.inputs[i] <== tempModulus[i] + modulus[currIndex + 2];
     }
-
 
     component smtVerifier = SMTVerifier(depth);
     smtVerifier.root <== slaveMerkleRoot;
