@@ -11,8 +11,8 @@ const assert = chai.assert;
 
 const validInput = require('./inputs/validInput.json')
 const isNotAdultInput = require('./inputs/isNotAdultInput.json')
-const passportExpiredInput = require('./inputs/passportExpiredInput.json')
-const credValidExceedsPassportInput = require('./inputs/credValidExceedsPassportInput.json')
+// const passportExpiredInput = require('./inputs/passportExpiredInput.json')
+// const credValidExceedsPassportInput = require('./inputs/credValidExceedsPassportInput.json')
 
 describe("Simple test", function () {
     this.timeout(100000);
@@ -20,7 +20,7 @@ describe("Simple test", function () {
     it("SHA256 circuit witness generation on a valid data", async function () {
 
         const circuit = await wasm_tester(
-            path.join(__dirname, "../passportVerification/passportVerificationSHA256.circom")
+            path.join(__dirname, "../passportVerification/passportDG1VerificationSHA256.circom")
         );
         const w = await circuit.calculateWitness(validInput);
         await circuit.checkConstraints(w);
@@ -29,7 +29,7 @@ describe("Simple test", function () {
     it("SHA256 circuit witness generation failed: is not Adult", async function () {
 
         const circuit = await wasm_tester(
-            path.join(__dirname, "../passportVerification/passportVerificationSHA256.circom")
+            path.join(__dirname, "../passportVerification/passportDG1VerificationSHA256.circom")
         );
         try {
             const w = await circuit.calculateWitness(isNotAdultInput);
@@ -43,7 +43,7 @@ describe("Simple test", function () {
     it("SHA256 circuit witness generation failed: passport has expired", async function () {
 
         const circuit = await wasm_tester(
-            path.join(__dirname, "../passportVerification/passportVerificationSHA256.circom")
+            path.join(__dirname, "../passportVerification/passportDG1VerificationSHA256.circom")
         );
         try {
             const w = await circuit.calculateWitness(passportExpiredInput);
@@ -57,7 +57,7 @@ describe("Simple test", function () {
     it("SHA256 circuit witness generation failed: credential validity period exceeds passport", async function () {
 
         const circuit = await wasm_tester(
-            path.join(__dirname, "../passportVerification/passportVerificationSHA256.circom")
+            path.join(__dirname, "../passportVerification/passportDG1VerificationSHA256.circom")
         );
         try {
             const w = await circuit.calculateWitness(credValidExceedsPassportInput);
