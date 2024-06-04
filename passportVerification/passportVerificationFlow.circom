@@ -3,7 +3,7 @@ pragma circom  2.1.6;
 include "../node_modules/circomlib/circuits/comparators.circom";
 
 
-template passportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_ATTRIBUTES_SIZE, 
+template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_ATTRIBUTES_SIZE, 
                                   DG1_DIGEST_POSITION_SHIFT, DG15_DIGEST_POSITION_SHIFT, SIGNED_ATTRIBUTES_SHIFT) 
 {
     signal output flowResult;
@@ -27,7 +27,7 @@ template passportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
     for (var i = 0; i < HASH_SIZE; i++) {
         dg15HashEqualsEncapsulated[i] = IsEqual();
         dg15HashEqualsEncapsulated[i].in[0] <== dg15Hash[i];
-        dg15HashEqualsEncapsulated[i].in[1] <== encapsulatedContent[DG1_DIGEST_POSITION_SHIFT + i];
+        dg15HashEqualsEncapsulated[i].in[1] <== encapsulatedContent[DG15_DIGEST_POSITION_SHIFT + i];
     }
     
     // 3) Checking encapsulatedContent hash inclusion into signedAttributed
@@ -39,15 +39,15 @@ template passportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
     }
 
     signal verifyAllChecksPassed[HASH_SIZE * 3];
-    verifyAllChecksPassed[0] <== dg1HashEqualsEncapsulated[0];
+    verifyAllChecksPassed[0] <== dg1HashEqualsEncapsulated[0].out;
     for (var i = 1; i < HASH_SIZE; i++) {
-        verifyAllChecksPassed[i] <== verifyAllChecksPassed[i - 1] * dg1HashEqualsEncapsulated[i];
+        verifyAllChecksPassed[i] <== verifyAllChecksPassed[i - 1] * dg1HashEqualsEncapsulated[i].out;
     }
     for (var i = 0; i < HASH_SIZE; i++) {
-        verifyAllChecksPassed[HASH_SIZE + i] <== verifyAllChecksPassed[HASH_SIZE + i - 1] * dg15HashEqualsEncapsulated[i];
+        verifyAllChecksPassed[HASH_SIZE + i] <== verifyAllChecksPassed[HASH_SIZE + i - 1] * dg15HashEqualsEncapsulated[i].out;
     }
     for (var i = 0; i < HASH_SIZE; i++) {
-        verifyAllChecksPassed[2 * HASH_SIZE + i] <== verifyAllChecksPassed[2 * HASH_SIZE + i - 1] * encapsulateHashEqualsSigned[i];
+        verifyAllChecksPassed[2 * HASH_SIZE + i] <== verifyAllChecksPassed[2 * HASH_SIZE + i - 1] * encapsulateHashEqualsSigned[i].out;
     }
 
     flowResult <== verifyAllChecksPassed[3 * HASH_SIZE - 1];

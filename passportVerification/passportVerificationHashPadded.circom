@@ -6,17 +6,18 @@ include "../rsa/rsa.circom";
 include "../sha256/sha256NoPadding.circom";
 include "../merkleTree/SMTVerifier.circom";
 include "../x509Verification/X509Verifier.circom";
+include "./passportVerificationFlow.circom";
 
-// Default (64, 64, 17, 4, 20)
+
 template PassportVerificationHashPadded(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen, slaveSignedAttributesLen, signedAttributesKeyShift) {
     // *magic numbers* list
     var DG1_SIZE = 1024;                        // bits
-    var DG15_SIZE = 3072;                       // 1320
+    var DG15_SIZE = 3072;                       // 1320 rsa | 
     var SIGNED_ATTRIBUTES_SIZE = 1024;          // 592
     var ENCAPSULATED_CONTENT_SIZE = 3072;       // 2688
     var DG1_DIGEST_POSITION_SHIFT = dg1Shift;   // 248
     var DG15_DIGEST_POSITION_SHIFT = dg15Shift; // 2432
-    var HASH_BITS = nb * hashLen;               // 64 * 4 = 256 (SHA256)
+    var HASH_SIZE = nb * hashLen;               // 64 * 4 = 256 (SHA256)
     // ------------------
 
     // input signals
@@ -31,8 +32,6 @@ template PassportVerificationHashPadded(w, nb, e_bits, hashLen, depth, encapsula
     // signal input slaveMerkleInclusionOrder[depth];
     signal input ecdsaShiftEnabled;  // 0 - RSA AA | 1 - ECDSA AA
     signal input saTimestampEnabled; // 0 - no timestamp, 1 - with
-    signal input parametersAnyNullShiftEnabled; // 0 - no tag parameters ANY NUL (asn1 opcode 0x0500) | 1 - present
-
     // -------
 
 
@@ -67,8 +66,8 @@ template PassportVerificationHashPadded(w, nb, e_bits, hashLen, depth, encapsula
     // -- ECDSA check
     signal encapsulatedContentTempECDSA[hashLen * nb];
     for (var i = 0; i < hashLen * nb; i++) {
-        encapsulatedContentTempECDSA[i] <== encapsulatedContent[DG1_DIGEST_POSITION_SHIFT + i] * parametersAnyNullShiftEnabled;
-        encapsulatedContentTempECDSA[i] === dg1Hasher.out[i] * parametersAnyNullShiftEnabled;
+        encapsulatedContentTempECDSA[i] <== encapsulatedContent[DG1_DIGEST_POSITION_SHIFT + i] * ecdsaShiftEnabled;
+        encapsulatedContentTempECDSA[i] === dg1Hasher.out[i] * ecdsaShiftEnabled;
     }
 
     // -- RSA check
@@ -98,7 +97,7 @@ template PassportVerificationHashPadded(w, nb, e_bits, hashLen, depth, encapsula
     // signedAttributes passport hash == encapsulatedContent hash
     var SIGNED_ATTRIBUTES_SHIFT = 336;
     signal encapsulatedContentHasherTemp[hashLen * nb];
-    for (var i = 0; i < HASH_BITS; i++) {
+    for (var i = 0; i < HASH_SIZE; i++) {
         encapsulatedContentHasherTemp[i] <== encapsulatedContentHasher.out[i] * saTimestampDisabled;
         encapsulatedContentHasherTemp[i] === signedAttributes[SIGNED_ATTRIBUTES_SHIFT + i] * saTimestampDisabled;
     }
@@ -107,7 +106,7 @@ template PassportVerificationHashPadded(w, nb, e_bits, hashLen, depth, encapsula
 
     var SIGNED_ATTRIBUTES_SHIFT_TS = 576;
     signal encapsulatedContentHasherTempTS[hashLen * nb];
-    for (var i = 0; i < HASH_BITS; i++) {
+    for (var i = 0; i < HASH_SIZE; i++) {
         encapsulatedContentHasherTempTS[i] <== encapsulatedContentHasher.out[i] * saTimestampEnabled;
         encapsulatedContentHasherTempTS[i] === signedAttributes[SIGNED_ATTRIBUTES_SHIFT_TS + i] * saTimestampEnabled;
     }
@@ -141,6 +140,35 @@ template PassportVerificationHashPadded(w, nb, e_bits, hashLen, depth, encapsula
         tempModulus[i] <== modulus[currIndex] * 2**128 + modulus[currIndex + 1] * 2**64;
         modulusHasher.inputs[i] <== tempModulus[i] + modulus[currIndex + 2];
     }
+
+     // verification flow parameters: 
+    // 0) ENCAPSULATED_CONTENT_SIZE
+    // 1) HASH_SIZE
+    // 2) SIGNED_ATTRIBUTES_SIZE
+    // 3) DG1_DIGEST_POSITION_SHIFT
+    // 4) DG15_DIGEST_POSITION_SHIFT
+    // 5) SIGNED_ATTRIBUTES_SHIFT
+
+    signal RSAPubKeyFlows[3];
+
+    // RSA FLOWS
+    // FLOW 1
+    // no Parameters any NULL | no signed attributes timestamp | DG15 3 blocks
+    component passportVerificationFlow = PassportVerificationFlow(
+        ENCAPSULATED_CONTENT_SIZE,
+        HASH_SIZE,
+        SIGNED_ATTRIBUTES_SIZE,
+        DG1_DIGEST_POSITION_SHIFT - 16,
+        DG15_DIGEST_POSITION_SHIFT - 16,
+        SIGNED_ATTRIBUTES_SHIFT
+    );
+    passportVerificationFlow.dg1Hash  <== dg1Hasher.out;
+    passportVerificationFlow.dg15Hash <== dg15Hasher3Blocks.out;
+    passportVerificationFlow.encapsulatedContent <== encapsulatedContent;
+    passportVerificationFlow.encapsulatedContentHash <== encapsulatedContentHasher.out;
+    passportVerificationFlow.signedAttributes <== signedAttributes;
+    
+    log(passportVerificationFlow.flowResult);
 
     component smtVerifier = SMTVerifier(depth);
     smtVerifier.root <== slaveMerkleRoot;
