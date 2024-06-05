@@ -11,7 +11,6 @@ template BuildNullifier() {
     signal input salt;
     signal input blinder;
     signal input documentHash;
-    signal input commitment;
 
     signal output nullifier;
 
@@ -20,11 +19,6 @@ template BuildNullifier() {
     documentHash ==> hasher.inputs[0];
     blinder ==> hasher.inputs[1];
     salt ==> hasher.inputs[2];
-
-    // verify document commitment value
-    component commitmentHasher = Poseidon(1);
-    commitmentHasher.inputs[0] <== blinder;
-    commitmentHasher.out === commitment;
 
     nullifier <== hasher.out;
 }
@@ -47,8 +41,10 @@ template CountNullifiers(nullifiersCount, treeDepth) {
     // Array with flags that shows if proof is built or not, count of 1 in this output indicates the total amount 
     // of nullifiers that were created for the document
     signal output totalDuplicates;
-    // Commitments for the blinder value
-    signal output blinderHash;
+    // Commitment for the blinder value
+    signal output blinderCommitment;
+    // Commitment for the preimage for nullifiers 
+    signal output documentCommitment;
     
     // Components to build nullifiers
     component nullifierBuilders[nullifiersCount];
@@ -61,10 +57,14 @@ template CountNullifiers(nullifiersCount, treeDepth) {
 
     signal verified[nullifiersCount];
 
-    component commitmentHasher = Poseidon(1);
-    commitmentHasher.inputs[0] <== blinder;
-    blinderHash <== commitmentHasher.out;
+    component blinderCommitmentHasher = Poseidon(1);
+    blinderCommitmentHasher.inputs[0] <== blinder;
+    blinderCommitment <== blinderCommitmentHasher.out;
 
+    component documentCommitmentHasher = Poseidon(2);
+    documentCommitmentHasher.inputs[0] <== documentHash;
+    documentCommitmentHasher.inputs[1] <== blinder;
+    documentCommitment <== documentCommitmentHasher.out;
 
     // Loop over all possible nullifiers 
     for (var i = 0; i < nullifiersCount; i++) {
@@ -75,8 +75,6 @@ template CountNullifiers(nullifiersCount, treeDepth) {
         nullifierBuilders[i].salt <== salt[i];
         // Set blinder from identity provider
         nullifierBuilders[i].blinder <== blinder;
-        // Set commitment value to verify it
-        nullifierBuilders[i].commitment <== blinderHash;
         // Set document hash from which nullifier was built
         nullifierBuilders[i].documentHash <== documentHash;
 
