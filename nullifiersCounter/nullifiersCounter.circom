@@ -11,6 +11,7 @@ template BuildNullifier() {
     signal input salt;
     signal input blinder;
     signal input documentHash;
+    signal input commitment;
 
     signal output nullifier;
 
@@ -20,22 +21,12 @@ template BuildNullifier() {
     blinder ==> hasher.inputs[1];
     salt ==> hasher.inputs[2];
 
+    // verify document commitment value
+    component commitmentHasher = Poseidon(1);
+    commitmentHasher.inputs[0] <== blinder;
+    commitmentHasher.out === commitment;
+
     nullifier <== hasher.out;
-}
-
-// CreateCommitment create new commitment for nullifier by hashing it with commitment hashed value 
-template CreateCommitment() {
-    signal input nullifier;
-    signal input value;
-
-    signal output commitment;
-
-    component hasher = Poseidon(2);
-
-    hasher.inputs[0] <== nullifier;
-    hasher.inputs[1] <== value;
-
-    commitment <== hasher.out;
 }
 
 template CountNullifiers(nullifiersCount, treeDepth) {
@@ -52,20 +43,15 @@ template CountNullifiers(nullifiersCount, treeDepth) {
     signal input proofsBranches[nullifiersCount][treeDepth];
     // Hashing orders to build elements (contains 0 and 1)
     signal input proofsOrder[nullifiersCount][treeDepth];
-    // Some random number for the whole voting period that is the Poseidon hash of some value. 
-    // This signal is hashed with nullifier and work as commitment for each counter
-    signal input votingHashValue;
 
     // Array with flags that shows if proof is built or not, count of 1 in this output indicates the total amount 
     // of nullifiers that were created for the document
     signal output totalDuplicates;
-    // Commitments for each nullifier
-    signal output commitments[nullifiersCount];
+    // Commitments for the blinder value
+    signal output blinderHash;
     
     // Components to build nullifiers
     component nullifierBuilders[nullifiersCount];
-    // Components to create commitments
-    component commitmentCreators[nullifiersCount];
     // Components to recover Merkle tree root
     component merkleTreeVerifiers[nullifiersCount];
     // Components to compare recovered roots with required one
@@ -75,27 +61,24 @@ template CountNullifiers(nullifiersCount, treeDepth) {
 
     signal verified[nullifiersCount];
 
+    component commitmentHasher = Poseidon(1);
+    commitmentHasher.inputs[0] <== blinder;
+    blinderHash <== commitmentHasher.out;
+
+
     // Loop over all possible nullifiers 
     for (var i = 0; i < nullifiersCount; i++) {
         // Init new nullifier builder
         nullifierBuilders[i] = BuildNullifier();
-        // Init new commitment creators
-        commitmentCreators[i] = CreateCommitment();
 
         // Set salt from identity provider
         nullifierBuilders[i].salt <== salt[i];
         // Set blinder from identity provider
         nullifierBuilders[i].blinder <== blinder;
+        // Set commitment value to verify it
+        nullifierBuilders[i].commitment <== blinderHash;
         // Set document hash from which nullifier was built
         nullifierBuilders[i].documentHash <== documentHash;
-
-        // Set calculated nullifer to create commitment
-        commitmentCreators[i].nullifier <== nullifierBuilders[i].nullifier;
-        // Set commitment values
-        commitmentCreators[i].value <== votingHashValue;
-
-        // Set resulted commitment for nullifier
-        commitments[i] <== commitmentCreators[i].commitment;
 
         // Create new root recoverer with required tree depth
         merkleTreeVerifiers[i] = MerkleTreeVerifier(treeDepth);
