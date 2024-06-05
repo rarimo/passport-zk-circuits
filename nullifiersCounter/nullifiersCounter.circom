@@ -41,6 +41,10 @@ template CountNullifiers(nullifiersCount, treeDepth) {
     // Array with flags that shows if proof is built or not, count of 1 in this output indicates the total amount 
     // of nullifiers that were created for the document
     signal output totalDuplicates;
+    // Commitment for the blinder value
+    signal output blinderCommitment;
+    // Commitment for the preimage for nullifiers 
+    signal output documentCommitment;
     
     // Components to build nullifiers
     component nullifierBuilders[nullifiersCount];
@@ -52,6 +56,15 @@ template CountNullifiers(nullifiersCount, treeDepth) {
     component leavesHashers[nullifiersCount];
 
     signal verified[nullifiersCount];
+
+    component blinderCommitmentHasher = Poseidon(1);
+    blinderCommitmentHasher.inputs[0] <== blinder;
+    blinderCommitment <== blinderCommitmentHasher.out;
+
+    component documentCommitmentHasher = Poseidon(2);
+    documentCommitmentHasher.inputs[0] <== documentHash;
+    documentCommitmentHasher.inputs[1] <== blinder;
+    documentCommitment <== documentCommitmentHasher.out;
 
     // Loop over all possible nullifiers 
     for (var i = 0; i < nullifiersCount; i++) {
