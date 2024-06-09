@@ -9,16 +9,16 @@ template RegisterIdentityUniversal(w, nb, e_bits, hashLen, depth, encapsulatedCo
     signal output dg1Commitment;
     signal output pkIdentityHash;
 
-    signal input encapsulatedContent[encapsulatedContentLen]; // 2688 bits
+    signal input encapsulatedContent[encapsulatedContentLen]; // 2688 / 2704 bits
     signal input dg1[1024];                  // 744 bits
-    signal input dg15[dg15Len];             // 1320 bits
-    signal input signedAttributes[signedAttributesLen];     // 592 bits
-    signal input exp[nb];
+    signal input dg15[dg15Len];             // 1320 / 2520 bits
+    signal input signedAttributes[signedAttributesLen];     // 592 / 832 bits
     signal input sign[nb];
     signal input modulus[nb];
     signal input slaveMerkleRoot;
     signal input slaveMerkleInclusionBranches[depth];
     signal input skIdentity;
+    signal input parametersAnyNullShiftEnabled;
     signal input ecdsaShiftEnabled;
     signal input saTimestampEnabled;
 
@@ -38,6 +38,7 @@ template RegisterIdentityUniversal(w, nb, e_bits, hashLen, depth, encapsulatedCo
     passportVerifier.modulus <== modulus;
     passportVerifier.slaveMerkleRoot <== slaveMerkleRoot;
     passportVerifier.slaveMerkleInclusionBranches <== slaveMerkleInclusionBranches;
+    passportVerifier.parametersAnyNullShiftEnabled <== parametersAnyNullShiftEnabled;
     passportVerifier.ecdsaShiftEnabled <== ecdsaShiftEnabled;
     passportVerifier.saTimestampEnabled <== saTimestampEnabled;
 
