@@ -5,7 +5,7 @@ include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../rsa/rsa.circom";
 include "../merkleTree/merkleTree.circom";
-include "../X509Verification/X509Verifier.circom";
+include "../x509Verification/X509Verifier.circom";
 
 // Default (64, 64, 17, 4, 20)
 template PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen, slaveSignedAttributesLen, signedAttributesKeyShift) {
@@ -33,7 +33,7 @@ template PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedCon
     signal input slaveSignature[nb];
     signal input masterModulus[nb];
 
-    // -------
+    // ------------------
 
     // Hash DG1 -> SHA256
     component dg1Hasher = Sha256(DG1_SIZE);
@@ -98,7 +98,7 @@ template PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedCon
     x509Verifier.slaveSignature <== slaveSignature;
     x509Verifier.masterModulus <== masterModulus;
 
-    // -------
+    // ------------------
 
     component pubKeyHasher[4];
 
