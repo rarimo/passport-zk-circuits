@@ -18,13 +18,12 @@ template RegisterIdentityUniversal(w, nb, e_bits, hashLen, depth, encapsulatedCo
     signal input slaveMerkleRoot;
     signal input slaveMerkleInclusionBranches[depth];
     signal input skIdentity;
-    signal input parametersAnyNullShiftEnabled;
-    signal input ecdsaShiftEnabled;
-    signal input saTimestampEnabled;
+    // signal input ecdsaShiftEnabled;
+    // signal input saTimestampEnabled;
 
     // ----
-    signal ecdsaShiftDisabled <== (1 - ecdsaShiftEnabled);
-    ecdsaShiftDisabled * ecdsaShiftEnabled === 0;
+    // signal ecdsaShiftDisabled <== (1 - ecdsaShiftEnabled);
+    // ecdsaShiftDisabled * ecdsaShiftEnabled === 0;
     // ----
 
     component passportVerifier = 
@@ -38,9 +37,16 @@ template RegisterIdentityUniversal(w, nb, e_bits, hashLen, depth, encapsulatedCo
     passportVerifier.modulus <== modulus;
     passportVerifier.slaveMerkleRoot <== slaveMerkleRoot;
     passportVerifier.slaveMerkleInclusionBranches <== slaveMerkleInclusionBranches;
-    passportVerifier.parametersAnyNullShiftEnabled <== parametersAnyNullShiftEnabled;
-    passportVerifier.ecdsaShiftEnabled <== ecdsaShiftEnabled;
-    passportVerifier.saTimestampEnabled <== saTimestampEnabled;
+    
+    component passedVerificationFlowsRSAIsZero = IsZero();
+    component passedVerificationFlowsECDSAIsZero = IsZero();
+    
+    passedVerificationFlowsRSAIsZero.in <== passportVerifier.passedVerificationFlowsRSA;
+    passedVerificationFlowsECDSAIsZero.in <== passportVerifier.passedVerificationFlowsECDSA;
+    log("passportVerifier.passedVerificationFlowsRSA: ", passportVerifier.passedVerificationFlowsRSA);
+    log("passportVerifier.passedVerificationFlowsECDSA: ", passportVerifier.passedVerificationFlowsECDSA);
+    // There is a succesfull verification flow with RSA AA or ECDSA AA
+    1 === (passedVerificationFlowsRSAIsZero.out + passedVerificationFlowsECDSAIsZero.out);
 
     // RSA HASHING
     component dg15Chunking[5];
@@ -84,8 +90,8 @@ template RegisterIdentityUniversal(w, nb, e_bits, hashLen, depth, encapsulatedCo
     dg15HasherECDSA.inputs[0] <== xToNum.out;
     dg15HasherECDSA.inputs[1] <== yToNum.out;
     
-    signal dg15HasherECDSATemp <== dg15HasherECDSA.out * ecdsaShiftEnabled;
-    signal dg15HasherRSATemp <== dg15HasherRSA.out * ecdsaShiftDisabled;
+    signal dg15HasherECDSATemp <== dg15HasherECDSA.out * passedVerificationFlowsRSAIsZero.out;
+    signal dg15HasherRSATemp <== dg15HasherRSA.out * passedVerificationFlowsECDSAIsZero.out;
     
     dg15PubKeyHash <== dg15HasherECDSATemp + dg15HasherRSATemp;
     
