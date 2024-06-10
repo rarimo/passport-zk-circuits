@@ -9,8 +9,7 @@ include "../x509Verification/X509Verifier.circom";
 include "./passportVerificationFlow.circom";
 include "./passportVerificationRSAsignature.circom";
 
-
-template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, HASH_BLOCKS_NUMBER, TREE_DEPTH) {
+template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, TREE_DEPTH) {
     // *magic numbers* list
     var DG1_SIZE = 1024;                        // bits
     var DG15_SIZE = 3072;                       // 1320 rsa | 
@@ -20,11 +19,13 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, HASH_BLOCK
     var DG15_DIGEST_POSITION_SHIFT = 2432; 
     var DG1_DIGEST_POSITION_SHIFT_PARAMS_ANY = DG1_DIGEST_POSITION_SHIFT + 16;
     var DG15_DIGEST_POSITION_SHIFT_PARAMS_ANY = DG15_DIGEST_POSITION_SHIFT + 16;
-    var HASH_SIZE = BLOCK_SIZE * HASH_BLOCKS_NUMBER; // 64 * 4 = 256 (SHA256)
     var SIGNED_ATTRIBUTES_SHIFT = 336;
     var SIGNED_ATTRIBUTES_SHIFT_TS = 576;
+    // ---------
+
     var NUMBER_RSA_FLOWS = 3;
     var NUMBER_ECDSA_FLOWS = 2;
+    var HASH_SIZE = BLOCK_SIZE * HASH_BLOCKS_NUMBER; // 64 * 4 = 256 (SHA256)
     
     // ------------------
 
@@ -185,7 +186,7 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, HASH_BLOCK
 
     // Verifying passport signature
     component passportVerificationRSASignature = 
-        PassportVerificationRSASignature(BLOCK_SIZE, NUMBER_OF_BLOCKS, e_bits, HASH_BLOCKS_NUMBER, SIGNED_ATTRIBUTES_SIZE);
+        PassportVerificationRSASignature(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, SIGNED_ATTRIBUTES_SIZE);
     passportVerificationRSASignature.signedAttributesHash <== signedAttributesHasher.out;
     passportVerificationRSASignature.sign <== sign;
     passportVerificationRSASignature.modulus <== modulus;
