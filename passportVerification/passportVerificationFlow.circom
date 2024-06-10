@@ -38,6 +38,7 @@ template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
         encapsulateHashEqualsSigned[i].in[1] <== signedAttributes[SIGNED_ATTRIBUTES_SHIFT + i];
     }
 
+    // 4) Verifying that all checks in the flow are successful
     signal verifyAllChecksPassed[HASH_SIZE * 3];
     verifyAllChecksPassed[0] <== dg1HashEqualsEncapsulated[0].out;
     for (var i = 1; i < HASH_SIZE; i++) {
