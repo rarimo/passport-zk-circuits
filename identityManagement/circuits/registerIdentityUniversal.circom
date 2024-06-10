@@ -3,31 +3,38 @@ pragma circom  2.1.6;
 include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../passportVerification/passportVerificationHashPadded.circom";
 include "../../node_modules/circomlib/circuits/babyjub.circom";
+include "../../passportVerification/passportConstants.circom";
 
-template RegisterIdentityUniversal(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen, slaveSignedAttributesLen, signedAttributesKeyShift) {
+template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, TREE_DEPTH) {
+    // *magic numbers* list
+    var DG1_SIZE = 1024;                        // bits
+    var DG15_SIZE = 3072;                       // 1320 rsa | 
+    var SIGNED_ATTRIBUTES_SIZE = 1024;          // 592
+    var ENCAPSULATED_CONTENT_SIZE = 3072;       // 2688
+    var DG1_DIGEST_POSITION_SHIFT = 248;
+    var DG15_DIGEST_POSITION_SHIFT = 2432; 
+    var DG1_DIGEST_POSITION_SHIFT_PARAMS_ANY = DG1_DIGEST_POSITION_SHIFT + 16;
+    var DG15_DIGEST_POSITION_SHIFT_PARAMS_ANY = DG15_DIGEST_POSITION_SHIFT + 16;
+    var SIGNED_ATTRIBUTES_SHIFT = 336;
+    var SIGNED_ATTRIBUTES_SHIFT_TS = 576;
+    // ---------
+
     signal output dg15PubKeyHash;
     signal output dg1Commitment;
     signal output pkIdentityHash;
 
-    signal input encapsulatedContent[encapsulatedContentLen]; // 2688 / 2704 bits
-    signal input dg1[1024];                  // 744 bits
-    signal input dg15[dg15Len];             // 1320 / 2520 bits
-    signal input signedAttributes[signedAttributesLen];     // 592 / 832 bits
-    signal input sign[nb];
-    signal input modulus[nb];
+    signal input encapsulatedContent[ENCAPSULATED_CONTENT_SIZE];   // 2688 / 2704 bits
+    signal input dg1[DG1_SIZE];                            // 744 bits
+    signal input dg15[DG15_SIZE];                          // 1320 / 2520 bits
+    signal input signedAttributes[SIGNED_ATTRIBUTES_SIZE]; // 592 / 832 bits
+    signal input sign[NUMBER_OF_BLOCKS];
+    signal input modulus[NUMBER_OF_BLOCKS];
     signal input slaveMerkleRoot;
-    signal input slaveMerkleInclusionBranches[depth];
+    signal input slaveMerkleInclusionBranches[TREE_DEPTH];
     signal input skIdentity;
-    // signal input ecdsaShiftEnabled;
-    // signal input saTimestampEnabled;
-
-    // ----
-    // signal ecdsaShiftDisabled <== (1 - ecdsaShiftEnabled);
-    // ecdsaShiftDisabled * ecdsaShiftEnabled === 0;
-    // ----
 
     component passportVerifier = 
-        PassportVerificationHashPadded(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen, slaveSignedAttributesLen, signedAttributesKeyShift);
+        PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, TREE_DEPTH);
 
     passportVerifier.encapsulatedContent <== encapsulatedContent;
     passportVerifier.dg1 <== dg1;
