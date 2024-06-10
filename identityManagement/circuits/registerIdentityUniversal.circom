@@ -3,7 +3,6 @@ pragma circom  2.1.6;
 include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../passportVerification/passportVerificationHashPadded.circom";
 include "../../node_modules/circomlib/circuits/babyjub.circom";
-include "../../passportVerification/passportConstants.circom";
 
 template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, TREE_DEPTH) {
     // *magic numbers* list
