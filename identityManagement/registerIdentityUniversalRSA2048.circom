@@ -8,4 +8,4 @@ include "./circuits/registerIdentityUniversal.circom";
 // [1]  -  dg1Commitment
 // [2]  -  pkIdentityHash
 // [3]  -  slaveMerkleRoot
-component main { public [slaveMerkleRoot] } = RegisterIdentityUniversal(64, 32, 17, 4, 80, 3072, 264, 2448, 3072, 1024, 9864, 3552);
+component main { public [slaveMerkleRoot] } = RegisterIdentityUniversal(64, 32, 17, 4, 80);
