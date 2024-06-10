@@ -16,22 +16,31 @@ template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BL
     var DG15_DIGEST_POSITION_SHIFT_PARAMS_ANY = DG15_DIGEST_POSITION_SHIFT + 16;
     var SIGNED_ATTRIBUTES_SHIFT = 336;
     var SIGNED_ATTRIBUTES_SHIFT_TS = 576;
+
     // ---------
 
+    // OUTPUT SIGNALS:
+    // RSA: Poseidon5(200, 200, 200, 200, 224bits) | ECDSA: Poseidon2 (X[:31bytes], Y[:31bytes])
     signal output dg15PubKeyHash;
+
+    // Poseidon5(186, 186, 186, 186bits, Poseidon(skIdentity))
     signal output dg1Commitment;
+
+    // Poseidon2(PubKey.X, PubKey.Y)
     signal output pkIdentityHash;
 
+    // INPUT SIGNALS
     signal input encapsulatedContent[ENCAPSULATED_CONTENT_SIZE];   // 2688 / 2704 bits
     signal input dg1[DG1_SIZE];                            // 744 bits
     signal input dg15[DG15_SIZE];                          // 1320 / 2520 bits
     signal input signedAttributes[SIGNED_ATTRIBUTES_SIZE]; // 592 / 832 bits
     signal input sign[NUMBER_OF_BLOCKS];
     signal input modulus[NUMBER_OF_BLOCKS];
-    signal input slaveMerkleRoot;
+    signal input slaveMerkleRoot;   // public
     signal input slaveMerkleInclusionBranches[TREE_DEPTH];
     signal input skIdentity;
 
+    // ---------
     component passportVerifier = 
         PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, TREE_DEPTH);
 
@@ -43,7 +52,8 @@ template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BL
     passportVerifier.modulus <== modulus;
     passportVerifier.slaveMerkleRoot <== slaveMerkleRoot;
     passportVerifier.slaveMerkleInclusionBranches <== slaveMerkleInclusionBranches;
-    
+
+    // ---------
     component passedVerificationFlowsRSAIsZero = IsZero();
     component passedVerificationFlowsECDSAIsZero = IsZero();
     
@@ -53,6 +63,8 @@ template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BL
     log("passportVerifier.passedVerificationFlowsECDSA: ", passportVerifier.passedVerificationFlowsECDSA);
     // There is a succesfull verification flow with RSA AA or ECDSA AA
     1 === (passedVerificationFlowsRSAIsZero.out + passedVerificationFlowsECDSAIsZero.out);
+
+    // ---------
 
     // RSA HASHING
     component dg15Chunking[5];
@@ -78,6 +90,8 @@ template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BL
     for (var i = 0; i < 5; i++) {
         dg15HasherRSA.inputs[i] <== dg15Chunking[i].out;
     }
+
+    // ---------
     
     // ECDSA HASHING
     component xToNum = Bits2Num(248);
@@ -100,8 +114,10 @@ template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BL
     signal dg15HasherRSATemp <== dg15HasherRSA.out * passedVerificationFlowsECDSAIsZero.out;
     
     dg15PubKeyHash <== dg15HasherECDSATemp + dg15HasherRSATemp;
+
+    // ---------
     
-    // DG1 hash 744 bits => 4 * 186
+    // dg1Commitment: DG1 hash 744 bits => 4 * 186
     component dg1Chunking[4];
     component dg1Hasher = Poseidon(5);
     for (var i = 0; i < 4; i++) {
