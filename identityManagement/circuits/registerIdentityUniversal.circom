@@ -16,12 +16,13 @@ template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BL
     var DG15_DIGEST_POSITION_SHIFT_PARAMS_ANY = DG15_DIGEST_POSITION_SHIFT + 16;
     var SIGNED_ATTRIBUTES_SHIFT = 336;
     var SIGNED_ATTRIBUTES_SHIFT_TS = 576;
-
     // ---------
 
     // OUTPUT SIGNALS:
     // RSA: Poseidon5(200, 200, 200, 200, 224bits) | ECDSA: Poseidon2 (X[:31bytes], Y[:31bytes])
     signal output dg15PubKeyHash;
+
+    signal output passportHash;
 
     // Poseidon5(186, 186, 186, 186bits, Poseidon(skIdentity))
     signal output dg1Commitment;
@@ -56,13 +57,18 @@ template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BL
     // ---------
     component passedVerificationFlowsRSAIsZero = IsZero();
     component passedVerificationFlowsECDSAIsZero = IsZero();
+    component passedVerificationFlowsNoAAIsZero = IsZero();
     
     passedVerificationFlowsRSAIsZero.in <== passportVerifier.passedVerificationFlowsRSA;
     passedVerificationFlowsECDSAIsZero.in <== passportVerifier.passedVerificationFlowsECDSA;
-    log("passportVerifier.passedVerificationFlowsRSA: ", passportVerifier.passedVerificationFlowsRSA);
-    log("passportVerifier.passedVerificationFlowsECDSA: ", passportVerifier.passedVerificationFlowsECDSA);
-    // There is a succesfull verification flow with RSA AA or ECDSA AA
-    1 === (passedVerificationFlowsRSAIsZero.out + passedVerificationFlowsECDSAIsZero.out);
+    passedVerificationFlowsNoAAIsZero.in <== passportVerifier.passedVerificationFlowsNoAA;
+    log("passedVerificationFlowsRSA: ", passportVerifier.passedVerificationFlowsRSA);
+    log("passedVerificationFlowsECDSA: ", passportVerifier.passedVerificationFlowsECDSA);
+    log("passedVerificationFlowsNoAA: ", passportVerifier.passedVerificationFlowsNoAA);
+
+    signal failedFlowsRSAandECDSA <== passedVerificationFlowsRSAIsZero.out + passedVerificationFlowsECDSAIsZero.out;
+    // 2-of-3 should fail, 1 should pass
+    2 === (passedVerificationFlowsNoAAIsZero.out + failedFlowsRSAandECDSA);
 
     // ---------
 
