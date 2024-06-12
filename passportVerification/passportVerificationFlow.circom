@@ -13,6 +13,7 @@ template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
     signal input encapsulatedContent[ENCAPSULATED_CONTENT_SIZE];
     signal input encapsulatedContentHash[HASH_SIZE];
     signal input signedAttributes[SIGNED_ATTRIBUTES_SIZE];
+    signal input dg15Verification;
 
     // 1) Checking DG1 hash inclusion into encapsulatedContent
     component dg1HashEqualsEncapsulated[HASH_SIZE];
@@ -26,8 +27,8 @@ template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
     component dg15HashEqualsEncapsulated[HASH_SIZE];
     for (var i = 0; i < HASH_SIZE; i++) {
         dg15HashEqualsEncapsulated[i] = IsEqual();
-        dg15HashEqualsEncapsulated[i].in[0] <== dg15Hash[i];
-        dg15HashEqualsEncapsulated[i].in[1] <== encapsulatedContent[DG15_DIGEST_POSITION_SHIFT + i];
+        dg15HashEqualsEncapsulated[i].in[0] <== dg15Hash[i] * dg15Verification;
+        dg15HashEqualsEncapsulated[i].in[1] <== encapsulatedContent[DG15_DIGEST_POSITION_SHIFT + i] * dg15Verification;
     }
     
     // 3) Checking encapsulatedContent hash inclusion into signedAttributed
