@@ -176,7 +176,7 @@ Poseidon(SHA256(signed_attributes\[:252bits])), while `dg15PubKeyHash` will be s
 
 `ECDSA (256 bit field) case`: ***Poseidon2(X\[:31bytes], Y\[:31bytes])***
 
-##### Circuit inputs
+##### Register identity circuit inputs
 
 ```json
 {
@@ -192,10 +192,194 @@ Poseidon(SHA256(signed_attributes\[:252bits])), while `dg15PubKeyHash` will be s
 }
 ```
 
-##### Circuit public signals
+##### Register identity circuit public signals
 
-[0] **output** dg15PubKeyHash;
-[1] **output** passportHash;
-[2] **output** dg1Commitment;
-[3] **output** pkIdentityHash;
-[4] **input** slaveMerkleRoot;   // public
+- [0] **output** dg15PubKeyHash;
+- [1] **output** passportHash;
+- [2] **output** dg1Commitment;
+- [3] **output** pkIdentityHash;
+- [4] **input** slaveMerkleRoot;   // public
+
+#### Query circuit
+
+The query circuit allows you to prove arbitrary data from a passport.
+
+##### Query circuit inputs
+
+```json
+{
+  "dg1": [0, 1, 0, .... 1, 0], // 744 bits, DG1 in binary representation
+  "eventID": "304358862882731539112827930982999386691702727710421481944329166126417129570",
+  "eventData": "1217571210886365587192326979343136122389414675532",
+  "idStateRoot": "5904469035765435216409767735512782299719282306270684213646687525744667841608",
+  "idStateSiblings": [
+    "3407986854548047084674816477222999918010365460020671033967657162352688012776",
+    "0",
+    "0",
+    ...
+    "0",
+    "0",
+  ], // Sparse Merkle tree (identity state tree), depth = 80
+  "pkPassportHash": "158067046276207(hidden)9045233186516590845",
+  "selector": "39",
+  "skIdentity": "59433543291003015964215(hidden)50571872045447542665233394",
+  "timestamp": "1713436475",
+  "identityCounter": "0",
+  "timestampLowerbound": "0",
+  "timestampUpperbound": "0",
+  "identityCounterLowerbound": "1",
+  "identityCounterUpperbound": "0",
+  "birthDateLowerbound": "0x303030303030",
+  "birthDateUpperbound": "0x303030303030",
+  "expirationDateLowerbound": "0x303030303030",
+  "expirationDateUpperbound": "0x303030303030",
+  "citizenshipMask": "0"
+}
+```
+
+***IMPORTANT!***
+
+If date input is **NOT** used, put “0x303030303030” (52983525027888 - decimal). This is equal to “000000” in UTF-8 encoding, which is used to encode date in the passport. Otherwise date verification constraints will fail.
+
+Public signals (example for selector = 39)
+
+```json
+[
+ "20925303098627062266630214635967906856225360340756326562498326001746719100911", // 0 - nullifier
+ "52992115355956", // 1 - birthDate
+ "55216908480563", // 2 - expirationDate
+ "0", // 3 - name
+ "0", // 4 - nameResidual
+ "0", // 5 - nationality
+ "5589842", // 6 - citizenship
+ "0", // 7 - sex
+ "0", // 8 - documentNumber
+ "304358862882731539112827930982999386691702727710421481944329166126417129570", // 9 - eventID
+ "1217571210886365587192326979343136122389414675532", // 10 - eventData
+ "5904469035765435216409767735512782299719282306270684213646687525744667841608", // 11 - idStateRoot
+ "39", // 12 - selector
+ "0", // 13 - timestampLowerbound
+ "0", // 14 - timestampUpperbound
+ "1", // 15 - identityCounterLowerbound
+ "0", // 16 - identityCounterUpperbound
+ "52983525027888", // 17 - birthDateLowerbound
+ "52983525027888", // 18 - birthDateUpperbound
+ "52983525027888", // 19 - expirationDateLowerbound
+ "5298352502788", // 20 - expirationDateUpperbound
+ "0" // 21 - citizenshipMask
+]
+```
+
+***Selector***
+
+By applying the selector, we can use the same circuit for any set of revealed and unrevealed personal data.
+
+```markdown
+QUERY SELECTOR:
+0 - nullifier   (+)
+1 - birth date  (+)
+2 - expiration date (+)
+3 - name (+)
+4 - nationality (+)
+5 - citizenship (+)
+6 - sex (+)
+7 - document number (+)
+8 - timestamp lowerbound (+)
+9 - timestamp upperbound (+)
+10 - identity counter lowerbound (+)
+11 - identity counter upperbound (+)
+12 - passport expiration lowerbound (+)
+13 - passport expiration upperbound (+)
+14 - birth date upperbound (+)
+15 - birth date lowerbound (+)
+16 - verify citizenship mask as a whitelist (-) // not implemented currently
+17 - verify citizenship mask as a blacklist (-) // not implemented currently
+```
+
+Example:
+
+You want to reveal **`*citizenship*`** and **`*nullifier*`** + prove that `identity counter` is **`*LESS THAN 2*`**, selector bits number 0, 5 and 11 should be active. Thus, ***selector*** will be equal:
+
+***0b000100000100001 = 0x811 = 2065***
+
+! You should also put `2` in the `identityCounterUpperbound` input signal.
+
+For 0-7 selector ***REVEALS*** the data (the corresponding public signal will be set to the exact value, like `nationality`)
+
+for 8-17 selector proves that the corresponding parameters are in a specific range (set), which is set with public signals (like `identityCounterLowerbound` / `Upperbound`). If selector is active (`1`) and data is not within the provided range, prove generation will fail. If selector is disabled (`0`), data will not be verified and prove can be generated with any data (be careful with dates)
+
+***Nullifier***
+
+The nullifier is used in order to prevent user from participating in some event multiple times.
+
+***nullifier*** = *Poseidon3(sk_i, Poseidon1(sk_i), eventID)*
+
+The nullifier can be bypassed by reissuing the identity. One way to solve this problem is by fixing the identity state (thus no one can reissue the new identity). Another approach is described in “[Using the query circuit for an airdrop](https://www.notion.so/Using-the-query-circuit-for-an-airdrop-bb554a78ebd94556bef0ac1277114b7d?pvs=21)”
+
+***EventId***
+
+The eventId is used to generate different nullifiers by the same identity for different use cases (events). Current event constants:
+
+Airdrop: `0xac42d1a986804618c7a793fbe814d9b31e47be51e082806363dca6958f3062`
+
+Points: `0x77fabbc6cb41a11d4fb6918696b3550d5d602f252436dd587f9065b7c4e62b`
+
+##### Using query circuit for an airdrop
+
+Identity V2 allows to generate anonymous ZK queries, without revealing any personal data about the user. Nullifier is query could potentially be used in order to prevent users from receiving airdrops multiple times.
+
+But if no additional restrictions are added to the system, the user can reissue the identity several times, each time receiving a new identity (with a new nullifier). Thus, user could potentially get airdrop multiple times. б
+
+Identity V2 allows to prove identity creation timestamp and identity counter (how many time identity have been reissued to a specific user). To prevent users from getting the airdrop multiple times, two additional constraints should be set up:
+
+- The current identity was created before the airdrop started;
+- The user has never reissued the identity;
+
+![Airdrop.png](imgs/Airdrop.png)
+
+If one of the following conditions have been met, user could receive the airdrop. With such an airdrop system, the users could receive an airdrop only if their identity have not being reissued during the airdrop period.
+
+### **How to check both eligibility criteria with a single query proof**?
+
+Constraints for both `*identityCounterUpperbound`* and *`timestampUpperbound` should be active (selector 9 & 11). Client (mobile app) choses the*  ****eligibility criteria:
+
+- If user is eligible by `timestamp`, but he had 5 identity reissues, prove constraints should be follows:
+  - `*timestampUpperbound` ==  `airdropStartsTimestamp`*
+  - `*identityCounterUpperbound` < 10 (any number, that is greater the identityCounter)*
+
+- If user is eligible by `identityCounter`, but have created the identity after the airdrop started, prove constraints should be follows:
+  - `*timestampUpperbound` == `randomTimestamp` ( `randomTimestamp` > `timestamp`)*
+  - `*identityCounterUpperbound` < 1 (first identity creation)*
+
+When the verification party (backend or smart contract) receives the proof, they check that any condition have been met:
+
+- `*timestampUpperbound` ==  `airdropStartsTimestamp`*
+- `*identityCounterUpperbound` < 1*
+
+### Verifying that user is eligible
+
+- Passport has not expired
+  - `passportExpiration` > `currentDate`
+  - `passportExpirationLowerbound` is set to `currentDate`
+- User is older than 18 y. o.
+  - `birthDate` < `currentDate` - 18 (years)
+  - `birthDateUpperbound` is set to `currentDate` - 18 (years)
+
+### **Selector**
+
+**Revealed:**
+
+- *nullifier*
+- *citizenship (5)*
+
+**Constraints:**
+
+- *timestamp upperbound (9)*
+- *identity counter upperbound (11)*
+- *passport expiration lowerbound (12)*
+- *birth date upperbound (14)*
+
+**Selector:**
+
+- Binary: *0b101101000100001*
+- Decimals: *23073*
