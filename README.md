@@ -22,6 +22,11 @@ npm install circomlib
 
 - ***verify*** - verifies the proof. Usage: ```verify <circuit_name>```
 
+## Biometric Passport Authentication
+
+Data in a passport is separated into data groups. Not all of them are required to be present in the passport. Document Security Object (SOD) has **encapculated content** field that contains hashes of all datagroups. During passive authentication verification party hashes data from the datagroups and compare it with hashes stored in the **encapculated content** with *ASN1* encoding. The hash of the **encapculated content** itself is stored in the **signed attributes** field, which is also *ASN1* encoded.
+To verify **signed attributes**, verification party uses the passport signature, which is also stored in the **SOD**. To confirm that the passport is authenticated by a legitimate authority (ensuring the signer's public key is genuinely owned by a passport-issuing entity), the corresponding **PKI x509** certificate is stored in the **SOD**. Utilizing a Public Key Infrastructure (PKI) allows for the establishment of a verification path to a trusted anchor. This trusted anchor should be a publicly recognized list of master certificates. Specifically, a *Master List* comprises *Country Signing Certification Authority (CSCA)* certificates that have been issued and digitally signed by the respective issuing State, providing a robust framework for ensuring the authenticity and integrity of passport data.
+
 ## Circuits
 
 ### Voting circuits
@@ -120,7 +125,7 @@ To link an identity with a passport, we utilize the ***registerIdentity*** circu
 
 Passports from different countries often vary in structure, and even within the same country, not all passports are identical. This variability can pose a challenge, as the verification circuits rely on a strict and precise algorithm. Even a minor discrepancy, such as a shift by a single byte, can disrupt the entire verification process, rendering it ineffective.
 
-To address these challenges, we employ a combination of verification flow and padded data hashing. 
+To address these challenges, we employ a combination of verification flow and padded data hashing.
 
 ##### Padded data hashing
 
@@ -135,3 +140,21 @@ To illustrate, let's consider the need to hash **2688** bits of data using the S
 
 ##### Passport Verification Flows
 
+For now we encountered several differences between passports:
+
+- different DG15 size;
+- different datagroup hash positions in the encapsulated content;
+- different encapsulated content size (and present datagroups);
+- different encapsulated content hash position in signed attributes;
+- different signed attributes size;
+- different signature and hashing algorithms;
+
+For different signature & hashing algorithm currently we are using different circuits, as merging all logic into one circuit makes it too complex to run on mobile devices.
+
+Other differences are handled using `VerificationFlows`. It allows to generate a specific verification circuit using by setting required parameters. Verification circuit returs either ***0*** or ***1*** (***failed***/***successfull*** verificaiton);
+
+![Verification flows](./imgs/VerificationFlow.png)
+
+Those verification flows than combined and verified that at least one of them was successful.
+
+![Passport verification](./imgs/PassportVerification.png)
