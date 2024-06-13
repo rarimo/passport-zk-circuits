@@ -151,10 +151,27 @@ For now we encountered several differences between passports:
 
 For different signature & hashing algorithm currently we are using different circuits, as merging all logic into one circuit makes it too complex to run on mobile devices.
 
-Other differences are handled using `VerificationFlows`. It allows to generate a specific verification circuit using by setting required parameters. Verification circuit returs either ***0*** or ***1*** (***failed***/***successfull*** verificaiton);
+Other differences are handled using `VerificationFlows`. It allows to generate a specific verification circuit using by setting required parameters. Verification circuit returs either ***0*** or ***1*** (***failed***/***successfull*** verification);
 
 ![Verification flows](./imgs/VerificationFlow.png)
 
 Those verification flows than combined and verified that at least one of them was successful.
 
 ![Passport verification](./imgs/PassportVerification.png)
+
+##### Different active authentication
+
+Active authentication is a procedure that allows you to verify the validity of the chip and makes it much more difficult to copy a biometric chip. The idea behind the active auth is signing a random challange with passport private key that is securely stored within the secure module and never leaves passport. This secure module operates by receiving a challenge, signing it, and then returning the signed challenge. The authenticity of this signature can be verified using a public key, which is stored within Data Group 15 (DG15) of the passport's chip.
+
+![Active auth](./imgs/ActiveAuth.png)
+
+Some biometric passports either don`t have an active authentication or have different signature and/or hashing algorithm. Currently, the active authentication signature verification is handled by the smart contract, while circuits prove that a specific public key is present into a valid passport.
+
+`registerIdentityUniversal` circuit has `dg15PubKeyHash` and `passportHash` output signals. In case scanned passport does not have an active authentication, generated proof will have `passportHash` set with  
+Poseidon(SHA256(signed_attributes\[:252bits])), while `dg15PubKeyHash` will be set to `0`. Otherwise (if passport have an active auth) `dg15PubKeyHash` will contain hash of passport public key, while `passportHash` is set to `0`.
+
+*How active auth public key is hashed?*
+
+`RSA (1024 bit) case`: ***Poseidon5(200, 200, 200, 200, 224bits)***
+
+`ECDSA (256 bit field) case`: ***Poseidon2(X\[:31bytes], Y\[:31bytes])***
