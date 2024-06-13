@@ -314,7 +314,7 @@ The nullifier is used in order to prevent user from participating in some event 
 
 ***nullifier*** = *Poseidon3(sk_i, Poseidon1(sk_i), eventID)*
 
-The nullifier can be bypassed by reissuing the identity. One way to solve this problem is by fixing the identity state (thus no one can reissue the new identity). Another approach is described in “[Using the query circuit for an airdrop](https://www.notion.so/Using-the-query-circuit-for-an-airdrop-bb554a78ebd94556bef0ac1277114b7d?pvs=21)”
+The nullifier can be bypassed by reissuing the identity. One way to solve this problem is by fixing the identity state (thus no one can reissue the new identity). Another approach is described in **Using the query circuit for an airdrop**
 
 ***EventId***
 
