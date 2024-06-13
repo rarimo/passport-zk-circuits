@@ -175,3 +175,27 @@ Poseidon(SHA256(signed_attributes\[:252bits])), while `dg15PubKeyHash` will be s
 `RSA (1024 bit) case`: ***Poseidon5(200, 200, 200, 200, 224bits)***
 
 `ECDSA (256 bit field) case`: ***Poseidon2(X\[:31bytes], Y\[:31bytes])***
+
+##### Circuit inputs
+
+```json
+{
+    "skIdentity": "123405...842587619674072055", // identity secret key
+    "encapsulatedContent": [0, 1, 0],            // passport encapsulated content in binary
+    "signedAttributes": [0, 1, 0],               // signed attributes in binary
+    "sign": ["64bit", "64bit..."],               // signature in 64 bit blocks
+    "modulus": ["64bit", "64bit..."],            // modulus in 64 bit blocks
+    "dg1": [0, 1, 0],                            // passport DG1 in binary
+    "dg15": [0, 1, 0],                           // passport DG15 in binary
+    "slaveMerkleRoot": "0x..", // root of the sparse Merkle tree with 2nd level keys (PUBLIC)
+    "slaveMerkleInclusionBranches": ["0x", "0x...", "0x"] // inclusion proof
+}
+```
+
+##### Circuit public signals
+
+[0] **output** dg15PubKeyHash;
+[1] **output** passportHash;
+[2] **output** dg1Commitment;
+[3] **output** pkIdentityHash;
+[4] **input** slaveMerkleRoot;   // public
