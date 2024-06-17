@@ -21,6 +21,7 @@ template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
         dg1HashEqualsEncapsulated[i] = IsEqual();
         dg1HashEqualsEncapsulated[i].in[0] <== dg1Hash[i];
         dg1HashEqualsEncapsulated[i].in[1] <== encapsulatedContent[DG1_DIGEST_POSITION_SHIFT + i];
+        // log("DG1 equals: ", dg1HashEqualsEncapsulated[i].out);
     }
 
     // 2) Checking DG15 hash inclusion into encapsulatedContent
@@ -29,6 +30,7 @@ template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
         dg15HashEqualsEncapsulated[i] = IsEqual();
         dg15HashEqualsEncapsulated[i].in[0] <== dg15Hash[i] * dg15Verification;
         dg15HashEqualsEncapsulated[i].in[1] <== encapsulatedContent[DG15_DIGEST_POSITION_SHIFT + i] * dg15Verification;
+        // log("DG15 equals: ", dg15HashEqualsEncapsulated[i].out);
     }
     
     // 3) Checking encapsulatedContent hash inclusion into signedAttributed
@@ -37,6 +39,7 @@ template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
         encapsulateHashEqualsSigned[i] = IsEqual();
         encapsulateHashEqualsSigned[i].in[0] <== encapsulatedContentHash[i];
         encapsulateHashEqualsSigned[i].in[1] <== signedAttributes[SIGNED_ATTRIBUTES_SHIFT + i];
+        // log("Encapsulated equals: ", encapsulateHashEqualsSigned[i].out);
     }
 
     // 4) Verifying that all checks in the flow are successful
