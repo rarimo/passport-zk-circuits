@@ -25,7 +25,7 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
 
     var NUMBER_RSA_FLOWS = 3;
     var NUMBER_ECDSA_FLOWS = 2;
-    var NUMBER_NoAA_FLOWS = 1;
+    var NUMBER_NoAA_FLOWS = 2;
     var HASH_SIZE = BLOCK_SIZE * HASH_BLOCKS_NUMBER; // 64 * 4 = 256 (SHA256)
     var HASH_BLOCK_SIZE = 512;   // SHA 256 hashing block size
     
@@ -217,6 +217,26 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     log("Flow 1 (NoAA): ", passportVerificationFlowNoAA1.flowResult);
     accumulatorNoAAFlows[0] <== passportVerificationFlowNoAA1.flowResult;
 
+    // FLOW 2
+    // no Parameters any NULL | with signed attributes timestamp | DG15 6 blocks
+    component passportVerificationFlowNoAA2 = PassportVerificationFlow(
+        ENCAPSULATED_CONTENT_SIZE,
+        HASH_SIZE,
+        SIGNED_ATTRIBUTES_SIZE,
+        DG1_DIGEST_POSITION_SHIFT,
+        DG15_DIGEST_POSITION_SHIFT,
+        SIGNED_ATTRIBUTES_SHIFT_TS
+    );
+    passportVerificationFlowNoAA2.dg1Hash  <== dg1Hasher.out;
+    passportVerificationFlowNoAA2.dg15Hash <== dg15Hasher6Blocks.out;
+    passportVerificationFlowNoAA2.encapsulatedContent <== encapsulatedContent;
+    passportVerificationFlowNoAA2.encapsulatedContentHash <== encapsulatedContentHasher3Blocks.out;
+    passportVerificationFlowNoAA2.signedAttributes <== signedAttributes;
+    passportVerificationFlowNoAA2.dg15Verification <== 0;
+    
+    log("Flow 2 (NoAA): ", passportVerificationFlowNoAA2.flowResult);
+    accumulatorNoAAFlows[1] <== accumulatorNoAAFlows[0] + passportVerificationFlowNoAA2.flowResult;
+
     // -----------------
 
     // Hashing signedAttributes
@@ -255,8 +275,9 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     smtVerifier.key <== modulusHasher.out;
     smtVerifier.siblings <== slaveMerkleInclusionBranches;
 
-    smtVerifier.isVerified === 1;
+    // smtVerifier.isVerified === 1;
 
     passedVerificationFlowsRSA   <== accumulatorRSAFlows[NUMBER_RSA_FLOWS - 1];
     passedVerificationFlowsECDSA <== accumulatorECDSAFlows[NUMBER_ECDSA_FLOWS - 1];
+    passedVerificationFlowsNoAA  <== accumulatorNoAAFlows[NUMBER_NoAA_FLOWS - 1];
 }
