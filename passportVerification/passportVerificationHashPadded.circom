@@ -275,7 +275,7 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     smtVerifier.key <== modulusHasher.out;
     smtVerifier.siblings <== slaveMerkleInclusionBranches;
 
-    // smtVerifier.isVerified === 1;
+    smtVerifier.isVerified === 1;
 
     passedVerificationFlowsRSA   <== accumulatorRSAFlows[NUMBER_RSA_FLOWS - 1];
     passedVerificationFlowsECDSA <== accumulatorECDSAFlows[NUMBER_ECDSA_FLOWS - 1];

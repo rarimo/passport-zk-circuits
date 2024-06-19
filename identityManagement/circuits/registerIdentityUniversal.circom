@@ -116,10 +116,11 @@ template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BL
     dg15HasherECDSA.inputs[0] <== xToNum.out;
     dg15HasherECDSA.inputs[1] <== yToNum.out;
     
-    signal dg15HasherECDSATemp <== dg15HasherECDSA.out * passedVerificationFlowsRSAIsZero.out;
-    signal dg15HasherRSATemp <== dg15HasherRSA.out * passedVerificationFlowsECDSAIsZero.out;
+    signal dg15HasherECDSATemp <== dg15HasherECDSA.out * (1 - passedVerificationFlowsECDSAIsZero.out);
+    signal dg15HasherRSATemp <== dg15HasherRSA.out * (1 - passedVerificationFlowsRSAIsZero.out);
     
     dg15PubKeyHash <== dg15HasherECDSATemp + dg15HasherRSATemp;
+    passportHash   <== passportVerifier.passportHash * (1 - passedVerificationFlowsNoAAIsZero.out);
 
     // ---------
     
