@@ -42,18 +42,46 @@ template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
         // log("Encapsulated equals: ", encapsulateHashEqualsSigned[i].out);
     }
 
-    // 4) Verifying that all checks in the flow are successful
-    signal verifyAllChecksPassed[HASH_SIZE * 3];
+    // 4) Checking DG15 prefix equals 0x0F = 15
+    var dg15Prefix[8] = [0,0,0,0,1,1,1,1]; // 0x0F = 0b00001111
+    component dg15PrefixCorrect[HASH_SIZE];
+    var PREFIX_SHIFT = 24; // 3 bytes
+    for (var i = 0; i < 8; i++) {
+        dg15PrefixCorrect[i] = IsEqual();
+        dg15PrefixCorrect[i].in[0] <== dg15Prefix[i] * dg15Verification;
+        dg15PrefixCorrect[i].in[1] <== encapsulatedContent[DG15_DIGEST_POSITION_SHIFT - PREFIX_SHIFT + i] * dg15Verification;
+        // log("EncCont: ", encapsulatedContent[DG15_DIGEST_POSITION_SHIFT - PREFIX_SHIFT + i]);
+        // log("ExpectedPrefix: ", dg15Prefix[i]);
+        // log("dg15PrefixCorrect", dg15PrefixCorrect[i].out);
+        // log("-------------------");
+    }
+
+    // 5) Verifying that all checks in the flow are successful
+    signal verifyAllChecksPassed[HASH_SIZE * 3 + 8];
     verifyAllChecksPassed[0] <== dg1HashEqualsEncapsulated[0].out;
+    
     for (var i = 1; i < HASH_SIZE; i++) {
         verifyAllChecksPassed[i] <== verifyAllChecksPassed[i - 1] * dg1HashEqualsEncapsulated[i].out;
     }
+
+    var start = HASH_SIZE;
+
     for (var i = 0; i < HASH_SIZE; i++) {
-        verifyAllChecksPassed[HASH_SIZE + i] <== verifyAllChecksPassed[HASH_SIZE + i - 1] * dg15HashEqualsEncapsulated[i].out;
-    }
-    for (var i = 0; i < HASH_SIZE; i++) {
-        verifyAllChecksPassed[2 * HASH_SIZE + i] <== verifyAllChecksPassed[2 * HASH_SIZE + i - 1] * encapsulateHashEqualsSigned[i].out;
+        verifyAllChecksPassed[start + i] <== verifyAllChecksPassed[start + i - 1] * dg15HashEqualsEncapsulated[i].out;
     }
 
-    flowResult <== verifyAllChecksPassed[3 * HASH_SIZE - 1];
+    start += HASH_SIZE;
+
+    for (var i = 0; i < HASH_SIZE; i++) {
+        verifyAllChecksPassed[start + i] <== verifyAllChecksPassed[start + i - 1] * encapsulateHashEqualsSigned[i].out;
+    }
+
+    start += HASH_SIZE;
+
+    for (var i = 0; i < 8; i++) {
+        verifyAllChecksPassed[start + i] <== verifyAllChecksPassed[start + i - 1] * dg15PrefixCorrect[i].out;
+    }
+
+    start += 8;
+    flowResult <== verifyAllChecksPassed[start - 1];
 }
