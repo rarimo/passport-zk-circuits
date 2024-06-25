@@ -77,7 +77,7 @@ template PassportVerificationValidity(N) {
     isCurrLessExpiracy.secondMonth <== expMonth;
     isCurrLessExpiracy.secondDay   <== expDay;
     
-    isCurrLessExpiracy.out === 1;
+    // isCurrLessExpiracy.out === 1;
 
     // ---------
     // BIRTH_DATE + 18 < CURRENT DATE
