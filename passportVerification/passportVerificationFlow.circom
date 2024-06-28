@@ -21,7 +21,7 @@ template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
         dg1HashEqualsEncapsulated[i] = IsEqual();
         dg1HashEqualsEncapsulated[i].in[0] <== dg1Hash[i];
         dg1HashEqualsEncapsulated[i].in[1] <== encapsulatedContent[DG1_DIGEST_POSITION_SHIFT + i];
-        // log("DG1 equals: ", dg1HashEqualsEncapsulated[i].out);
+        log("DG1 equals: ", dg1HashEqualsEncapsulated[i].out);
     }
 
     // 2) Checking DG15 hash inclusion into encapsulatedContent
