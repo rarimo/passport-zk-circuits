@@ -24,9 +24,9 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     var SIGNED_ATTRIBUTES_SHIFT_TS = 576;
     // ---------
 
-    var NUMBER_RSA_FLOWS = 4;
+    var NUMBER_RSA_FLOWS = 3;
     var NUMBER_ECDSA_FLOWS = 2;
-    var NUMBER_NoAA_FLOWS = 3;
+    var NUMBER_NoAA_FLOWS = 4;
     var HASH_SIZE = BLOCK_SIZE * HASH_BLOCKS_NUMBER; // 64 * 4 = 256 (SHA256)
     var HASH_BLOCK_SIZE = 512;   // SHA 256 hashing block size
     
@@ -160,26 +160,6 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     log("Flow 3: ", passportVerificationFlowRsa3.flowResult);
     accumulatorRSAFlows[2] <== accumulatorRSAFlows[1] + passportVerificationFlowRsa3.flowResult;
 
-    // FLOW 4
-    // with left shift  | without signed attributes timestamp | DG15 3 blocks | EC 4 blocks
-    component passportVerificationFlowRsa4 = PassportVerificationFlow(
-        ENCAPSULATED_CONTENT_SIZE,
-        HASH_SIZE,
-        SIGNED_ATTRIBUTES_SIZE,
-        DG1_DIGEST_POSITION_SHIFT_LEFT,
-        DG15_DIGEST_POSITION_SHIFT_PARAMS_ANY,
-        SIGNED_ATTRIBUTES_SHIFT
-    );
-    passportVerificationFlowRsa4.dg1Hash  <== dg1Hasher.out;
-    passportVerificationFlowRsa4.dg15Hash <== dg15Hasher3Blocks.out;
-    passportVerificationFlowRsa4.encapsulatedContent <== encapsulatedContent;
-    passportVerificationFlowRsa4.encapsulatedContentHash <== encapsulatedContentHasher4Blocks.out;
-    passportVerificationFlowRsa4.signedAttributes <== signedAttributes;
-    passportVerificationFlowRsa4.dg15Verification <== 1;
-    
-    log("Flow 4: ", passportVerificationFlowRsa4.flowResult);
-    accumulatorRSAFlows[3] <== accumulatorRSAFlows[2] + passportVerificationFlowRsa4.flowResult;
-
     // ------------------
 
     // ECDSA FLOWS
@@ -293,6 +273,26 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     accumulatorNoAAFlows[2] <== accumulatorNoAAFlows[1] + passportVerificationFlowNoAA3.flowResult;
 
     // -----------------
+
+    // FLOW 4
+    // with left shift  | without signed attributes timestamp | DG15 3 blocks | EC 4 blocks
+    component passportVerificationFlowNoAA4 = PassportVerificationFlow(
+        ENCAPSULATED_CONTENT_SIZE,
+        HASH_SIZE,
+        SIGNED_ATTRIBUTES_SIZE,
+        DG1_DIGEST_POSITION_SHIFT_LEFT,
+        DG15_DIGEST_POSITION_SHIFT_PARAMS_ANY,
+        SIGNED_ATTRIBUTES_SHIFT
+    );
+    passportVerificationFlowNoAA4.dg1Hash  <== dg1Hasher.out;
+    passportVerificationFlowNoAA4.dg15Hash <== dg15Hasher6Blocks.out;
+    passportVerificationFlowNoAA4.encapsulatedContent <== encapsulatedContent;
+    passportVerificationFlowNoAA4.encapsulatedContentHash <== encapsulatedContentHasher4Blocks.out;
+    passportVerificationFlowNoAA4.signedAttributes <== signedAttributes;
+    passportVerificationFlowNoAA4.dg15Verification <== 0;
+    
+    log("Flow 4: ", passportVerificationFlowNoAA4.flowResult);
+    accumulatorNoAAFlows[3] <== accumulatorRSAFlows[2] + passportVerificationFlowNoAA4.flowResult;
 
     // Hashing signedAttributes
     component signedAttributesHasher = Sha256NoPadding(2);
