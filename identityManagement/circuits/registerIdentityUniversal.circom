@@ -4,7 +4,7 @@ include "../../node_modules/circomlib/circuits/bitify.circom";
 include "../../passportVerification/passportVerificationHashPadded.circom";
 include "../../node_modules/circomlib/circuits/babyjub.circom";
 
-template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, TREE_DEPTH) {
+template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, TREE_DEPTH, DG1_COMMITMENT_SIZE) {
     // *magic numbers* list
     var DG1_SIZE = 1024;                        // bits
     var DG15_SIZE = 3072;                       // 1320 rsa | 
@@ -68,7 +68,9 @@ template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BL
 
     signal failedFlowsRSAandECDSA <== passedVerificationFlowsRSAIsZero.out + passedVerificationFlowsECDSAIsZero.out;
     // 2-of-3 should fail, 1 should pass
-    2 === (passedVerificationFlowsNoAAIsZero.out + failedFlowsRSAandECDSA);
+    component verificationFlowsIsZero = IsZero();
+    verificationFlowsIsZero.in <== passedVerificationFlowsNoAAIsZero.out + failedFlowsRSAandECDSA;
+    verificationFlowsIsZero.out === 0; // valid flows != 0
 
     // ---------
 
@@ -120,17 +122,21 @@ template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BL
     signal dg15HasherRSATemp <== dg15HasherRSA.out * (1 - passedVerificationFlowsRSAIsZero.out);
     
     dg15PubKeyHash <== dg15HasherECDSATemp + dg15HasherRSATemp;
-    passportHash   <== passportVerifier.passportHash * (1 - passedVerificationFlowsNoAAIsZero.out);
+    passportHash   <== passportVerifier.passportHash;
 
     // ---------
     
     // dg1Commitment: DG1 hash 744 bits => 4 * 186
+    var DG1_COMMITMENT_CHUNK_SIZE = 186;
+    if (DG1_COMMITMENT_SIZE == 760) {
+        DG1_COMMITMENT_CHUNK_SIZE = 190;
+    }
     component dg1Chunking[4];
     component dg1Hasher = Poseidon(5);
     for (var i = 0; i < 4; i++) {
-        dg1Chunking[i] = Bits2Num(186);
-        for (var j = 0; j < 186; j++) {
-            dg1Chunking[i].in[j] <== dg1[i * 186 + j]; 
+        dg1Chunking[i] = Bits2Num(DG1_COMMITMENT_CHUNK_SIZE);
+        for (var j = 0; j < DG1_COMMITMENT_CHUNK_SIZE; j++) {
+            dg1Chunking[i].in[j] <== dg1[i * DG1_COMMITMENT_CHUNK_SIZE + j]; 
         }
         dg1Hasher.inputs[i] <== dg1Chunking[i].out;
     }
