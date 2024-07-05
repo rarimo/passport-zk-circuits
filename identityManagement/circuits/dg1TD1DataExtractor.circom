@@ -2,7 +2,7 @@ pragma circom  2.1.6;
 
 include "../../node_modules/circomlib/circuits/bitify.circom";
 
-template DG1DataExtractor() {
+template DG1TD1DataExtractor() {
     signal output birthDate;
     signal output expirationDate;
 
@@ -13,6 +13,8 @@ template DG1DataExtractor() {
     signal output citizenship;
     signal output sex;
     signal output documentNumber;
+    signal output personalNumber;
+    signal output documentType;
 
     signal input dg1[760];
 
@@ -32,7 +34,6 @@ template DG1DataExtractor() {
     for (var i = 0; i < EXPIRATION_DATE_SIZE; i++) {
         expirationDateEncoder.in[EXPIRATION_DATE_SIZE - 1 - i] <== dg1[EXPIRATION_DATE_SHIFT + i];
     }
-
     expirationDate <== expirationDateEncoder.out;
 
     // NAME [80..320), 31*8 = 248 bits
@@ -43,7 +44,6 @@ template DG1DataExtractor() {
     for (var i = 0; i < NAME_FIELD_SIZE; i++) {
         nameEncoder.in[NAME_FIELD_SIZE - 1 - i] <== dg1[NAME_FIELD_SHIFT + i];
     }
-
     name <== nameEncoder.out;
 
     // NATIONALITY 
@@ -84,6 +84,25 @@ template DG1DataExtractor() {
     for (var i = 0; i < DOCUMENT_NUMBER_SIZE; i++) {
         documentNumberEncoder.in[DOCUMENT_NUMBER_SIZE - 1 - i] <== dg1[DOCUMENT_NUMBER_SHIFT + i];
     }
-
     documentNumber <== documentNumberEncoder.out;
+
+    // PERSONAL NUMBER
+    var PERSONAL_NUMBER_SHIFT = 160;
+    var PERSONAL_NUMBER_SIZE  = 88;
+    component personalNumberEncoder = Bits2Num(PERSONAL_NUMBER_SIZE);
+
+    for (var i = 0; i < PERSONAL_NUMBER_SIZE; i++) {
+        personalNumberEncoder.in[PERSONAL_NUMBER_SIZE - 1 - i] <== dg1[PERSONAL_NUMBER_SHIFT + i];
+    }
+    personalNumber <== personalNumberEncoder.out;
+
+    // DOCUMENT TYPE
+    var DOCUMENT_TYPE_SHIFT = 40;
+    var DOCUMENT_TYPE_SIZE  = 16;
+    component documentTypeEncoder = Bits2Num(DOCUMENT_TYPE_SIZE);
+
+    for (var i = 0; i < DOCUMENT_TYPE_SIZE; i++) {
+        documentTypeEncoder.in[DOCUMENT_TYPE_SIZE - 1 - i] <== dg1[DOCUMENT_TYPE_SHIFT + i];
+    }
+    documentType <== documentTypeEncoder.out;
 }
