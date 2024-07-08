@@ -42,9 +42,9 @@ template QueryIdentity(idTreeDepth) {
     signal output nationality;     // UTF-8 encoded | "USA" -> 0x555341 -> 5591873
     signal output citizenship;     // UTF-8 encoded | "USA" -> 0x555341 -> 5591873
     signal output sex;             // UTF-8 encoded | "F" -> 0x46 -> 70
-    signal output documentNumber;  // UTF-8 encoded
-    signal output personalNumber;  // UTF-8 encoded
-    signal output documentType;
+    signal output documentNumberHash;  // Poseindon(UTF-8 encoded)
+    signal output personalNumberHash;  // Poseidon(UTF-8 encoded)
+    signal output documentType;    // UTF-8 encoded | "ID"
     
     // public signals
     signal input eventID;       // challenge | for single eventID -> single nullifier for one identity
@@ -85,14 +85,22 @@ template QueryIdentity(idTreeDepth) {
     component dg1DataExtractor = DG1TD1DataExtractor();
     dg1DataExtractor.dg1 <== dg1;
 
+    // Document number hasher
+    component documentNumberHasher = Poseidon(1);
+    documentNumberHasher.inputs[0] <== dg1DataExtractor.documentNumber;
+
+    // Personal number hasher
+    component personalNumberHasher = Poseidon(1);
+    personalNumberHasher.inputs[0] <== dg1DataExtractor.personalNumber;
+
     birthDate <== dg1DataExtractor.birthDate * selectorBits.out[1];
     expirationDate <== dg1DataExtractor.expirationDate * selectorBits.out[2];
     name <== dg1DataExtractor.name * selectorBits.out[3];
     nationality <== dg1DataExtractor.nationality * selectorBits.out[4];
     citizenship <== dg1DataExtractor.citizenship * selectorBits.out[5];
     sex <== dg1DataExtractor.sex * selectorBits.out[6];
-    documentNumber <== dg1DataExtractor.documentNumber * selectorBits.out[7];
-    personalNumber <== dg1DataExtractor.personalNumber * selectorBits.out[16];
+    documentNumberHash <== documentNumberHasher.out * selectorBits.out[7];
+    personalNumberHash <== personalNumberHasher.out * selectorBits.out[16];
     documentType <== dg1DataExtractor.documentType * selectorBits.out[17];
 
     // ----------------------
