@@ -1,11 +1,11 @@
 pragma circom  2.1.6;
 
-include "../../node_modules/circomlib/circuits/bitify.circom";
-include "../../node_modules/circomlib/circuits/poseidon.circom";
+include "circomlib/circuits/bitify.circom";
+include "circomlib/circuits/poseidon.circom";
 include "dg1TD1DataExtractor.circom";
 include "identityStateVerifier.circom";
 include "../../dateUtilities/dateComparisonEncoded.circom";
-include "../../node_modules/circomlib/circuits/comparators.circom";
+include "circomlib/circuits/comparators.circom";
 include "../../dateUtilities/dateComparisonEncodedNormalized.circom";
 
 // QUERY SELECTOR:
@@ -23,8 +23,8 @@ include "../../dateUtilities/dateComparisonEncodedNormalized.circom";
 // 11 - identity counter upperbound (+)
 // 12 - passport expiration lowerbound
 // 13 - passport expiration upperbound
-// 14 - birth date upperbound
-// 15 - birth date lowerbound
+// 14 - birth date lowerbound
+// 15 - birth date upperbound
 // 16 - verify citizenship mask as a whitelist
 // 17 - verify citizenship mask as a blacklist
 
