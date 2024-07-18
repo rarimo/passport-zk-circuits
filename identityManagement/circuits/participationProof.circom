@@ -2,6 +2,12 @@ pragma circom  2.1.6;
 
 include "../../merkleTree/SMTVerifier.circom";
 
+// Public signals:
+// [0] challangedNullifier
+// [1] nullifiersTreeRoot
+// [2] participationEventId
+// [3] challengedEventId
+
 template ParticipationProof(treeDepth) {
     // Public outputs
     signal output challangedNullifier;
@@ -32,7 +38,7 @@ template ParticipationProof(treeDepth) {
     participationNullifierHasher.inputs[1] <== skIdentityHasher.out;
     participationNullifierHasher.inputs[2] <== participationEventId;
 
-    // Verify identity tree
+    // Verify nullifier tree state
     component smtVerifier = SMTVerifier(treeDepth);
     smtVerifier.key <== participationNullifierHasher.out;
     smtVerifier.root <== nullifiersTreeRoot;
