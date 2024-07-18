@@ -3,14 +3,14 @@ pragma circom  2.1.6;
 include "../../merkleTree/SMTVerifier.circom";
 
 // Public signals:
-// [0] challangedNullifier
+// [0] challengedNullifier
 // [1] nullifiersTreeRoot
 // [2] participationEventId
 // [3] challengedEventId
 
 template ParticipationProof(treeDepth) {
     // Public outputs
-    signal output challangedNullifier;
+    signal output challengedNullifier;
 
     // Public input signals
     signal input nullifiersTreeRoot;
