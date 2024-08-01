@@ -16,3 +16,11 @@ input*.json
 *.dev.zip
 *.py
 output.txt
+*.zip
+*-download
+*.pem
+*.crt
+zkit
+typechain-types
+generated-types
+artifacts
