@@ -20,11 +20,13 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     var DG1_DIGEST_POSITION_SHIFT_PARAMS_ANY = DG1_DIGEST_POSITION_SHIFT + 16;
     var DG1_DIGEST_POSITION_SHIFT_LEFT = DG1_DIGEST_POSITION_SHIFT - 16;
     var DG15_DIGEST_POSITION_SHIFT_PARAMS_ANY = DG15_DIGEST_POSITION_SHIFT + 16;
+    var DG15_DIGEST_POSITION_SHIFT_1496 = 1496;
     var SIGNED_ATTRIBUTES_SHIFT = 336;
     var SIGNED_ATTRIBUTES_SHIFT_TS = 576;
+    var SIGNED_ATTRIBUTES_SHIFT_600 = 600;
     // ---------
 
-    var NUMBER_RSA_FLOWS = 3;
+    var NUMBER_RSA_FLOWS = 4;
     var NUMBER_ECDSA_FLOWS = 2;
     var NUMBER_NoAA_FLOWS = 4;
     var HASH_SIZE = BLOCK_SIZE * HASH_BLOCKS_NUMBER; // 64 * 4 = 256 (SHA256)
@@ -159,6 +161,26 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     
     log("Flow 3: ", passportVerificationFlowRsa3.flowResult);
     accumulatorRSAFlows[2] <== accumulatorRSAFlows[1] + passportVerificationFlowRsa3.flowResult;
+
+    // FLOW 4
+    // with Parameters any NULL | with signed attributes timestamp 600 | DG15 3 blocks
+    component passportVerificationFlowRsa4 = PassportVerificationFlow(
+        ENCAPSULATED_CONTENT_SIZE,
+        HASH_SIZE,
+        SIGNED_ATTRIBUTES_SIZE,
+        DG1_DIGEST_POSITION_SHIFT_PARAMS_ANY,
+        DG15_DIGEST_POSITION_SHIFT_1496,
+        SIGNED_ATTRIBUTES_SHIFT_600
+    );
+    passportVerificationFlowRsa4.dg1Hash  <== dg1Hasher.out;
+    passportVerificationFlowRsa4.dg15Hash <== dg15Hasher3Blocks.out;
+    passportVerificationFlowRsa4.encapsulatedContent <== encapsulatedContent;
+    passportVerificationFlowRsa4.encapsulatedContentHash <== encapsulatedContentHasher4Blocks.out;
+    passportVerificationFlowRsa4.signedAttributes <== signedAttributes;
+    passportVerificationFlowRsa4.dg15Verification <== 1;
+    
+    log("Flow 4: ", passportVerificationFlowRsa4.flowResult);
+    accumulatorRSAFlows[3] <== accumulatorRSAFlows[2] + passportVerificationFlowRsa4.flowResult;
 
     // ------------------
 

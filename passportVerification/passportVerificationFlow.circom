@@ -23,14 +23,14 @@ template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
         dg1HashEqualsEncapsulated[i].in[1] <== encapsulatedContent[DG1_DIGEST_POSITION_SHIFT + i];
         log("DG1 equals: ", dg1HashEqualsEncapsulated[i].out);
     }
-
+    
     // 2) Checking DG15 hash inclusion into encapsulatedContent
     component dg15HashEqualsEncapsulated[HASH_SIZE];
     for (var i = 0; i < HASH_SIZE; i++) {
         dg15HashEqualsEncapsulated[i] = IsEqual();
         dg15HashEqualsEncapsulated[i].in[0] <== dg15Hash[i] * dg15Verification;
         dg15HashEqualsEncapsulated[i].in[1] <== encapsulatedContent[DG15_DIGEST_POSITION_SHIFT + i] * dg15Verification;
-        // log("DG15 equals: ", dg15HashEqualsEncapsulated[i].out);
+        log("DG15 equals: ", dg15HashEqualsEncapsulated[i].out);
     }
     
     // 3) Checking encapsulatedContent hash inclusion into signedAttributed
@@ -39,7 +39,7 @@ template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
         encapsulateHashEqualsSigned[i] = IsEqual();
         encapsulateHashEqualsSigned[i].in[0] <== encapsulatedContentHash[i];
         encapsulateHashEqualsSigned[i].in[1] <== signedAttributes[SIGNED_ATTRIBUTES_SHIFT + i];
-        // log("Encapsulated equals: ", encapsulateHashEqualsSigned[i].out);
+        log("Encapsulated equals: ", encapsulateHashEqualsSigned[i].out);
     }
 
     // 4) Checking DG15 prefix equals 0x0F = 15
