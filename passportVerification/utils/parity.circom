@@ -1,6 +1,6 @@
 pragma circom 2.1.6;
 
-include "../../node_modules/circomlib/circuits/sha256/xor3.circom";
+include "circomlib/circuits/sha256/xor3.circom";
 
 template Parity_t(n) {
      signal input a[n];

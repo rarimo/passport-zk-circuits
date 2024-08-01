@@ -1,8 +1,8 @@
 pragma circom 2.1.6;
 
 include "./rotate.circom";
-include "../../node_modules/circomlib/circuits/binsum.circom";
-include "../../node_modules/circomlib/circuits/comparators.circom";
+include "circomlib/circuits/binsum.circom";
+include "circomlib/circuits/comparators.circom";
 include "./f.circom";
 include "./constants.circom";
 
