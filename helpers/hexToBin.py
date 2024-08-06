@@ -1,4 +1,4 @@
-hex_input = 0x3
+hex_input = 0x6
 
 bin_input = bin(hex_input)
 

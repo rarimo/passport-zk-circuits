@@ -23,16 +23,17 @@ const config: HardhatUserConfig = {
     },
   },
   zkit: {
-    circuitsDir: "identityManagement",
+    circuitsDir: "circuits",
     nativeCompiler: true,
     compilationSettings: {
       c: true,
-      // onlyFiles: ["vote"]
+      onlyFiles: ["participationProof.circom"],
       skipFiles: ["registerIdentity2688TMSP.circom", "registerIdentity2704.circom", "registerIdentityUniversal.circom",
     "registerIdentity2688.circom", "registerIdentityUniversalRSA2048.circom", "registerIdentityUniversalRSA2048TD1.circom",]
     },
     setupSettings: {
       ptauDir: "zkit/ptau",
+      onlyFiles: ["participationProof.circom"],
       skipFiles: ["registerIdentity2688TMSP.circom", "registerIdentity2704.circom", "registerIdentityUniversal.circom",
     "registerIdentity2688.circom", "registerIdentityUniversalRSA2048.circom", "registerIdentityUniversalRSA2048TD1.circom",
     "registerIdentityUniversalRSA4096.circom"]
