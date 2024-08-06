@@ -18,7 +18,7 @@ template ParticipationProof(treeDepth) {
     signal input challengedEventId;
     
     // Private input signals
-    signal input nullifiersTreeSiblings[20];
+    signal input nullifiersTreeSiblings[treeDepth];
     signal input skIdentity;
 
     // Calculating nullifiers    

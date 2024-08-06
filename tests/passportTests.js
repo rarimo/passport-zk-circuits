@@ -15,7 +15,7 @@ const isNotAdultInput = require('./inputs/isNotAdultInput.json')
 // const credValidExceedsPassportInput = require('./inputs/credValidExceedsPassportInput.json')
 
 describe("Simple test", function () {
-    this.timeout(100000);
+    this.timeout(130000);
 
     it("SHA256 circuit witness generation on a valid data", async function () {
 

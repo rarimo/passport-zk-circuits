@@ -8,4 +8,4 @@ include "./circuits/participationProof.circom";
 // [2] participationEventId
 // [3] challengedEventId
 
-component main = ParticipationProof(20);
+component main {public [nullifiersTreeRoot, participationEventId, challengedEventId]} = ParticipationProof(40);
