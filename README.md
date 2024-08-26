@@ -22,6 +22,10 @@ npm install circomlib
 
 - ***verify*** - verifies the proof. Usage: ```verify <circuit_name>```
 
+##
+
+[![hardhat-zkit](https://github.com/user-attachments/assets/f5e9a69a-93cb-4044-88fc-b9f9cadd29a7)](https://github.com/dl-solarity/hardhat-zkit)
+
 ## Biometric Passport Authentication
 
 Data in a passport is separated into data groups. Not all of them are required to be present in the passport. Document Security Object (SOD) has **encapculated content** field that contains hashes of all datagroups. During passive authentication verification party hashes data from the datagroups and compare it with hashes stored in the **encapculated content** with *ASN1* encoding. The hash of the **encapculated content** itself is stored in the **signed attributes** field, which is also *ASN1* encoded.
