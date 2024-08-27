@@ -1,5 +1,7 @@
 pragma circom  2.1.6;
 
+include "circomlib/circuits/bitify.circom";
+
 // HASH_TYPE: 
 //   - 160: SHA1 (160 bits)
 //   - 256: SHA2-256 (256 bits)
@@ -18,13 +20,37 @@ template RegisterIdentityBuilder (
     HASH_BLOCK_SIZE,                // size in bits
     HASH_TYPE,                      // 160, 256, 384, 512 (list above)^^^
     SIGNATURE_TYPE,                 // 1, 2..  (list above) ^^^
-    RSA_FLOWS_NUMBER,               // activated RSA flows umber
-    RSA_FLOWS_BITMASK,              // bitmask of which RSA flows are active
-    ECDSA_FLOWS_NUMBER,             // activated ECDSA flows
-    ECDSA_FLOWS_BITMASK,            // bitmask of which ECDSA flows are active
-    NoAA_FLOWS_NUMBER,              // activated NoAA flows
-    NoAA_FLOWS_BITMASK              // bitmask of which NoAA flows are active
+    CHUNK_SIZE,
+    CHUNK_NUMBER,
+    DOCUMENT_TYPE,                  // 1: TD1; 3: TD3
+    TREE_DEPTH,
+    AA_FLOWS_NUMBER,               // activated Active Auth flows umber
+    AA_FLOWS_BITMASK,              // bitmask of which Active Auth flows are active
+    NoAA_FLOWS_NUMBER,              // activated NoAA (no active auth) flows
+    NoAA_FLOWS_BITMASK              // bitmask of which NoAA (no active auth) flows are active
 ) {
+    // OUTPUT SIGNALS:
+    signal output dg15PubKeyHash;
+    
+    // Poseidon(Hash(signedAttributes)[252:])
+    signal output passportHash;
 
+    signal output dg1Commitment;
+
+    // Poseidon2(PubKey.X, PubKey.Y)
+    signal output pkIdentityHash;
+
+    // INPUT SIGNALS:
+    signal input encapsulatedContent[ENCAPSULATED_CONTENT_SIZE * HASH_BLOCK_SIZE];
+    signal input dg1[DG1_SIZE * HASH_BLOCK_SIZE];
+    signal input dg15[DG15_SIZE * HASH_BLOCK_SIZE];
+    signal input signedAttributes[SIGNED_ATTRIBUTES_SIZE * HASH_BLOCK_SIZE];
+    signal input signature[CHUNK_NUMBER];
+    signal input publicKey[CHUNK_NUMBER];
+    signal input slaveMerkleRoot;
+    signal input slaveMerkleInclusionBranches[TREE_DEPTH];
+    signal input skIdentity;
+
+    // 
 }
 

@@ -18,12 +18,14 @@ component main = RegisterIdentityBuilder(
     6,         // ENCAPSULATED_CONTENT_SIZE
     2,         // SIGNED_ATTRIBUTES_SIZE
     512,       // HASH_BLOCK_SIZE
-    256,           // HASH_TYPE
-    1,           // SIGNATURE_TYPE
-    3,           // RSA_FLOWS_NUMBER
-    7,           // RSA_FLOWS_BITMASK
-    3,           // ECDSA_FLOWS_NUMBER
-    7,           // ECDSA_FLOWS_BITMASK
-    4,           // NoAA_FLOWS_NUMBER
-    15           // NoAA_FLOWS_BITMASK
+    256,       // HASH_TYPE
+    1,         // SIGNATURE_TYPE
+    64,        // CHUNK_SIZE
+    32,         // CHUNK_NUMBER
+    1,         // DOCUMENT_TYPE
+    80,        // TREE_DEPTH
+    3,         // AA_FLOWS_NUMBER
+    7,         // AA_FLOWS_BITMASK
+    4,         // NoAA_FLOWS_NUMBER
+    15         // NoAA_FLOWS_BITMASK
 );
