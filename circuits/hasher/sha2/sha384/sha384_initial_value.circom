@@ -23,5 +23,4 @@ template Sha384_initial_value() {
       out[k][i] <== (initial_state[k] >> i) & 1; 
     }
   }
-
 }
