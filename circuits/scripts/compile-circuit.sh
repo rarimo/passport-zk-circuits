@@ -31,7 +31,7 @@ mkdir -p ${BUILD_DIR}
 # Compiling circuit with .r1cs and .wasm files as result
 echo -e "\nCompiling the circuits..."
 
-circom ${CIRCUIT_FILE} --r1cs --wasm --c --sym -o ${BUILD_DIR} -l /Users/kitcat/Desktop/Coding/Blockchain/Circom/RedSunset/passport-zk-circuits/node_modules
+circom ${CIRCUIT_FILE} --r1cs --wasm --c --sym -o ${BUILD_DIR} -l ../../node_modules
 
 mv ${BUILD_DIR}/${CIRCUIT_NAME}_js/${CIRCUIT_NAME}.wasm ${BUILD_DIR}/${CIRCUIT_NAME}.wasm
 
