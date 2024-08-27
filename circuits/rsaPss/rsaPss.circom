@@ -3,27 +3,30 @@ pragma circom  2.1.6;
 include "../rsa/powMod.circom";
 include "./mgf1.circom";
 include "./xor2.circom";
+include "../hasher/passportHash.circom";
 
-template VerifyRSASig (n, k, messageLen){
-    signal input pubkey[k];
+template VerifyRSASig (n, k, e_bits, ALGO){
+    signal input modulus[k]; //aka pubkey
     signal input signature[k];
-    signal input message[messageLen];
+    signal input hashed[ALGO]; //message hash
 
-    var emLen = (n*k)\8;
-    var hLen = 48; //sha384
-    var sLen = 48;
-    var hLenBits = 48*8; //*8
-    var sLenBits = 48*8; //*8
-    var emLenBits = n * k;
+    var emLen = (n*k)\8; //in bytes
+    var hLen = ALGO\8; //in bytes
+    var sLen = ALGO\8; //in bytes
+    var hLenBits = ALGO; //in bits
+    var sLenBits = ALGO; //in bits
+    var emLenBits = n * k; //in bits
 
 
     signal eM[emLen]; 
     signal eMsgInBits[emLenBits];
     
-    component powmod = PowerMod(n, k, 17);
+    //computing encoded message
+    component powmod = PowerMod(n, k, e_bits);
     powmod.base <== signature;
-    powmod.modulus <== pubkey;
+    powmod.modulus <== modulus;
 
+   
     signal encoded[k];
     encoded <== powmod.out;
 
@@ -37,14 +40,6 @@ template VerifyRSASig (n, k, messageLen){
         }
     }
 
-    
-    signal m_hash[hLenBits];
-    component hasher = Sha384_hash_bits(messageLen);
-    
-    hasher.inp_bits <== message;
-    m_hash <== hasher.out;
-
-
     component bits2Num[emLen];
     for (var i = 0; i < emLen; i++) {
         bits2Num[i] = Bits2Num(8);
@@ -54,6 +49,8 @@ template VerifyRSASig (n, k, messageLen){
         eM[emLen - i - 1] <== bits2Num[i].out;
     }
 
+
+    
     //should be more than HLEN + SLEN + 2
     assert(emLen >= hLen + sLen + 2);
 
@@ -72,19 +69,31 @@ template VerifyRSASig (n, k, messageLen){
     
     signal hash[hLen * 8];
 
-
+    //inserting hash
     for (var i=0; i<hLenBits; i++) {
-        hash[i] <== eMsgInBits[(emLenBits) - hLenBits-8 +i];
+        hash[i] <== eMsgInBits[(emLenBits) - hLenBits-8 + i];
     }
 
-
-    component MGF1 = Mgf1Sha384(hLen, dbMaskLen);
-    for (var i = 0; i < (hLenBits); i++) {
-        MGF1.seed[i] <== hash[i];
+    //getting mask
+    if (ALGO == 256){
+        component MGF1_256 = Mgf1Sha256(hLen, dbMaskLen);
+        for (var i = 0; i < (hLenBits); i++) {
+            MGF1_256.seed[i] <== hash[i];
+        }
+        for (var i = 0; i < dbMaskLen * 8; i++) {
+            dbMask[i] <== MGF1_256.out[i];
+        }
     }
-    for (var i = 0; i < dbMaskLen * 8; i++) {
-        dbMask[i] <== MGF1.out[i];
+    if (ALGO == 384){
+        component MGF1_384 = Mgf1Sha384(hLen, dbMaskLen);
+        for (var i = 0; i < (hLenBits); i++) {
+            MGF1_384.seed[i] <== hash[i];
+        }
+        for (var i = 0; i < dbMaskLen * 8; i++) {
+            dbMask[i] <== MGF1_384.out[i];
+        }
     }
+    
     
 
     component xor = Xor2(dbMaskLen * 8);
@@ -101,25 +110,78 @@ template VerifyRSASig (n, k, messageLen){
         }
     }
 
+    //inserting salt
     for (var i = 0; i < sLenBits; i++) {
         salt[sLenBits - 1 - i] <== DB[(dbMaskLen * 8) -1 - i];
     }
 
-    var mDashLen = (8 + hLen + sLen) * 8;
-    signal mDash[mDashLen]; 
+    signal mDash[1024]; 
+    //adding 0s
     for (var i = 0; i < 64; i++) {
         mDash[i] <== 0;
     }
-    for (var i = 0 ; i < hLen*8; i++) {
-        mDash[64 + i] <== m_hash[i];
+    //adding message hash
+    for (var i = 0 ; i < hLen * 8; i++) {
+        mDash[64 + i] <== hashed[i];
+
     }
-    for (var i = 0; i < sLen*8; i++) {
+    //adding salt
+    for (var i = 0; i < sLen * 8; i++) {
         mDash[64 + hLen * 8 + i] <== salt[i];
+
     }
 
-    component hDash = Sha384_hash_bits(mDashLen);
-    hDash.inp_bits <== mDash;
+    if (ALGO == 256){
+        
+        //adding padding
+        //len = 64+512 = 576 = 1001000000
+        for (var i = 577; i < 1014; i++){
+            mDash[i] <== 0;
+        }
+        mDash[576] <== 1;
+        mDash[1023] <== 0;
+        mDash[1022] <== 0;
+        mDash[1021] <== 0;
+        mDash[1020] <== 0;
+        mDash[1019] <== 0;
+        mDash[1018] <== 0;
+        mDash[1017] <== 1;
+        mDash[1016] <== 0;
+        mDash[1015] <== 0;
+        mDash[1014] <== 1;
 
-    hDash.out === hash;
+        //hashing
+        component hDash256 = PassportHash(512, 2, ALGO);
+        hDash256.in <== mDash;
+        hDash256.out === hash;
+    }
+    if (ALGO == 384){
+
+        //padding
+        //len = 64+48*16 = 832 = 1101000000
+        for (var i = 833; i < 1014; i++){
+            mDash[i] <== 0;
+        }
+        mDash[832] <== 1;
+        mDash[1023] <== 0;
+        mDash[1022] <== 0;
+        mDash[1021] <== 0;
+        mDash[1020] <== 0;
+        mDash[1019] <== 0;
+        mDash[1018] <== 0;
+        mDash[1017] <== 1;
+        mDash[1016] <== 0;
+        mDash[1015] <== 1;
+        mDash[1014] <== 1;
+
+        //hashing mDash
+        component hDash384 = PassportHash(1024, 1, ALGO);
+        hDash384.in <== mDash;
+        
+        hDash384.out === hash;
+    }
+    
+
+   
 }
 
