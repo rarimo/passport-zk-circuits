@@ -6,6 +6,10 @@ include "./xor2.circom";
 include "../hasher/passportHash.circom";
 
 template VerifyRSASig (n, k, e_bits, ALGO){
+
+    assert(ALGO == 256 || ALGO == 384);
+
+
     signal input modulus[k]; //aka pubkey
     signal input signature[k];
     signal input hashed[ALGO]; //message hash
