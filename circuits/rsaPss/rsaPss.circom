@@ -10,7 +10,7 @@ template VerifyRSASig (n, k, e_bits, ALGO){
     assert(ALGO == 256 || ALGO == 384);
 
 
-    signal input modulus[k]; //aka pubkey
+    signal input pubkey[k]; //aka modulus
     signal input signature[k];
     signal input hashed[ALGO]; //message hash
 
@@ -28,7 +28,7 @@ template VerifyRSASig (n, k, e_bits, ALGO){
     //computing encoded message
     component powmod = PowerMod(n, k, e_bits);
     powmod.base <== signature;
-    powmod.modulus <== modulus;
+    powmod.modulus <== pubkey;
 
    
     signal encoded[k];
