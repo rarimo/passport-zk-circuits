@@ -16,9 +16,9 @@ template CoreVerifyPubkeyG1NoCheck(n, k){
     signal input Hm[2][2][k];
     signal output out;
 
-    var q[50] = get_BLS12_381_prime(n, k);
+    var q[150] = get_BLS12_381_prime(n, k);
     var x = get_BLS12_381_parameter();
-    var g1[2][50] = get_generator_G1(n, k); 
+    var g1[2][150] = get_generator_G1(n, k); 
 
     signal neg_s[2][2][k];
     component neg[2];
@@ -71,7 +71,7 @@ template CoreVerifyPubkeyG1(n, k){
     signal input signature[2][2][k];
     signal input hash[2][2][k];
      
-    var q[50] = get_BLS12_381_prime(n, k);
+    var q[150] = get_BLS12_381_prime(n, k);
 
     component lt[10];
     // check all len k input arrays are correctly formatted bigints < q (BigLessThan calls Num2Bits)

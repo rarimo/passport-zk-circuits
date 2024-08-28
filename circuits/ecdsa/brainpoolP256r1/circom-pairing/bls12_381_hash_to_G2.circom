@@ -31,7 +31,7 @@ template OptSimpleSWU2(n, k){
     signal output out[2][2][k]; 
     //signal output isInfinity; optimized simple SWU should never return point at infinity, exceptional case still returns a normal point 
     
-    var p[50] = get_BLS12_381_prime(n, k);
+    var p[150] = get_BLS12_381_prime(n, k);
     
     var a[2] = [0, 240];
     var b[2] = [1012, 1012];
@@ -143,23 +143,23 @@ template OptSimpleSWU2(n, k){
     
     // Precompute sqrt_candidate = gX0^{(p^2 + 7) / 16} 
     // p^2 + 7
-    var c1[50] = long_add_unequal(n, 2*k, 1, prod(n, k, p, p), [7]);
+    var c1[150] = long_add_unequal(n, 2*k, 1, prod(n, k, p, p), [7]);
     // (p^2 + 7) // 16
-    var c2[2][50] = long_div2(n, 1, 2*k-1, c1, [16]); 
+    var c2[2][150] = long_div2(n, 1, 2*k-1, c1, [16]); 
 
     assert( c2[1][0] == 0 ); // assert p^2 + 7 is divisible by 16
 
-    var sqrt_candidate[2][50] = find_Fp2_exp(n, k, gX0.out, p, c2[0]);
+    var sqrt_candidate[2][150] = find_Fp2_exp(n, k, gX0.out, p, c2[0]);
     // if gX0 is a square, square root must be sqrt_candidate * (8th-root of unity) 
     // -1 is a square in Fp2 (because p^2 - 1 is even) so we only need to check half of the 8th roots of unity
-    var roots[4][2][50] = get_roots_of_unity(n, k);
-    var sqrt_witness[2][2][50];
+    var roots[4][2][150] = get_roots_of_unity(n, k);
+    var sqrt_witness[2][2][150];
     for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++)
         sqrt_witness[i][j][idx] = 0;
 
     var is_square = 0;
     for(var i=0; i<4; i++){
-        var sqrt_tmp[2][50] = find_Fp2_product(n, k, sqrt_candidate, roots[i], p); 
+        var sqrt_tmp[2][150] = find_Fp2_product(n, k, sqrt_candidate, roots[i], p); 
         if(is_equal_Fp2(n, k, find_Fp2_product(n, k, sqrt_tmp, sqrt_tmp, p), gX0.out) == 1){
             is_square = 1;
             sqrt_witness[0] = sqrt_tmp;
@@ -169,16 +169,16 @@ template OptSimpleSWU2(n, k){
     isSquare * (1-isSquare) === 0; 
     
     var is_square1 = 0;
-    var etas[4][2][50] = get_etas(n, k);
+    var etas[4][2][150] = get_etas(n, k);
     // find square root of gX1 
     // square root of gX1 must be = sqrt_candidate * t^3 * eta 
     // for one of four precomputed values of eta
     // eta determined by eta^2 = xi^3 * (-1)^{-1/4}  
-    var t_cu[2][50] = find_Fp2_product(n, k, find_Fp2_product(n, k, in, in, p), in, p);
+    var t_cu[2][150] = find_Fp2_product(n, k, find_Fp2_product(n, k, in, in, p), in, p);
     sqrt_candidate = find_Fp2_product(n, k, sqrt_candidate, t_cu, p);
     
     for(var i=0; i<4; i++){
-        var sqrt_tmp[2][50] = find_Fp2_product(n, k, sqrt_candidate, etas[i], p); 
+        var sqrt_tmp[2][150] = find_Fp2_product(n, k, sqrt_candidate, etas[i], p); 
         if(is_equal_Fp2(n, k, find_Fp2_product(n, k, sqrt_tmp, sqrt_tmp, p), gX1.out) == 1){
             is_square1 = 1;
             sqrt_witness[1] = sqrt_tmp;
@@ -196,7 +196,7 @@ template OptSimpleSWU2(n, k){
     for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++)
         sgn_in.in[i][idx] <== in[i][idx];
 
-    var Y[2][50];
+    var Y[2][150];
     for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++)
         Y[i][idx] = is_square * sqrt_witness[0][i][idx] + (1-is_square) * sqrt_witness[1][i][idx];
     // Y = out[1] = +- sqrt_witness; sign determined by sgn0(Y) = sgn0(t) 
@@ -249,10 +249,10 @@ template Iso3Map(n, k){
     signal output out[2][2][k];
     signal output isInfinity;
     
-    var p[50] = get_BLS12_381_prime(n, k);
+    var p[150] = get_BLS12_381_prime(n, k);
     
     // load coefficients of the isogeny (precomputed)
-    var coeffs[4][4][2][50] = get_iso3_coeffs(n, k);
+    var coeffs[4][4][2][150] = get_iso3_coeffs(n, k);
 
     // x = x_num / x_den
     // y = y' * y_num / y_den
@@ -295,7 +295,7 @@ template Iso3Map(n, k){
             coeffs_xp[i][j].b[l][idx] <== xp_pow[j][l][idx];
         }
     }
-    var x_frac[4][2][50];  
+    var x_frac[4][2][150];  
     for(var i=0; i<4; i++){
         for(var l=0; l<2; l++)for(var idx=0; idx<2*k-1; idx++){
             if(idx<k)
@@ -478,11 +478,11 @@ template ClearCofactorG2(n, k){
     signal output out[2][2][k];
     signal output isInfinity;
     
-    var p[50] = get_BLS12_381_prime(n, k);
+    var p[150] = get_BLS12_381_prime(n, k);
     var x_abs = get_BLS12_381_parameter(); // this is abs(x). remember x is negative!
     var a[2] = [0,0];
     var b[2] = [4,4];
-    var dummy_point[2][2][50] = get_generator_G2(n, k);
+    var dummy_point[2][2][150] = get_generator_G2(n, k);
     
     // Output: [|x|^2 + |x| - 1]*P + [-|x|-1]*psi(P) + psi2(2*P) 
     //       = |x| * (|x|*P + P - psi(P)) - P -psi(P) + psi2(2*P)
@@ -578,7 +578,7 @@ template MapToG2(n, k){
     signal output out[2][2][k];
     signal output isInfinity;
 
-    var p[50] = get_BLS12_381_prime(n, k);
+    var p[150] = get_BLS12_381_prime(n, k);
 
     component Qp[2];
     for(var i=0; i<2; i++){
@@ -624,7 +624,7 @@ Other references:
 template SubgroupCheckG2(n, k){
     signal input in[2][2][k];
     
-    var p[50] = get_BLS12_381_prime(n, k);
+    var p[150] = get_BLS12_381_prime(n, k);
     var x_abs = get_BLS12_381_parameter();
 
     component is_on_curve = PointOnCurveFp2(n, k, [0,0], [4,4], p);
@@ -665,7 +665,7 @@ template SubgroupCheckG2(n, k){
 template SubgroupCheckG1(n, k){
     signal input in[2][k];
 
-    var p[50] = get_BLS12_381_prime(n, k);
+    var p[150] = get_BLS12_381_prime(n, k);
     var x_abs = get_BLS12_381_parameter();
     var b = 4;
 

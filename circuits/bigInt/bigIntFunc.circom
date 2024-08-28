@@ -58,7 +58,7 @@ function long_is_zero(k, a){
 // output has k+1 registers
 function long_add(n, k, a, b){
     var carry = 0;
-    var sum[50];
+    var sum[150];
     for(var i=0; i<k; i++){
         var sumAndCarry[2] = SplitFn(a[i] + b[i] + carry, n, n);
         sum[i] = sumAndCarry[0];
@@ -76,7 +76,7 @@ function long_add(n, k, a, b){
 // output has k+1 registers
 function long_add4(n, k, a, b, c, d){
     var carry = 0;
-    var sum[50];
+    var sum[150];
     for(var i=0; i < k; i++){
         var sumAndCarry[2] = SplitFn(a[i] + b[i] + c[i] + d[i] + carry, n, n);
         sum[i] = sumAndCarry[0];
@@ -93,7 +93,7 @@ function long_add4(n, k, a, b, c, d){
 // output has k1+1 registers
 function long_add_unequal(n, k1, k2, a, b){
     var carry = 0;
-    var sum[50];
+    var sum[150];
     for(var i=0; i<k1; i++){
         if (i < k2) {
             var sumAndCarry[2] = SplitFn(a[i] + b[i] + carry, n, n);
@@ -114,8 +114,8 @@ function long_add_unequal(n, k1, k2, a, b){
 // b has k registers
 // a >= b
 function long_sub(n, k, a, b) {
-    var diff[50];
-    var borrow[50];
+    var diff[150];
+    var borrow[150];
     for (var i = 0; i < k; i++) {
         if (i == 0) {
            if (a[i] >= b[i]) {
@@ -141,8 +141,8 @@ function long_sub(n, k, a, b) {
 // a is a n-bit scalar
 // b has k registers
 function long_scalar_mult(n, k, a, b) {
-    var out[50];
-    for (var i = 0; i < 50; i++) {
+    var out[150];
+    for (var i = 0; i < 150; i++) {
         out[i] = 0;
     }
     for (var i = 0; i < k; i++) {
@@ -162,14 +162,14 @@ function long_scalar_mult(n, k, a, b) {
 // implements algorithm of https://people.eecs.berkeley.edu/~fateman/282/F%20Wright%20notes/week4.pdf
 // b[k-1] must be nonzero!
 function long_div2(n, k, m, a, b){
-    var out[2][50];
-    // assume k+m < 50
-    var remainder[50];
+    var out[2][150];
+    // assume k+m < 150
+    var remainder[150];
     for (var i = 0; i < m + k; i++) {
         remainder[i] = a[i];
     }
 
-    var dividend[50];
+    var dividend[150];
     for (var i = m; i >= 0; i--) {
         if (i == m) {
             dividend[k] = 0;
@@ -182,8 +182,8 @@ function long_div2(n, k, m, a, b){
             }
         }
         out[0][i] = short_div(n, k, dividend, b);
-        var mult_shift[50] = long_scalar_mult(n, k, out[0][i], b);
-        var subtrahend[50];
+        var mult_shift[150] = long_scalar_mult(n, k, out[0][i], b);
+        var subtrahend[150];
         for (var j = 0; j < m + k; j++) {
             subtrahend[j] = 0;
         }
@@ -216,7 +216,7 @@ function short_div_norm(n, k, a, b) {
       qhat = (1 << n) - 1;
    }
 
-   var mult[50] = long_scalar_mult(n, k, qhat, b);
+   var mult[150] = long_scalar_mult(n, k, qhat, b);
    if (long_gt(n, k + 1, mult, a) == 1) {
       mult = long_sub(n, k + 1, mult, b);
       if (long_gt(n, k + 1, mult, a) == 1) {
@@ -237,9 +237,9 @@ function short_div_norm(n, k, a, b) {
 function short_div(n, k, a, b) {
     var scale = (1 << n) \ (1 + b[k - 1]);
     // k + 2 registers now
-    var norm_a[50] = long_scalar_mult(n, k + 1, scale, a);
+    var norm_a[150] = long_scalar_mult(n, k + 1, scale, a);
     // k + 1 registers now
-    var norm_b[50] = long_scalar_mult(n, k, scale, b);
+    var norm_b[150] = long_scalar_mult(n, k, scale, b);
     
     var ret;
     if (norm_b[k] != 0) {
@@ -253,11 +253,11 @@ function short_div(n, k, a, b) {
 // a = a0 + a1 * X + ... + a[k-1] * X^{k-1} with X = 2^n
 //  a_i can be "negative" assume a_i in (-2^251, 2^251) 
 // output is the value of a with a_i all of the same sign 
-// out[50] = 0 if positive, 1 if negative
+// out[150] = 0 if positive, 1 if negative
 function signed_long_to_short(n, k, a){
-    var out[51];
-    var MAXL = 50;
-    var temp[51];
+    var out[151];
+    var MAXL = 150;
+    var temp[151];
 
     // is a positive?
     for(var i=0; i<k; i++) temp[i] = a[i];
@@ -306,7 +306,7 @@ function signed_long_to_short(n, k, a){
 // adapted from BigMulShortLong and LongToShortNoEndCarry witness computation
 function prod(n, k, a, b) {
     // first compute the intermediate values. taken from BigMulShortLong
-    var prod_val[50]; // length is 2 * k - 1
+    var prod_val[150]; // length is 2 * k - 1
     for (var i = 0; i < 2 * k - 1; i++) {
         prod_val[i] = 0;
         if (i < k) {
@@ -321,14 +321,14 @@ function prod(n, k, a, b) {
     }
 
     // now do a bunch of carrying to make sure registers not overflowed. taken from LongToShortNoEndCarry
-    var out[50]; // length is 2 * k
+    var out[150]; // length is 2 * k
 
-    var split[50][3]; // first dimension has length 2 * k - 1
+    var split[150][3]; // first dimension has length 2 * k - 1
     for (var i = 0; i < 2 * k - 1; i++) {
         split[i] = SplitThreeFn(prod_val[i], n, n, n);
     }
 
-    var carry[50]; // length is 2 * k - 1
+    var carry[150]; // length is 2 * k - 1
     carry[0] = 0;
     out[0] = split[0][0];
     if (2 * k - 1 > 1) {
@@ -354,7 +354,7 @@ function prod(n, k, a, b) {
 // adapted from BigMultShortLong2D and LongToShortNoEndCarry2 witness computation
 function prod2D(n, k, l, a, b) {
     // first compute the intermediate values. taken from BigMulShortLong
-    var prod_val[20][50]; // length is 2l - 1 by 2k - 1
+    var prod_val[20][150]; // length is 2l - 1 by 2k - 1
     for (var i = 0; i < 2 * k - 1; i++) {
         for (var j = 0; j < 2 * l - 1; j ++) {
             prod_val[j][i] = 0;
@@ -371,16 +371,16 @@ function prod2D(n, k, l, a, b) {
     }
 
     // now do a bunch of carrying to make sure registers not overflowed. taken from LongToShortNoEndCarry2
-    var out[20][50]; // length is 2 * l by 2 * k
+    var out[20][150]; // length is 2 * l by 2 * k
 
-    var split[20][50][3]; // second dimension has length 2 * k - 1
+    var split[20][150][3]; // second dimension has length 2 * k - 1
     for (var j = 0; j < 2 * l - 1; j ++) {
         for (var i = 0; i < 2 * k - 1; i++) {
             split[j][i] = SplitThreeFn(prod_val[j][i], n, n, n);
         }
     }
 
-    var carry[20][50]; // length is 2l-1 x 2k
+    var carry[20][150]; // length is 2l-1 x 2k
     var sumAndCarry[20][2];
     for ( var j = 0; j < 2 * l - 1; j ++) {
         carry[j][0] = 0;
@@ -406,8 +406,8 @@ function prod2D(n, k, l, a, b) {
 // Put all modular arithmetic, aka F_p field stuff, at the end
 
 function long_add_mod(n, k, a, b, p) {
-    var sum[50] = long_add(n,k,a,b); 
-    var temp[2][50] = long_div2(n,k,1,sum,p);
+    var sum[150] = long_add(n,k,a,b); 
+    var temp[2][150] = long_div2(n,k,1,sum,p);
     return temp[1];
 }
 
@@ -420,8 +420,8 @@ function long_sub_mod(n, k, a, b, p) {
 }
 
 function prod_mod(n, k, a, b, p) {
-    var prod[50] = prod(n,k,a,b);
-    var temp[2][50] = long_div(n,k,prod,p);
+    var prod[150] = prod(n,k,a,b);
+    var temp[2][150] = long_div(n,k,prod,p);
     return temp[1];
 }
 
@@ -444,8 +444,8 @@ function mod_exp(n, k, a, p, e) {
         }
     }
 
-    var out[50]; // length is k
-    for (var i = 0; i < 50; i++) {
+    var out[150]; // length is k
+    for (var i = 0; i < 150; i++) {
         out[i] = 0;
     }
     out[0] = 1;
@@ -454,18 +454,18 @@ function mod_exp(n, k, a, p, e) {
     for (var i = bitlength-1; i >= 0; i--) {
         // multiply by a if bit is 0
         if (eBits[i] == 1) {
-            var temp[50]; // length 2 * k
+            var temp[150]; // length 2 * k
             temp = prod(n, k, out, a);
-            var temp2[2][50];
+            var temp2[2][150];
             temp2 = long_div(n, k, temp, p);
             out = temp2[1];
         }
 
         // square, unless we're at the end
         if (i > 0) {
-            var temp[50]; // length 2 * k
+            var temp[150]; // length 2 * k
             temp = prod(n, k, out, out);
-            var temp2[2][50];
+            var temp2[2][150];
             temp2 = long_div(n, k, temp, p);
             out = temp2[1];
         }
@@ -489,15 +489,15 @@ function mod_inv(n, k, a, p) {
         }
     }
     if (isZero == 1) {
-        var ret[50];
+        var ret[150];
         for (var i = 0; i < k; i++) {
             ret[i] = 0;
         }
         return ret;
     }
 
-    var pCopy[50];
-    for (var i = 0; i < 50; i++) {
+    var pCopy[150];
+    for (var i = 0; i < 150; i++) {
         if (i < k) {
             pCopy[i] = p[i];
         } else {
@@ -505,15 +505,15 @@ function mod_inv(n, k, a, p) {
         }
     }
 
-    var two[50];
-    for (var i = 0; i < 50; i++) {
+    var two[150];
+    for (var i = 0; i < 150; i++) {
         two[i] = 0;
     }
     two[0] = 2;
 
-    var pMinusTwo[50];
+    var pMinusTwo[150];
     pMinusTwo = long_sub(n, k, pCopy, two); // length k
-    var out[50];
+    var out[150];
     out = mod_exp(n, k, a, pCopy, pMinusTwo);
     return out;
 }

@@ -454,7 +454,7 @@ template BigMod(n, k) {
     signal output div[k + 1];
     signal output mod[k];
 
-    var longdiv[2][50] = long_div(n, k, a, b);
+    var longdiv[2][150] = long_div(n, k, a, b);
     for (var i = 0; i < k; i++) {
         div[i] <-- longdiv[0][i];
         mod[i] <-- longdiv[1][i];
@@ -524,7 +524,7 @@ template BigMod2(n, k, m) {
     signal output div[m - k + 1];
     signal output mod[k];
 
-    var longdiv[2][50] = long_div2(n, k, m-k, a, b);
+    var longdiv[2][150] = long_div2(n, k, m-k, a, b);
     for (var i = 0; i < k; i++) {
         mod[i] <-- longdiv[1][i];
     }
@@ -714,7 +714,7 @@ template BigModInv(n, k) {
     signal output out[k];
 
     // length k
-    var inv[50] = mod_inv(n, k, in, p);
+    var inv[150] = mod_inv(n, k, in, p);
     for (var i = 0; i < k; i++) {
         out[i] <-- inv[i];
     }
@@ -807,12 +807,12 @@ template PrimeReduce(n, k, m, p, m_out){
 
     
     e[0] = n;
-    var pow2n[50] = mod_exp(n, k, two, p, e); 
+    var pow2n[150] = mod_exp(n, k, two, p, e); 
     e[0] = k;
     assert(k < (1<<n) );
-    var pow2nk[50] = mod_exp(n, k, pow2n, p, e);
+    var pow2nk[150] = mod_exp(n, k, pow2n, p, e);
     
-    var r[m][50]; 
+    var r[m][150]; 
     for(var i=0; i<m; i++){
         // r[i] = 2^{n(k+i)} mod p 
         if(i==0){

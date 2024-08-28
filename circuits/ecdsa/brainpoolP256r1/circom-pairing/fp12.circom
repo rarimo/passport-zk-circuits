@@ -12,7 +12,7 @@ template Fp12FrobeniusMap(n, k, power){
     signal input in[6][2][k];
     signal output out[6][2][k];
 
-    var p[50] = get_BLS12_381_prime(n, k);
+    var p[150] = get_BLS12_381_prime(n, k);
     var FP12_FROBENIUS_COEFFICIENTS[12][6][2][20] = get_Fp12_frobenius(n, k);
     var pow = power % 12;
  
@@ -402,7 +402,7 @@ template Fp6Invert(n, k, p) {
     signal input a0[2][k];
     signal input a1[2][k];
     signal input a2[2][k];
-    var out[6][2][50] = find_Fp6_inverse(n, k, p, a0, a1, a2);
+    var out[6][2][150] = find_Fp6_inverse(n, k, p, a0, a1, a2);
     signal output real_out[6][2][k];
     for (var i = 0; i < 6; i++) {
         for (var j = 0; j < 2; j ++) {
@@ -419,7 +419,7 @@ template Fp12Invert(n, k, p){
     signal input in[6][2][k];
     signal output out[6][2][k];
 
-    var inverse[6][2][50] = find_Fp12_inverse(n, k, p, in); // 6 x 2 x 50, only 6 x 2 x k relevant
+    var inverse[6][2][150] = find_Fp12_inverse(n, k, p, in); // 6 x 2 x 150, only 6 x 2 x k relevant
     for (var i = 0; i < 6; i ++) {
         for (var j = 0; j < 2; j ++) {
             for (var m = 0; m < k; m ++) {

@@ -13,15 +13,15 @@ function get_fp_sgn0(a){
 // else computes inv = num^{-1} mod p using extended euclidean algorithm
 // https://brilliant.org/wiki/extended-euclidean-algorithm/
 function find_Fp_inverse(n, k, num, p) {
-    var amodp[2][50] = long_div2(n, k, 0, num, p); 
-    var a[50];
-    var b[50]; 
-    var x[50];
-    var y[50];
-    var u[50];
-    var v[50];
+    var amodp[2][150] = long_div2(n, k, 0, num, p); 
+    var a[150];
+    var b[150]; 
+    var x[150];
+    var y[150];
+    var u[150];
+    var v[150];
 
-    var ret[50];
+    var ret[150];
 
     for(var i=0; i<k; i++){
         a[i] = amodp[1][i];
@@ -49,15 +49,15 @@ function find_Fp_inverse(n, k, num, p) {
             return ret;
         }
 
-        var r[2][50] = long_div2(n, ka, k - ka, b, a); 
-        var q[50]; 
+        var r[2][150] = long_div2(n, ka, k - ka, b, a); 
+        var q[150]; 
         for(var i = 0; i < k - ka + 1; i++)
             q[i] = r[0][i];
         for(var i = k - ka + 1; i < k; i++)
             q[i] = 0;
         
-        var newu[50] = long_sub_mod(n, k, x, prod_mod(n, k, u, q, p), p); 
-        var newv[50] = long_sub_mod(n, k, y, prod_mod(n, k, v, q, p), p); 
+        var newu[150] = long_sub_mod(n, k, x, prod_mod(n, k, u, q, p), p); 
+        var newv[150] = long_sub_mod(n, k, y, prod_mod(n, k, v, q, p), p); 
         
         for(var i = 0; i < k; i++){
             b[i] = a[i];
@@ -84,23 +84,23 @@ function find_Fp_inverse(n, k, num, p) {
 // out[0] has m registers in range [-2^n, 2^n)
 // out[1] has k registers in range [0, 2^n)
 function get_signed_Fp_carry_witness(n, k, m, a, p){
-    var out[2][50];
-    var a_short[51] = signed_long_to_short(n, k, a); 
+    var out[2][150];
+    var a_short[151] = signed_long_to_short(n, k, a); 
 
     /* // commenting out to improve speed
     // let me make sure everything is in <= k+m registers
-    for(var j=k+m; j<50; j++)
+    for(var j=k+m; j<150; j++)
         assert( a_short[j] == 0 );
     */
 
-    if(a_short[50] == 0){
+    if(a_short[150] == 0){
         out = long_div2(n, k, m, a_short, p);    
     }else{
-        var a_pos[50];
+        var a_pos[150];
         for(var i=0; i<k+m; i++) 
             a_pos[i] = -a_short[i];
 
-        var X[2][50] = long_div2(n, k, m, a_pos, p);
+        var X[2][150] = long_div2(n, k, m, a_pos, p);
         // what if X[1] is 0? 
         var Y_is_zero = 1;
         for(var i=0; i<k; i++){
@@ -141,7 +141,7 @@ function get_signed_Fp_carry_witness(n, k, m, a, p){
 // out[i][0] has m registers in range [-2^n, 2^n)
 // out[i][1] has k registers in range [0, 2^n)
 function get_signed_Fp2_carry_witness(n, k, m, a, p){
-    var out[2][2][50];
+    var out[2][2][150];
 
     for(var i=0; i<2; i++)
         out[i] = get_signed_Fp_carry_witness(n, k, m, a[i], p);
@@ -162,8 +162,8 @@ function get_fp2_sgn0(k, a){
 // (a0 + a1 u)*(b0 + b1 u) = (a0*b0 - a1*b1) + (a0*b1 + a1*b0)u 
 // this is a direct computation - totally distinct from the combo of Fp2multiplyNoCarry and get_Fp2_carry_witness
 function find_Fp2_product(n, k, a, b, p){
-    var out[2][50];
-    var ab[2][2][50]; 
+    var out[2][150];
+    var ab[2][2][150]; 
     for(var i=0; i<2; i++)for(var j=0; j<2; j++){
         ab[i][j] = prod_mod(n,k,a[i],b[j],p);
     }
@@ -177,7 +177,7 @@ function find_Fp2_product(n, k, a, b, p){
 // a[2][k], b[2][k] all registers in [0, 2^n) 
 // this is a direct computation
 function find_Fp2_sum(n, k, a, b, p){
-    var out[2][50];
+    var out[2][150];
     out[0] = long_add_mod(n,k,a[0],b[0],p); 
     out[1] = long_add_mod(n,k,a[1],b[1],p);
     return out;
@@ -187,7 +187,7 @@ function find_Fp2_sum(n, k, a, b, p){
 // a[2][k], b[2][k] all registers in [0, 2^n) 
 // this is a direct computation
 function find_Fp2_diff(n, k, a, b, p){
-    var out[2][50];
+    var out[2][150];
     out[0] = long_sub_mod(n,k,a[0],b[0],p); 
     out[1] = long_sub_mod(n,k,a[1],b[1],p);
     return out;
@@ -212,8 +212,8 @@ function find_Fp2_exp(n, k, a, p, e){
         }
     }
 
-    var out[2][50]; // length is k
-    for(var i = 0; i < 50; i++) {
+    var out[2][150]; // length is k
+    for(var i = 0; i < 150; i++) {
         out[0][i] = 0;
         out[1][i] = 0;
     }
@@ -243,7 +243,7 @@ function is_equal_Fp2(n, k, a, b){
 // output multiplies by XI0 +u
 // multiplies register bounds by (XI0 + 1)
 function signed_Fp2_mult_w6(k, a, XI0){
-    var out[2][50];
+    var out[2][150];
     for(var i=0; i<k; i++){
         out[0][i] = a[0][i]*XI0 - a[1][i];
         out[1][i] = a[0][i] + a[1][i]*XI0;
@@ -269,20 +269,20 @@ function signed_Fp2_mult_w6(k, a, XI0){
 // This gives that (a - bu)/(a² + b²) is the inverse
 // of (a + bu). 
 function find_Fp2_inverse(n, k, a, p) {
-    var sq0[50] = prod(n, k, a[0], a[0]);
-    var sq1[50] = prod(n, k, a[1], a[1]);
-    var sq_sum[50] = long_add(n, 2*k, sq0, sq1);
-    var sq_sum_div[2][50] = long_div2(n, k, k+1, sq_sum, p);
+    var sq0[150] = prod(n, k, a[0], a[0]);
+    var sq1[150] = prod(n, k, a[1], a[1]);
+    var sq_sum[150] = long_add(n, 2*k, sq0, sq1);
+    var sq_sum_div[2][150] = long_div2(n, k, k+1, sq_sum, p);
     // lambda = 1/(sq_sum)%p
-    var lambda[50] = mod_inv(n, k, sq_sum_div[1], p);
-    var out0[50] = prod(n, k, lambda, a[0]);
-    var out0_div[2][50] = long_div(n, k, out0, p);
-    var out[2][50];
+    var lambda[150] = mod_inv(n, k, sq_sum_div[1], p);
+    var out0[150] = prod(n, k, lambda, a[0]);
+    var out0_div[2][150] = long_div(n, k, out0, p);
+    var out[2][150];
     out[0] = out0_div[1];
     
-    var out1_pre[50] = long_sub(n, k, p, a[1]);
-    var out1[50] = prod(n, k, lambda, out1_pre);
-    var out1_div[2][50] = long_div(n, k, out1, p);
+    var out1_pre[150] = long_sub(n, k, p, a[1]);
+    var out1[150] = prod(n, k, lambda, out1_pre);
+    var out1_div[2][150] = long_div(n, k, out1, p);
     out[1] = out1_div[1];
     return out;
 }

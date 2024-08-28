@@ -310,7 +310,7 @@ template Fp2Invert(n, k, p){
     signal input in[2][k];
     signal output out[2][k];
 
-    var inverse[2][50] = find_Fp2_inverse(n, k, in, p); // 2 x 50, only 2 x k relevant
+    var inverse[2][150] = find_Fp2_inverse(n, k, in, p); // 2 x 150, only 2 x k relevant
     for (var i = 0; i < 2; i ++) {
         for (var j = 0; j < k; j ++) {
             out[i][j] <-- inverse[i][j];
@@ -350,20 +350,20 @@ template SignedFp2Divide(n, k, overflowa, overflowb, p){
     var ma = overflowa \ n; 
     var mb = overflowb \ n;
     // first precompute a, b mod p as shorts 
-    var a_mod[2][50]; 
-    var b_mod[2][50]; 
+    var a_mod[2][150]; 
+    var b_mod[2][150]; 
     for(var eps=0; eps<2; eps++){
         // 2^{overflow} <= 2^{n*ceil(overflow/n)} 
-        var temp[2][50] = get_signed_Fp_carry_witness(n, k, ma, a[eps], p);
+        var temp[2][150] = get_signed_Fp_carry_witness(n, k, ma, a[eps], p);
         a_mod[eps] = temp[1];
         temp = get_signed_Fp_carry_witness(n, k, mb, b[eps], p);
         b_mod[eps] = temp[1];
     }
 
     // precompute 1/b 
-    var b_inv[2][50] = find_Fp2_inverse(n, k, b_mod, p);
+    var b_inv[2][150] = find_Fp2_inverse(n, k, b_mod, p);
     // precompute a/b
-    var out_var[2][50] = find_Fp2_product(n, k, a_mod, b_inv, p);
+    var out_var[2][150] = find_Fp2_product(n, k, a_mod, b_inv, p);
 
     for(var eps=0; eps<2; eps++)for(var i=0; i<k; i++)
         out[eps][i] <-- out_var[eps][i]; 
@@ -386,9 +386,9 @@ template SignedFp2Divide(n, k, overflowa, overflowb, p){
     
     var m = max( mb + k, ma );
     // get mult = out * b = p*X' + Y'
-    var XY[2][2][50] = get_signed_Fp2_carry_witness(n, k, m, mult.out, p); // total value is < 2^{nk} * 2^{n*k + overflowb - n + 1}
+    var XY[2][2][150] = get_signed_Fp2_carry_witness(n, k, m, mult.out, p); // total value is < 2^{nk} * 2^{n*k + overflowb - n + 1}
     // get a = p*X' + Y'
-    var XY1[2][2][50] = get_signed_Fp2_carry_witness(n, k, m, a, p); // same as above, m extra registers enough
+    var XY1[2][2][150] = get_signed_Fp2_carry_witness(n, k, m, a, p); // same as above, m extra registers enough
 
     signal X[2][m];
     component X_range_checks[2][m];

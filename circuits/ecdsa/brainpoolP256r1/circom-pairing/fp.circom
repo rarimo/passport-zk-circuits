@@ -153,7 +153,7 @@ template SignedFpCarryModP(n, k, overflow, p){
 
     assert( overflow < 251 );
 
-    var Xvar[2][50] = get_signed_Fp_carry_witness(n, k, m, in, p); 
+    var Xvar[2][150] = get_signed_Fp_carry_witness(n, k, m, in, p); 
     component X_range_checks[m];
     component range_checks[k]; 
     //component lt = BigLessThan(n, k); 
@@ -198,7 +198,7 @@ template SignedCheckCarryModToZero(n, k, overflow, p){
 
     assert( overflow < 251 );
 
-    var Xvar[2][50] = get_signed_Fp_carry_witness(n, k, m, in, p); 
+    var Xvar[2][150] = get_signed_Fp_carry_witness(n, k, m, in, p); 
     component X_range_checks[m];
 
     for(var i=0; i<m; i++){

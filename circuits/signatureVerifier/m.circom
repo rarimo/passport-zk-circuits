@@ -8,5 +8,5 @@ include "./signatureVerification.circom";
 // component main = VerifySignature(64, 32, 2, 4);
 // component main = VerifySignature(64, 32, 17, 5);
 // component main = VerifySignature(64, 4, 0, 6);
-component main = VerifySignature(64, 4, 0, 7);
+// component main = VerifySignature(64, 4, 0, 7);
 
