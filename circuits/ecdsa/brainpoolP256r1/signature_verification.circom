@@ -69,7 +69,7 @@ template verifyBrainpool(n,k, ALGO){
         hashed_message[6-1-i] <== bits2Num[i].out;
     }
     
-    component getOrder = GetOrder(43,6);
+    component getOrder = GetBrainpoolOrder(43,6);
     signal order[6];
     order <== getOrder.order;
 
@@ -103,7 +103,7 @@ template verifyBrainpool(n,k, ALGO){
     signal tmpPoint1[2][6];
     signal tmpPoint2[2][6];
 
-    component scalarMult1 = GeneratorMultiplication(43,6);
+    component scalarMult1 = BrainpoolGeneratorMultiplication(43,6);
     component scalarMult2 = BrainpoolScalarMult(43,6);
     
     scalarMult1.scalar <== sh;

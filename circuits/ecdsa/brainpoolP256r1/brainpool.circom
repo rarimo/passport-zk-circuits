@@ -118,7 +118,7 @@ template BrainpoolGetGenerator(n, k){
     gen[1][5] <== 725814897543;
 }
 
-template GetOrder(n, k){
+template GetBrainpoolOrder(n, k){
     signal output order[6];
 
     order[0] <== 7157953615527;
@@ -129,7 +129,7 @@ template GetOrder(n, k){
     order[5] <== 1460132624195;
 }
 
-template GeneratorMultiplication(n,k){
+template BrainpoolGeneratorMultiplication(n,k){
     var stride = 8;
     signal input scalar[k];
     signal output out[2][k];
