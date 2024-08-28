@@ -5,7 +5,7 @@ include "./mgf1.circom";
 include "./xor2.circom";
 include "../hasher/passportHash.circom";
 
-template VerifyRSASig (n, k, e_bits, ALGO){
+template VerifyRsaPssSig (n, k, e_bits, ALGO){
 
     assert(ALGO == 256 || ALGO == 384);
 
