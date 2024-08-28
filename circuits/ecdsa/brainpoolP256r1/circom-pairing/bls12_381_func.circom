@@ -6,7 +6,7 @@ function get_BLS12_381_parameter(){
 }
 
 function get_BLS12_381_prime(n, k){
-    var p[50];
+    var p[150];
     assert( (n==96 && k==4) || (n==77 && k==5) || (n==55 && k==7));
     if( n==96 && k==4 ){
         p = [54880396502181392957329877675, 31935979117156477062286671870, 20826981314825584179608359615, 8047903782086192180586325942];
@@ -23,7 +23,7 @@ function get_BLS12_381_prime(n, k){
 // half of 8th roots of unity, up to negation
 function get_roots_of_unity(n, k){
     assert( n == 55 && k == 7 );
-    var roots[4][2][50];
+    var roots[4][2][150];
     for(var idx=0; idx<k; idx++){
         roots[0][0][idx] = 0;
         roots[0][1][idx] = 0;
@@ -68,8 +68,8 @@ function get_roots_of_unity(n, k){
 
 function get_etas(n, k){
     assert( n == 55 && k == 7 );
-    var p[50] = get_BLS12_381_prime(n, k);
-    var etas[4][2][50];
+    var p[150] = get_BLS12_381_prime(n, k);
+    var etas[4][2][150];
      
     if( n == 55 && k == 7 ){
         etas[0][0] = [15111404105178256,
@@ -112,7 +112,7 @@ function get_etas(n, k){
 // taken from E.3 of https://cfrg.github.io/draft-irtf-cfrg-hash-to-curve/draft-irtf-cfrg-hash-to-curve.html#appendix-E.3
 function get_iso3_coeffs(n, k){
     assert( n == 55 && k == 7 );
-    var coeffs[4][4][2][50];
+    var coeffs[4][4][2][150];
     if( n == 55 && k == 7 ){
         coeffs[0][0][0] = [15950248680265686, 32024958503631044, 4244301805875352, 29783714120969249, 35703698803053471, 29228779030399226, 406640325010316];
         coeffs[0][0][1] = [15950248680265686, 32024958503631044, 4244301805875352, 29783714120969249, 35703698803053471, 29228779030399226, 406640325010316];
@@ -152,7 +152,7 @@ function get_iso3_coeffs(n, k){
 
 function get_generator_G1(n, k){
     assert( n == 55 && k == 7 );
-    var g1[2][50];
+    var g1[2][150];
 
     g1[0] = [16589478066046651,
              22658679592837110,
@@ -174,7 +174,7 @@ function get_generator_G1(n, k){
 
 function get_generator_G2(n, k){
     assert( n == 55 && k == 7 );
-    var g2[2][2][50];
+    var g2[2][2][150];
 
     g2[0][0] = [95420233661880, 1773856045391785, 5044075188989616, 23082975677810779, 22805092780977487, 23121359448368568, 161253150172098];
     g2[0][1] = [12522360964131710, 27624298323292107, 31369054948478259, 20553930357265165, 32921944760061193, 30416570139545860, 1398625365433447];

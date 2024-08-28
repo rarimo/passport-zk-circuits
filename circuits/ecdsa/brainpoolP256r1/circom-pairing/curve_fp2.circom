@@ -285,15 +285,15 @@ template EllipticCurveAddUnequalFp2(n, k, p) {
     assert(4*n + LOGK3 + 2< 251);
 
     // precompute lambda and x_3 and then y_3
-    var dy[2][50] = find_Fp2_diff(n, k, b[1], a[1], p);
-    var dx[2][50] = find_Fp2_diff(n, k, b[0], a[0], p); 
-    var dx_inv[2][50] = find_Fp2_inverse(n, k, dx, p);
-    var lambda[2][50] = find_Fp2_product(n, k, dy, dx_inv, p);
-    var lambda_sq[2][50] = find_Fp2_product(n, k, lambda, lambda, p);
+    var dy[2][150] = find_Fp2_diff(n, k, b[1], a[1], p);
+    var dx[2][150] = find_Fp2_diff(n, k, b[0], a[0], p); 
+    var dx_inv[2][150] = find_Fp2_inverse(n, k, dx, p);
+    var lambda[2][150] = find_Fp2_product(n, k, dy, dx_inv, p);
+    var lambda_sq[2][150] = find_Fp2_product(n, k, lambda, lambda, p);
     // out[0] = x_3 = lamb^2 - a[0] - b[0] % p
     // out[1] = y_3 = lamb * (a[0] - x_3) - a[1] % p
-    var x3[2][50] = find_Fp2_diff(n, k, find_Fp2_diff(n, k, lambda_sq, a[0], p), b[0], p);
-    var y3[2][50] = find_Fp2_diff(n, k, find_Fp2_product(n, k, lambda, find_Fp2_diff(n, k, a[0], x3, p), p), a[1], p);
+    var x3[2][150] = find_Fp2_diff(n, k, find_Fp2_diff(n, k, lambda_sq, a[0], p), b[0], p);
+    var y3[2][150] = find_Fp2_diff(n, k, find_Fp2_product(n, k, lambda, find_Fp2_diff(n, k, a[0], x3, p), p), a[1], p);
 
     for(var i = 0; i < k; i++){
         out[0][0][i] <-- x3[0][i];
@@ -406,13 +406,13 @@ template EllipticCurveDoubleFp2(n, k, a, b, p) {
     }
 
     // precompute lambda 
-    var lamb_num[2][50] = find_Fp2_sum(n, k, long_a, find_Fp2_product(n, k, long_3, find_Fp2_product(n, k, in[0], in[0], p), p), p);
-    var lamb_denom[2][50] = find_Fp2_sum(n, k, in[1], in[1], p);
-    var lamb[2][50] = find_Fp2_product(n, k, lamb_num, find_Fp2_inverse(n, k, lamb_denom, p), p);
+    var lamb_num[2][150] = find_Fp2_sum(n, k, long_a, find_Fp2_product(n, k, long_3, find_Fp2_product(n, k, in[0], in[0], p), p), p);
+    var lamb_denom[2][150] = find_Fp2_sum(n, k, in[1], in[1], p);
+    var lamb[2][150] = find_Fp2_product(n, k, lamb_num, find_Fp2_inverse(n, k, lamb_denom, p), p);
 
     // precompute x_3, y_3
-    var x3[2][50] = find_Fp2_diff(n, k, find_Fp2_product(n, k, lamb, lamb, p), find_Fp2_sum(n, k, in[0], in[0], p), p);
-    var y3[2][50] = find_Fp2_diff(n, k, find_Fp2_product(n, k, lamb, find_Fp2_diff(n, k, in[0], x3, p), p), in[1], p);
+    var x3[2][150] = find_Fp2_diff(n, k, find_Fp2_product(n, k, lamb, lamb, p), find_Fp2_sum(n, k, in[0], in[0], p), p);
+    var y3[2][150] = find_Fp2_diff(n, k, find_Fp2_product(n, k, lamb, find_Fp2_diff(n, k, in[0], x3, p), p), in[1], p);
     
     for(var i=0; i<k; i++){
         out[0][0][i] <-- x3[0][i];

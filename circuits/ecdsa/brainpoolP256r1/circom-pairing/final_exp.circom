@@ -73,7 +73,7 @@ template Fp12CyclotomicDecompress(n, k, p) {
     }
     // c = XI0 + u
     // g5^2 * c
-    var g5sqc[4][50] = signed_Fp2_mult_w6(len, g5sq.out, XI0); // overflow < (1+XI0)*2k*2^{2n}
+    var g5sqc[4][150] = signed_Fp2_mult_w6(len, g5sq.out, XI0); // overflow < (1+XI0)*2k*2^{2n}
     // 3 g4^2
     component g4sq3 = SignedFp2MultiplyNoCarry(n, k, 2*n + 3 + LOGK); // overflow 6k*2^{2n}
 
@@ -154,7 +154,7 @@ template Fp12CyclotomicDecompress(n, k, p) {
         temp[i][j] = twog1sq.out[i][j] + g2g5.out[i][j] - threeg3g4.out[i][j];
     
     // (2 g1^2 + g2 g5 - 3 g3 g4)(1+u)
-    var tempc[2][50] = signed_Fp2_mult_w6(len, temp, XI0); // overflow abs val < (1+XI0)*6k * 2^{2n}
+    var tempc[2][150] = signed_Fp2_mult_w6(len, temp, XI0); // overflow abs val < (1+XI0)*6k * 2^{2n}
     // (2 g1^2 + g2 g5 - 3 g3 g4)(1+u) + 1 
     tempc[0][0]++;
     component compress01 = Fp2Compress(n, k, k-1, p, 3*n + LOGK3); 
@@ -233,8 +233,8 @@ template SignedFp12CyclotomicSquareNoCarry(n, k) {
     component A23 = SignedFp2MultiplyNoCarry(n, k, 2*n + 5 + LOGK); // overflow in 4*(2+XI0)*k *2^{2N}     
     component A45 = SignedFp2MultiplyNoCarry(n, k, 2*n + 5 + LOGK);
     // c*g3 = (1+u)*g3
-    var cg3[2][50] = signed_Fp2_mult_w6(k, in[1], XI0); 
-    var cg5[2][50] = signed_Fp2_mult_w6(k, in[3], XI0);
+    var cg3[2][150] = signed_Fp2_mult_w6(k, in[1], XI0); 
+    var cg5[2][150] = signed_Fp2_mult_w6(k, in[3], XI0);
     for(var i=0; i<2; i++)for(var j=0; j<k; j++){
         A23.a[i][j] <== in[0][i][j] + in[1][i][j];  // 2*2^{N}
         A23.b[i][j] <== in[0][i][j] + cg3[i][j];    // (2+XI0)*2^{N}
@@ -243,8 +243,8 @@ template SignedFp12CyclotomicSquareNoCarry(n, k) {
         A45.b[i][j] <== in[2][i][j] + cg5[i][j];
     }
     
-    var cB45[2][50] = signed_Fp2_mult_w6(2*k-1, B45.out, XI0);  // (1+XI0)*2k*2^{2N}
-    var cB23[2][50] = signed_Fp2_mult_w6(2*k-1, B23.out, XI0); 
+    var cB45[2][150] = signed_Fp2_mult_w6(2*k-1, B45.out, XI0);  // (1+XI0)*2k*2^{2N}
+    var cB23[2][150] = signed_Fp2_mult_w6(2*k-1, B23.out, XI0); 
     for(var i=0; i<2; i++)for(var j=0; j<2*k-1; j++){
         if(j < k){
             out[0][i][j] <== 2*(in[0][i][j] + 3*cB45[i][j]);    // (2 + 6*(1+XI0)k) * 2^{2N}
