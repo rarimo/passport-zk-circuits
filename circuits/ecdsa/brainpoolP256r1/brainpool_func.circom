@@ -13,7 +13,6 @@ function get_order(n,k){
     return order;
 }
 
-
 function get_params(n,k){
     
     var a[6];
@@ -74,12 +73,3 @@ function get_dummy_point(n,k){
     return dummy;
 }
 
-function div_ceil(m, n) {
-    var ret = 0;
-    if (m % n == 0) {
-        ret = m \ n;
-    } else {
-        ret = m \ n + 1;
-    }
-    return ret;
-}
