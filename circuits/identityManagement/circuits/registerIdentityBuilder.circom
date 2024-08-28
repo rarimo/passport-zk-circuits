@@ -12,8 +12,10 @@ include "../../passportVerification/passportVerificationBuilder.circom";
 //   - 1: RSA 2048 bits + SHA2-256
 //   - 2: RSA 4096 bits + SHA2-256
 //   - 3: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256
-//   - 3: RSASSA-PSS 4096 bits MGF1 (SHA2-256) + SHA2-256
-//   - 3: RSASSA-PSS 2048 bits MGF1 (SHA2-384) + SHA2-384
+//   - 4: RSASSA-PSS 4096 bits MGF1 (SHA2-256) + SHA2-256
+//   - 5: RSASSA-PSS 2048 bits MGF1 (SHA2-384) + SHA2-384
+//   - 6: ECDSA secp256r1 + SHA256
+//   - 7: ECDSA brainpoolP256r1 + SHA256
 
 
 template RegisterIdentityBuilder (
