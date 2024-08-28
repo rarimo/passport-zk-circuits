@@ -1,6 +1,6 @@
 pragma circom  2.1.6;
 
-include "circomlib/circuits/bitify.circom";
+include "../../passportVerification/passportVerificationBuilder.circom";
 
 // HASH_TYPE: 
 //   - 160: SHA1 (160 bits)
@@ -11,6 +11,10 @@ include "circomlib/circuits/bitify.circom";
 // SIGNATURE_TYPE:
 //   - 1: RSA 2048 bits + SHA2-256
 //   - 2: RSA 4096 bits + SHA2-256
+//   - 3: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256
+//   - 3: RSASSA-PSS 4096 bits MGF1 (SHA2-256) + SHA2-256
+//   - 3: RSASSA-PSS 2048 bits MGF1 (SHA2-384) + SHA2-384
+
 
 template RegisterIdentityBuilder (
     DG1_SIZE,                       // size in hash blocks
@@ -49,8 +53,26 @@ template RegisterIdentityBuilder (
     signal input publicKey[CHUNK_NUMBER];
     signal input slaveMerkleRoot;
     signal input slaveMerkleInclusionBranches[TREE_DEPTH];
-    signal input skIdentity;
+    signal input skIdentity;  // identity secret key
 
-    // 
+    // -------
+    // PASSPORT VERIFICATION
+    // -------
+    component passportVerifier = PassportVerificationBuilder(
+        DG1_SIZE,
+        DG15_SIZE,
+        ENCAPSULATED_CONTENT_SIZE,
+        SIGNED_ATTRIBUTES_SIZE,
+        HASH_BLOCK_SIZE,
+        HASH_TYPE,
+        SIGNATURE_TYPE,
+        CHUNK_SIZE,
+        CHUNK_NUMBER,
+        TREE_DEPTH,
+        AA_FLOWS_NUMBER,
+        AA_FLOWS_BITMASK,
+        NoAA_FLOWS_NUMBER,
+        NoAA_FLOWS_BITMASK
+    );
 }
 
