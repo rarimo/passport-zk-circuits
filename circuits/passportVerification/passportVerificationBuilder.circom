@@ -3,6 +3,8 @@ pragma circom  2.1.6;
 include "../signatureVerifier/signatureVerification.circom";
 include "./passportVerificationFlow.circom";
 include "../hasher/passportHash.circom";
+include "circomlib/circuits/bitify.circom";
+include "circomlib/circuits/poseidon.circom";
 
 template PassportVerificationBuilder(
     DG1_SIZE,
@@ -12,6 +14,7 @@ template PassportVerificationBuilder(
     HASH_BLOCK_SIZE,
     HASH_TYPE,
     SIGNATURE_TYPE,
+    SALT_LEN,
     E_BITS,
     CHUNK_SIZE,
     CHUNK_NUMBER,
@@ -50,6 +53,9 @@ template PassportVerificationBuilder(
     signal input pubkey                      [PUBKEY_LEN              ];
     // signal input slaveMerkleInclusionBranches[TREE_DEPTH              ];
     // signal input slaveMerkleRoot;
+
+    signal output passportHash;
+    
 
     component dg1PassportHasher  = PassportHash(HASH_BLOCK_SIZE, DG1_SIZE,                  HASH_TYPE);
     component dg15PassportHasher = PassportHash(HASH_BLOCK_SIZE, DG15_SIZE,                 HASH_TYPE);
@@ -99,11 +105,22 @@ template PassportVerificationBuilder(
     passportVerificationFlow.encapsulatedContentHash <== encapsulatedContentHash;
     passportVerificationFlow.signedAttributes        <== signedAttributes;
     passportVerificationFlow.dg15Verification        <== dg15Verification;
-    
-    component signatureVerification = VerifySignature(CHUNK_SIZE, CHUNK_NUMBER, E_BITS, SIGNATURE_TYPE);
+        
+    component signatureVerification = VerifySignature(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, SIGNATURE_TYPE);
 
     signatureVerification.signature <== signature;
     signatureVerification.pubkey    <== pubkey;
     signatureVerification.hashed    <== signedAttributesHash;
 
+    // Calculating passportHash = Poseidon(HASH_TYPE(signedAttributes)[252bit])
+
+    component signedAttributesNum = Bits2Num(252);
+    for (var i = 0; i < 252; i++) {
+        signedAttributesNum.in[i] <== signedAttributesHash[i];
+    }
+    component signedAttributesHashHasher = Poseidon(1);
+    signedAttributesHashHasher.inputs[0] <== signedAttributesNum.out;
+    passportHash <== signedAttributesHashHasher.out;
+
+    log(passportVerificationFlow.flowResult);  
 }

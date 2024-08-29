@@ -5,7 +5,7 @@ include "../ecdsa/brainpoolP256r1/signature_verification.circom";
 include "../rsa/rsa.circom";
 include "../rsaPss/rsaPss.circom";
 
-template VerifySignature(n, k, e_bits, SIG_ALGO){
+template VerifySignature(n, k, salt_len, e_bits, SIG_ALGO){
 
     assert((SIG_ALGO >= 1)&&(SIG_ALGO <= 7));
 
@@ -26,7 +26,7 @@ template VerifySignature(n, k, e_bits, SIG_ALGO){
     if (SIG_ALGO == 3){
         pubkeyLen = k;
         signatureLen = k;
-        hashLen = 384;
+        hashLen = 256;
     }
     if (SIG_ALGO == 4){
         pubkeyLen = k;
@@ -66,19 +66,19 @@ template VerifySignature(n, k, e_bits, SIG_ALGO){
         rsa4096Sha256Verification.hashed <== hashed;
     }
     if (SIG_ALGO == 3){
-        component rsa2048Sha384Verification = RsaVerifyPkcs1v15(n, k, e_bits, hashLen);
-        rsa2048Sha384Verification.pubkey <== pubkey;
-        rsa2048Sha384Verification.signature <== signature;
-        rsa2048Sha384Verification.hashed <== hashed;
+        component rsa2048PssSha256Verification = VerifyRsaPssSig(n, k, salt_len, e_bits, hashLen);
+        rsa2048PssSha256Verification.pubkey <== pubkey;
+        rsa2048PssSha256Verification.signature <== signature;
+        rsa2048PssSha256Verification.hashed <== hashed;
     }
     if (SIG_ALGO == 4){
-        component rsaPssSha256Verification = VerifyRsaPssSig(n, k, e_bits, hashLen);
-        rsaPssSha256Verification.pubkey <== pubkey;
-        rsaPssSha256Verification.signature <== signature;
-        rsaPssSha256Verification.hashed <== hashed;
+        component rsa4096PssSha256Verification = VerifyRsaPssSig(n, k, salt_len, e_bits, hashLen);
+        rsa4096PssSha256Verification.pubkey <== pubkey;
+        rsa4096PssSha256Verification.signature <== signature;
+        rsa4096PssSha256Verification.hashed <== hashed;
     }
      if (SIG_ALGO == 5){
-        component rsaPssSha384Verification = VerifyRsaPssSig(n, k, e_bits, hashLen);
+        component rsaPssSha384Verification = VerifyRsaPssSig(n, k, salt_len, e_bits, hashLen);
         rsaPssSha384Verification.pubkey <== pubkey;
         rsaPssSha384Verification.signature <== signature;
         rsaPssSha384Verification.hashed <== hashed;
