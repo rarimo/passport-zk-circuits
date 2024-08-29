@@ -17,9 +17,20 @@ template RsaVerifyPkcs1v15(w, nb, e_bits, hashLen) {
         pm.modulus[i] <== pubkey[i];
     }
 
+    signal hashed_chunks[4];
+
+    component bits2num[4];
+    for(var i = 0; i< 4; i++){
+        bits2num[3-i] = Bits2Num(64);
+        for (var j = 0; j< 64; j++){
+            bits2num[3-i].in[j] <== hashed[i*64 + 63 - j];
+        }
+        bits2num[3-i].out ==> hashed_chunks[3-i];
+    } 
+
     // 1. Check hashed data
-    for (var i = 0; i < hashLen; i++) {
-        hashed[i] === pm.out[i];
+    for (var i = 0; i < 4; i++) {
+        hashed_chunks[i] === pm.out[i];
     }
     
     // 2. Check hash prefix and 1 byte 0x00
