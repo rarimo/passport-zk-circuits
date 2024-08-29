@@ -20,6 +20,7 @@ output.txt
 *-download
 *.pem
 *.crt
+*.dev.json
 zkit
 typechain-types
 generated-types
