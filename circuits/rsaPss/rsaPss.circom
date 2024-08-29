@@ -5,7 +5,7 @@ include "./mgf1.circom";
 include "./xor2.circom";
 include "../hasher/passportHash.circom";
 
-template VerifyRsaPssSig (n, k, e_bits, ALGO){
+template VerifyRsaPssSig (n, k, salt_len, e_bits, ALGO){
 
     assert(ALGO == 256 || ALGO == 384);
 
@@ -16,9 +16,9 @@ template VerifyRsaPssSig (n, k, e_bits, ALGO){
 
     var emLen = (n*k)\8; //in bytes
     var hLen = ALGO\8; //in bytes
-    var sLen = ALGO\8; //in bytes
+    var sLen = salt_len; //in bytes
     var hLenBits = ALGO; //in bits
-    var sLenBits = ALGO; //in bits
+    var sLenBits = sLen*8; //in bits
     var emLenBits = n * k; //in bits
 
 
@@ -135,7 +135,7 @@ template VerifyRsaPssSig (n, k, e_bits, ALGO){
 
     }
 
-    if (ALGO == 256){
+    if (ALGO == 256 && sLen == 32){
         
         //adding padding
         //len = 64+512 = 576 = 1001000000
@@ -159,7 +159,26 @@ template VerifyRsaPssSig (n, k, e_bits, ALGO){
         hDash256.in <== mDash;
         hDash256.out === hash;
     }
-    if (ALGO == 384){
+    if (ALGO == 256 && sLen == 64){
+        for (var i = 833; i < 1014; i++){
+            mDash[i] <== 0;
+        }
+        mDash[832] <== 1;
+        mDash[1023] <== 0;
+        mDash[1022] <== 0;
+        mDash[1021] <== 0;
+        mDash[1020] <== 0;
+        mDash[1019] <== 0;
+        mDash[1018] <== 0;
+        mDash[1017] <== 1;
+        mDash[1016] <== 0;
+        mDash[1015] <== 1;
+        mDash[1014] <== 1;
+        component hDash256 = PassportHash(512, 2, ALGO);
+        hDash256.in <== mDash;
+        hDash256.out === hash;
+    }
+    if (ALGO == 384 && sLen == 48){
 
         //padding
         //len = 64+48*16 = 832 = 1101000000
@@ -184,8 +203,5 @@ template VerifyRsaPssSig (n, k, e_bits, ALGO){
         
         hDash384.out === hash;
     }
-    
-
-   
 }
 

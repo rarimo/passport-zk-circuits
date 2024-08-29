@@ -10,6 +10,7 @@ component main = PassportVerificationBuilder(
     512,
     256,
     7,
+    32,
     17,
     64,
     4,

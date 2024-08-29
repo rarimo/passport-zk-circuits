@@ -4,6 +4,7 @@ include "../../passportVerification/passportVerificationBuilder.circom";
 
 // HASH_TYPE: 
 //   - 160: SHA1 (160 bits)
+//   - 224: SHA2-224 (224 bits)
 //   - 256: SHA2-256 (256 bits)
 //   - 384: SHA2-384 (384 bits)
 //   - 512: SHA2-512 (512 bits)
@@ -17,7 +18,6 @@ include "../../passportVerification/passportVerificationBuilder.circom";
 //   - 6: ECDSA secp256r1 + SHA256
 //   - 7: ECDSA brainpoolP256r1 + SHA256
 
-
 template RegisterIdentityBuilder (
     DG1_SIZE,                       // size in hash blocks
     DG15_SIZE,                      // size in hash blocks
@@ -26,12 +26,13 @@ template RegisterIdentityBuilder (
     HASH_BLOCK_SIZE,                // size in bits
     HASH_TYPE,                      // 160, 256, 384, 512 (list above)^^^
     SIGNATURE_TYPE,                 // 1, 2..  (list above) ^^^
+    E_BITS,                         // 2, 17 
     CHUNK_SIZE,
     CHUNK_NUMBER,
     DOCUMENT_TYPE,                  // 1: TD1; 3: TD3
     TREE_DEPTH,
-    AA_FLOWS_NUMBER,               // activated Active Auth flows umber
-    AA_FLOWS_BITMASK,              // bitmask of which Active Auth flows are active
+    AA_FLOWS_NUMBER,                // activated Active Auth flows umber
+    AA_FLOWS_BITMASK,               // bitmask of which Active Auth flows are active
     NoAA_FLOWS_NUMBER,              // activated NoAA (no active auth) flows
     NoAA_FLOWS_BITMASK              // bitmask of which NoAA (no active auth) flows are active
 ) {
@@ -46,13 +47,25 @@ template RegisterIdentityBuilder (
     // Poseidon2(PubKey.X, PubKey.Y)
     signal output pkIdentityHash;
 
+    //ECDSA
+    if (SIGNATURE_TYPE > 5){
+        PUBKEY_LEN    = 2 * CHUNK_NUMBER * CHUNK_SIZE;
+        SIGNATURE_LEN = 2 * CHUNK_NUMBER * CHUNK_SIZE;   
+    }
+    //RSA
+    if (SIGNATURE_TYPE <= 5){
+        PUBKEY_LEN    = CHUNK_NUMBER;
+        SIGNATURE_LEN = CHUNK_NUMBER;
+    }
+
+
     // INPUT SIGNALS:
     signal input encapsulatedContent[ENCAPSULATED_CONTENT_SIZE * HASH_BLOCK_SIZE];
     signal input dg1[DG1_SIZE * HASH_BLOCK_SIZE];
     signal input dg15[DG15_SIZE * HASH_BLOCK_SIZE];
     signal input signedAttributes[SIGNED_ATTRIBUTES_SIZE * HASH_BLOCK_SIZE];
-    signal input signature[CHUNK_NUMBER];
-    signal input publicKey[CHUNK_NUMBER];
+    signal input signature[SIGNATURE_LEN];
+    signal input publicKey[PUBKEY_LEN];
     signal input slaveMerkleRoot;
     signal input slaveMerkleInclusionBranches[TREE_DEPTH];
     signal input skIdentity;  // identity secret key
@@ -76,5 +89,15 @@ template RegisterIdentityBuilder (
         NoAA_FLOWS_NUMBER,
         NoAA_FLOWS_BITMASK
     );
+
+    passportVerifier.encapsulatedContent <== encapsulatedContent;
+    passportVerifier.dg1                 <== dg1;
+    passportVerifier.dg15                <== dg15;
+    passportVerifier.signedAttributes    <== signedAttributes;
+    passportVerifier.signature           <== signature;
+    passportVerifier.pubkey              <== pubkey;
+
+    
+
 }
 
