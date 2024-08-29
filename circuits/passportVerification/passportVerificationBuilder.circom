@@ -46,12 +46,12 @@ template PassportVerificationBuilder(
 
 
     signal input encapsulatedContent         [ENCAPSULATED_CONTENT_LEN];
-    signal input dg1                         [DG1_LEN                 ];
-    signal input dg15                        [DG15_LEN                ];
-    signal input signedAttributes            [SIGNED_ATTRIBUTES_LEN   ];
-    signal input signature                   [SIGNATURE_LEN           ];
-    signal input pubkey                      [PUBKEY_LEN              ];
-    // signal input slaveMerkleInclusionBranches[TREE_DEPTH              ];
+    signal input dg1                         [DG1_LEN];
+    signal input dg15                        [DG15_LEN];
+    signal input signedAttributes            [SIGNED_ATTRIBUTES_LEN];
+    signal input signature                   [SIGNATURE_LEN];
+    signal input pubkey                      [PUBKEY_LEN];
+    // signal input slaveMerkleInclusionBranches[TREE_DEPTH];
     // signal input slaveMerkleRoot;
 
     signal output passportHash;
@@ -62,10 +62,10 @@ template PassportVerificationBuilder(
     component ecPassportHasher   = PassportHash(HASH_BLOCK_SIZE, ENCAPSULATED_CONTENT_SIZE, HASH_TYPE);
     component saPassportHasher   = PassportHash(HASH_BLOCK_SIZE, SIGNED_ATTRIBUTES_SIZE,    HASH_TYPE);
 
-    signal                 dg1Hash[HASH_TYPE];
-    signal                dg15Hash[HASH_TYPE];
+    signal dg1Hash                [HASH_TYPE];
+    signal dg15Hash               [HASH_TYPE];
     signal encapsulatedContentHash[HASH_TYPE];
-    signal    signedAttributesHash[HASH_TYPE];
+    signal signedAttributesHash   [HASH_TYPE];
 
     dg1PassportHasher.in   <== dg1;
     dg1PassportHasher.out  ==> dg1Hash;
@@ -77,16 +77,16 @@ template PassportVerificationBuilder(
     saPassportHasher.out   ==> signedAttributesHash;
 
 
-    var  FIRST_SHIFT;
-    var SECOND_SHIFT;
-    var  THRID_SHIFT;
+    var DG1_SHIFT;
+    var DG15_SHIFT;
+    var ENCAPSULATED_CONTENT_SHIFT;
 
     signal dg15Verification;
 
     if (AA_FLOWS_BITMASK == 1){
-        FIRST_SHIFT = 248;
-        SECOND_SHIFT = 3056;
-        THRID_SHIFT = 576;
+        DG1_SHIFT = 248;
+        DG15_SHIFT = 3056;
+        ENCAPSULATED_CONTENT_SHIFT = 576;
         dg15Verification <== 1;
     }
 
@@ -94,9 +94,9 @@ template PassportVerificationBuilder(
         ENCAPSULATED_CONTENT_LEN, 
         HASH_TYPE,
         SIGNED_ATTRIBUTES_LEN,
-        FIRST_SHIFT,
-        SECOND_SHIFT,
-        THRID_SHIFT 
+        DG1_SHIFT,
+        DG15_SHIFT,
+        ENCAPSULATED_CONTENT_SHIFT 
     );
     
     passportVerificationFlow.dg1Hash                 <== dg1Hash;

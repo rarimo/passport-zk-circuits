@@ -5,9 +5,10 @@ include "./mgf1.circom";
 include "./xor2.circom";
 include "../hasher/passportHash.circom";
 
-template VerifyRsaPssSig (n, k, salt_len, e_bits, ALGO){
+template VerifyRsaPssSig (n, k, SALT_LEN, E_BITS, ALGO){
 
-    assert(ALGO == 256 || ALGO == 384);
+
+    assert((ALGO == 384 && SALT_LEN == 48) || (ALGO == 256 && SALT_LEN == 64) || (ALGO == 256 && SALT_LEN == 32));
 
 
     signal input pubkey[k]; //aka modulus
@@ -16,7 +17,7 @@ template VerifyRsaPssSig (n, k, salt_len, e_bits, ALGO){
 
     var emLen = (n*k)\8; //in bytes
     var hLen = ALGO\8; //in bytes
-    var sLen = salt_len; //in bytes
+    var sLen = SALT_LEN; //in bytes
     var hLenBits = ALGO; //in bits
     var sLenBits = sLen*8; //in bits
     var emLenBits = n * k; //in bits
@@ -26,7 +27,7 @@ template VerifyRsaPssSig (n, k, salt_len, e_bits, ALGO){
     signal eMsgInBits[emLenBits];
     
     //computing encoded message
-    component powmod = PowerMod(n, k, e_bits);
+    component powmod = PowerMod(n, k, E_BITS);
     powmod.base <== signature;
     powmod.modulus <== pubkey;
 
