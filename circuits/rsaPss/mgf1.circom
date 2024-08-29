@@ -2,38 +2,39 @@ pragma circom 2.1.6;
 
 include "circomlib/circuits/bitify.circom";
 
-template Mgf1Sha384(seedLen, maskLen) { //in bytes
-    var seedLenBits = seedLen * 8;
-    var maskLenBits = maskLen * 8;
-    var hashLen = 48; //output len of sha function in bytes 
-    var hashLenBits = hashLen * 8;//output len of sha function in bits
+template Mgf1Sha384(SEED_LEN, MASK_LEN) { //in bytes
+    var SEED_LEN_BITS = SEED_LEN * 8;
+    var MASK_LEN_BITS = MASK_LEN * 8;
+    var HASH_LEN = 48; //output len of sha function in bytes 
+    var HASH_LEN_BITS = HASH_LEN * 8;//output len of sha function in bits
 
-    signal input seed[seedLenBits]; //each represents a bit
-    signal output out[maskLenBits];
+    signal input seed[SEED_LEN_BITS]; //each represents a bit
+    signal output out[MASK_LEN_BITS];
     
-    assert(maskLen <= 0xffffffff * hashLen );
-    var iterations = (maskLen \ hashLen) + 1; //adding 1, in-case maskLen \ hashLen is 0
-    component sha384[iterations];
-    component num2Bits[iterations];
+    assert(MASK_LEN <= 0xffffffff * HASH_LEN );
 
-    for (var i = 0; i < iterations; i++) {
+    var ITERATIONS = (MASK_LEN \ HASH_LEN) + 1; //adding 1, in-case MASK_LEN \ HASH_LEN is 0
+    component sha384[ITERATIONS];
+    component num2Bits[ITERATIONS];
+
+    for (var i = 0; i < ITERATIONS; i++) {
         sha384[i] = PassportHash(1024, 1 , 384); //32 bits for counter
         num2Bits[i] = Num2Bits(32);
     }
 
     var concated[1024]; //seed + 32 bits(4 Bytes) for counter
-    signal hashed[hashLenBits * (iterations)];
+    signal hashed[HASH_LEN_BITS * (ITERATIONS)];
 
-    for (var i = 0; i < seedLenBits; i++) {
+    for (var i = 0; i < SEED_LEN_BITS; i++) {
         concated[i] = seed[i];
     }
 
-    for (var i = 0; i < iterations; i++) {
+    for (var i = 0; i < ITERATIONS; i++) {
         num2Bits[i].in <== i; //convert counter to bits
 
         for (var j = 0; j < 32; j++) {
             //concat seed and counter
-            concated[seedLenBits + j] = num2Bits[i].out[31-j];
+            concated[SEED_LEN_BITS + j] = num2Bits[i].out[31-j];
         }
 
         //adding padding (len = 416 = 110100000)
@@ -54,49 +55,49 @@ template Mgf1Sha384(seedLen, maskLen) { //in bytes
         //hashing value
         sha384[i].in <== concated;
 
-        for (var j = 0; j < hashLenBits; j++) {
-            hashed[i * hashLenBits + j] <== sha384[i].out[j];
+        for (var j = 0; j < HASH_LEN_BITS; j++) {
+            hashed[i * HASH_LEN_BITS + j] <== sha384[i].out[j];
         }
     }
 
-    for (var i = 0; i < maskLenBits; i++) {
+    for (var i = 0; i < MASK_LEN_BITS; i++) {
         out[i] <== hashed[i];
     }
 }
 
-template Mgf1Sha256(seedLen, maskLen) { //in bytes
-    var seedLenBits = seedLen * 8;
-    var maskLenBits = maskLen * 8;
-    var hashLen = 32; //output len of sha function in bytes 
-    var hashLenBits = hashLen * 8;//output len of sha function in bits
+template Mgf1Sha256(SEED_LEN, MASK_LEN) { //in bytes
+    var SEED_LEN_BITS = SEED_LEN * 8;
+    var MASK_LEN_BITS = MASK_LEN * 8;
+    var HASH_LEN = 32; //output len of sha function in bytes 
+    var HASH_LEN_BITS = HASH_LEN * 8;//output len of sha function in bits
 
-    signal input seed[seedLenBits]; //each represents a bit
-    signal output out[maskLenBits];
+    signal input seed[SEED_LEN_BITS]; //each represents a bit
+    signal output out[MASK_LEN_BITS];
     
-    assert(maskLen <= 0xffffffff * hashLen );
-    var iterations = (maskLen \ hashLen) + 1; //adding 1, in-case maskLen \ hashLen is 0
+    assert(MASK_LEN <= 0xffffffff * HASH_LEN );
+    var ITERATIONS = (MASK_LEN \ HASH_LEN) + 1; //adding 1, in-case MASK_LEN \ HASH_LEN is 0
 
-    component sha256[iterations];
-    component num2Bits[iterations];
+    component sha256[ITERATIONS];
+    component num2Bits[ITERATIONS];
 
-    for (var i = 0; i < iterations; i++) {
+    for (var i = 0; i < ITERATIONS; i++) {
         sha256[i] = PassportHash(512, 1, 256); //32 bits for counter
         num2Bits[i] = Num2Bits(32);
     }
 
     var concated[512]; //seed + 32 bits(4 Bytes) for counter
-    signal hashed[hashLenBits * (iterations)];
+    signal hashed[HASH_LEN_BITS * (ITERATIONS)];
 
-    for (var i = 0; i < seedLenBits; i++) {
+    for (var i = 0; i < SEED_LEN_BITS; i++) {
         concated[i] = seed[i];
     }
 
-    for (var i = 0; i < iterations; i++) {
+    for (var i = 0; i < ITERATIONS; i++) {
         num2Bits[i].in <== i; //convert counter to bits
 
         for (var j = 0; j < 32; j++) {
             //concat seed and counter
-            concated[seedLenBits + j] = num2Bits[i].out[31-j];
+            concated[SEED_LEN_BITS + j] = num2Bits[i].out[31-j];
         }
 
         //adding padding (len = 288 = 100100000)
@@ -117,12 +118,12 @@ template Mgf1Sha256(seedLen, maskLen) { //in bytes
         //hashing value
         sha256[i].in <== concated;
 
-        for (var j = 0; j < hashLenBits; j++) {
-            hashed[i * hashLenBits + j] <== sha256[i].out[j];
+        for (var j = 0; j < HASH_LEN_BITS; j++) {
+            hashed[i * HASH_LEN_BITS + j] <== sha256[i].out[j];
         }
     }
 
-    for (var i = 0; i < maskLenBits; i++) {
+    for (var i = 0; i < MASK_LEN_BITS; i++) {
         out[i] <== hashed[i];
     }
 }
