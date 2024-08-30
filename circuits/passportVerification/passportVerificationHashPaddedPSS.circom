@@ -2,12 +2,12 @@ pragma circom 2.1.6;
 
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/poseidon.circom";
-include "../rsa/rsa.circom";
-include "../sha256/sha256NoPadding.circom";
+include "../rsaPss/rsaPss.circom";
+// include "../sha256/sha256NoPadding.circom";
+include "../hasher/passportHash.circom";
 include "../merkleTree/SMTVerifier.circom";
-include "../x509Verification/X509Verifier.circom";
 include "./passportVerificationFlow.circom";
-include "./passportVerificationRSAsignature.circom";
+include "./passportVerificationRSAPSSsignature.circom";
 
 template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, TREE_DEPTH) {
     // *magic numbers* list
@@ -26,7 +26,7 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     var SIGNED_ATTRIBUTES_SHIFT_600 = 600;
     // ---------
 
-    var NUMBER_RSA_FLOWS = 6;
+    var NUMBER_RSA_FLOWS = 4;
     var NUMBER_ECDSA_FLOWS = 2;
     var NUMBER_NoAA_FLOWS = 4;
     var HASH_SIZE = BLOCK_SIZE * HASH_BLOCKS_NUMBER; // 64 * 4 = 256 (SHA256)
@@ -38,7 +38,6 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     signal output passedVerificationFlowsRSA;
     signal output passedVerificationFlowsECDSA;
     signal output passedVerificationFlowsNoAA;
-    signal output dg15DiffShift;
     signal output passportHash;
 
     // input signals
@@ -53,44 +52,40 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     // -------
 
     // Hash DG1 -> DG1Hash (SHA256)
-    component dg1Hasher = Sha256NoPadding(2);
+    component dg1Hasher = PassportHash(512, 2, 256);
     for (var i = 0; i < DG1_SIZE; i++) {
         dg1Hasher.in[i] <== dg1[i];
     }
 
+    // Hash DG15 -> DG15Hash (SHA256). Hashing all 6 blocks (ECDSA case)
+    component dg15Hasher6Blocks = PassportHash(512, 6, 256);
+    dg15Hasher6Blocks.in <== dg15;
+    
+
     // Hash DG15 -> DG15Hash (SHA256). Hashing first 3 blocks (RSA case)
-    component dg15Hasher3Blocks = Sha256NoPadding(3);
+    component dg15Hasher3Blocks = PassportHash(512, 3, 256);
     for (var i = 0; i < HASH_BLOCK_SIZE * 3; i++) {
         dg15Hasher3Blocks.in[i] <== dg15[i];
     }
 
-    component dg15Hasher5Blocks = Sha256NoPadding(5);
-    for (var i = 0; i < HASH_BLOCK_SIZE * 5; i++) {
-        dg15Hasher5Blocks.in[i] <== dg15[i];
-    }
-
-    // Hash DG15 -> DG15Hash (SHA256). Hashing all 6 blocks (ECDSA case)
-    component dg15Hasher6Blocks = Sha256NoPadding(6);
-    dg15Hasher6Blocks.in <== dg15;
-
     // Hash encupsulated content
-    component encapsulatedContentHasher6Blocks = Sha256NoPadding(6);
+    component encapsulatedContentHasher6Blocks = PassportHash(512, 6, 256);
     encapsulatedContentHasher6Blocks.in <== encapsulatedContent;
 
     // Hash encupsulated content (first 3 blocks)
-    component encapsulatedContentHasher3Blocks = Sha256NoPadding(3);
+    component encapsulatedContentHasher3Blocks = PassportHash(512, 3, 256);
     for (var i = 0; i < HASH_BLOCK_SIZE * 3; i++) {
         encapsulatedContentHasher3Blocks.in[i] <== encapsulatedContent[i];
     }
 
     // Hash encapsulated content (first 4 blocks)
-    component encapsulatedContentHasher4Blocks = Sha256NoPadding(4);
+    component encapsulatedContentHasher4Blocks = PassportHash(512, 4, 256);
     for (var i = 0; i < HASH_BLOCK_SIZE * 4; i++) {
         encapsulatedContentHasher4Blocks.in[i] <== encapsulatedContent[i];
     }
 
     // Hash encapsulated content (first 5 blocks)
-    component encapsulatedContentHasher5Blocks = Sha256NoPadding(5);
+    component encapsulatedContentHasher5Blocks = PassportHash(512, 5, 256);
     for (var i = 0; i < HASH_BLOCK_SIZE * 5; i++) {
         encapsulatedContentHasher5Blocks.in[i] <== encapsulatedContent[i];
     }
@@ -186,36 +181,6 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     
     log("Flow 4: ", passportVerificationFlowRsa4.flowResult);
     accumulatorRSAFlows[3] <== accumulatorRSAFlows[2] + passportVerificationFlowRsa4.flowResult;
-
-    // FLOW 5
-    // with Parameters any NULL | with signed attributes timestamp 600 | DG15 3 blocks
-    component passportVerificationFlowRsa5 = PassportVerificationFlow(
-        3072, 256, 1024, 248, 1496, 600
-    );
-    passportVerificationFlowRsa5.dg1Hash  <== dg1Hasher.out;
-    passportVerificationFlowRsa5.dg15Hash <== dg15Hasher3Blocks.out;
-    passportVerificationFlowRsa5.encapsulatedContent <== encapsulatedContent;
-    passportVerificationFlowRsa5.encapsulatedContentHash <== encapsulatedContentHasher4Blocks.out;
-    passportVerificationFlowRsa5.signedAttributes <== signedAttributes;
-    passportVerificationFlowRsa5.dg15Verification <== 1;
-    
-    log("Flow 5: ", passportVerificationFlowRsa5.flowResult);
-    accumulatorRSAFlows[4] <== accumulatorRSAFlows[3] + passportVerificationFlowRsa5.flowResult;
-
-    // FLOW 6
-    // with 
-    component passportVerificationFlowRsa6 = PassportVerificationFlow(
-        3072, 256, 1024, 232, 1480, 336
-    );
-    passportVerificationFlowRsa6.dg1Hash  <== dg1Hasher.out;
-    passportVerificationFlowRsa6.dg15Hash <== dg15Hasher5Blocks.out;
-    passportVerificationFlowRsa6.encapsulatedContent <== encapsulatedContent;
-    passportVerificationFlowRsa6.encapsulatedContentHash <== encapsulatedContentHasher4Blocks.out;
-    passportVerificationFlowRsa6.signedAttributes <== signedAttributes;
-    passportVerificationFlowRsa6.dg15Verification <== 1;
-    
-    log("Flow 6: ", passportVerificationFlowRsa6.flowResult);
-    accumulatorRSAFlows[5] <== accumulatorRSAFlows[4] + passportVerificationFlowRsa6.flowResult;
 
     // ------------------
 
@@ -348,11 +313,11 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     passportVerificationFlowNoAA4.signedAttributes <== signedAttributes;
     passportVerificationFlowNoAA4.dg15Verification <== 0;
     
-    log("Flow 4 (No AA): ", passportVerificationFlowNoAA4.flowResult);
+    log("Flow 4: ", passportVerificationFlowNoAA4.flowResult);
     accumulatorNoAAFlows[3] <== accumulatorRSAFlows[2] + passportVerificationFlowNoAA4.flowResult;
 
     // Hashing signedAttributes
-    component signedAttributesHasher = Sha256NoPadding(2);
+    component signedAttributesHasher = PassportHash(512, 2, 256);
     signedAttributesHasher.in <== signedAttributes;
 
     // Calculating passportHash = Poseidon(SHA256(signedAttributes)[252bit])
@@ -365,11 +330,16 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     passportHash <== signedAttributesHashHasher.out;
 
     // Verifying passport signature
-    component passportVerificationRSASignature = 
-        PassportVerificationRSASignature(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, SIGNED_ATTRIBUTES_SIZE);
-    passportVerificationRSASignature.signedAttributesHash <== signedAttributesHasher.out;
-    passportVerificationRSASignature.sign <== sign;
-    passportVerificationRSASignature.modulus <== modulus;
+    // component passportVerificationRSASignature = 
+    //     PassportVerificationRSASignature(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, SIGNED_ATTRIBUTES_SIZE);
+    // passportVerificationRSASignature.signedAttributesHash <== signedAttributesHasher.out;
+    // passportVerificationRSASignature.sign <== sign;
+    // passportVerificationRSASignature.modulus <== modulus;
+
+    component passportVericationRSAPssSignature = VerifyRSASig(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, BLOCK_SIZE*HASH_BLOCKS_NUMBER);
+        passportVericationRSAPssSignature.modulus <== modulus;
+        passportVericationRSAPssSignature.signature <== sign;
+        passportVericationRSAPssSignature.hashed <== signedAttributesHasher.out;
 
     // Hashing 5 * (3*64) blocks
     component modulusHasher = Poseidon(5);
