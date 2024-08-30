@@ -365,8 +365,9 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     passportHash <== signedAttributesHashHasher.out;
 
     // Verifying passport signature
+
     component passportVerificationRSASignature = 
-        PassportVerificationRSASignature(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, SIGNED_ATTRIBUTES_SIZE);
+    PassportVerificationRSASignature(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, SIGNED_ATTRIBUTES_SIZE);
     passportVerificationRSASignature.signedAttributesHash <== signedAttributesHasher.out;
     passportVerificationRSASignature.sign <== sign;
     passportVerificationRSASignature.modulus <== modulus;

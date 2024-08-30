@@ -4,15 +4,15 @@ include "./powMod.circom";
 include "circomlib/circuits/bitify.circom";
 
 // Pkcs1v15 + Sha256, e = 65537
-template RsaVerifyPkcs1v15(w, nb, e_bits, hashLen) {
-    signal input signature[nb];
-    signal input pubkey[nb]; //aka modulus
+template RsaVerifyPkcs1v15(CHUNK_SIZE, CHUNK_NUMBER, E_BITS, HASH_TYPE) {
+    signal input signature[CHUNK_NUMBER];
+    signal input pubkey[CHUNK_NUMBER]; //aka modulus
 
-    signal input hashed[hashLen];
+    signal input hashed[HASH_TYPE];
 
     // signature ** exp mod modulus
-    component pm = PowerMod(w, nb, e_bits);
-    for (var i  = 0; i < nb; i++) {
+    component pm = PowerMod(CHUNK_SIZE, CHUNK_NUMBER, E_BITS);
+    for (var i  = 0; i < CHUNK_NUMBER; i++) {
         pm.base[i] <== signature[i];
         pm.modulus[i] <== pubkey[i];
     }
@@ -38,7 +38,7 @@ template RsaVerifyPkcs1v15(w, nb, e_bits, hashLen) {
     pm.out[5] === 938447882527703397;
 
     // remain 24 bit
-    component num2bits_6 = Num2Bits(w);
+    component num2bits_6 = Num2Bits(CHUNK_SIZE);
     num2bits_6.in <== pm.out[6];
     var remainsBits[32] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0];
     for (var i = 0; i < 32; i++) {
@@ -46,11 +46,11 @@ template RsaVerifyPkcs1v15(w, nb, e_bits, hashLen) {
     }
 
     // 3. Check PS and em[1] = 1
-    for (var i = 32; i < w; i++) {
+    for (var i = 32; i < CHUNK_SIZE; i++) {
         num2bits_6.out[i] === 1;
     }
 
-    for (var i = 7; i < nb-1; i++) {
+    for (var i = 7; i < CHUNK_NUMBER-1; i++) {
         pm.out[i] === 18446744073709551615; // 0b1111111111111111111111111111111111111111111111111111111111111111
     }
 }

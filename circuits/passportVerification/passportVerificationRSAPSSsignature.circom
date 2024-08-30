@@ -2,12 +2,12 @@ pragma circom 2.1.6;
 
 include "../rsaPss/rsaPss.circom";
 
-template PassportVerificationRSAPSSSignature(w, nb, e_bits, hashLen) {
+template PassportVerificationRSAPSSSignature(w, nb, e_bits, SALT_LEN, hashLen) {
     signal input signedAttributesHash[hashLen * w];
     signal input sign[nb];
     signal input modulus[nb];
 
-    component rsaVerifier = VerifyRSASig(w, nb, e_bits, hashLen * w);
+    component rsaVerifier = VerifyRsaSig(w, nb, e_bits, SALT_LEN, hashLen * w);
 
     rsaVerifier.signature <== sign;
     rsaVerifier.modulus <== modulus;

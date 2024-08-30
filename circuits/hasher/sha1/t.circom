@@ -12,17 +12,17 @@ template T(t) {
      signal input c[32];
      signal input d[32];
      signal input e[32];
-     signal input k_t[32];
+     signal input kT[32];
      signal input w[32];
 
      signal output out[32];
 
-     component rotatel_5 = RotL(32, 5);
-     component f = f_t(t);
+     component rotatel5 = RotL(32, 5);
+     component f = fT(t);
 
      var k;
      for (k = 0; k < 32; k++) {
-          rotatel_5.in[k] <== a[k];
+          rotatel5.in[k] <== a[k];
           f.b[k] <== b[k];
           f.c[k] <== c[k];
           f.d[k] <== d[k];
@@ -32,10 +32,10 @@ template T(t) {
      var nout = 35; // in BinSum: nbits((2**32 -1)*5);
 
      for (k = 0; k < 32; k++) {
-          sum_binary.in[0][k] <== rotatel_5.out[31  - k];
+          sum_binary.in[0][k] <== rotatel5.out[31  - k];
           sum_binary.in[1][k] <== f.out[31 - k];
           sum_binary.in[2][k] <== e[31 - k];
-          sum_binary.in[3][k] <== k_t[31 - k];
+          sum_binary.in[3][k] <== kT[31 - k];
           sum_binary.in[4][k] <== w[31 - k];
      }
 
@@ -45,24 +45,24 @@ template T(t) {
      }
 
      // perform sum modulo 32
-     signal sum_modulo;
+     signal sumModulo;
      signal quotient;
-     component less_than = LessThan(33);
+     component lessThan = LessThan(33);
 
-     sum_modulo <-- sum.out % 2**32;
+     sumModulo <-- sum.out % 2**32;
      quotient <-- sum.out \ 2**32;
 
-     less_than.in[0] <== sum_modulo;
-     less_than.in[1] <== 2**32;
+     lessThan.in[0] <== sumModulo;
+     lessThan.in[1] <== 2**32;
 
-     sum.out === quotient * 2**32 + sum_modulo;
-     1 === less_than.out;
+     sum.out === quotient * 2**32 + sumModulo;
+     1 === lessThan.out;
      
      // reconvert to bit array
-     component sum_binary_modulo = Num2Bits(32);
-     sum_binary_modulo.in <== sum_modulo; 
+     component sumBinaryModulo = Num2Bits(32);
+     sumBinaryModulo.in <== sumModulo; 
 
      for (k = 0; k < 32; k++) {
-          out[k] <== sum_binary_modulo.out[31 - k];
+          out[k] <== sumBinaryModulo.out[31 - k];
      }
 }

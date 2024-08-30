@@ -4,6 +4,7 @@ include "../rsa/rsa.circom";
 include "../sha256/sha256NoPadding.circom";
 
 template PassportVerificationRSASignature(w, nb, e_bits, hashLen, SIGNED_ATTRIBUTES_SIZE) {
+    
     signal input signedAttributesHash[hashLen * w];
     signal input sign[nb];
     signal input modulus[nb];

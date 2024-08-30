@@ -4,7 +4,7 @@ include "circomlib/circuits/bitify.circom";
 include "../../passportVerification/passportVerificationHashPaddedPSS.circom";
 include "circomlib/circuits/babyjub.circom";
 
-template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, TREE_DEPTH, DG1_COMMITMENT_SIZE) {
+template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, SALT_LEN, HASH_BLOCKS_NUMBER, TREE_DEPTH, DG1_COMMITMENT_SIZE) {
     // *magic numbers* list
     var DG1_SIZE = 1024;                        // bits
     var DG15_SIZE = 3072;                       // 1320 rsa | 
@@ -43,7 +43,7 @@ template RegisterIdentityUniversal(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BL
 
     // ---------
     component passportVerifier = 
-        PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, TREE_DEPTH);
+        PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, SALT_LEN, HASH_BLOCKS_NUMBER, TREE_DEPTH);
 
     passportVerifier.encapsulatedContent <== encapsulatedContent;
     passportVerifier.dg1 <== dg1;
