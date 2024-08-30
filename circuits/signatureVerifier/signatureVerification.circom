@@ -66,19 +66,19 @@ template VerifySignature(n, k, SALT_LEN, E_BITS, SIG_ALGO){
         rsa4096Sha256Verification.hashed <== hashed;
     }
     if (SIG_ALGO == 3){
-        component rsa2048PssSha256Verification = VerifyRsaPssSig(n, k, SALT_LEN, E_BITS, hashLen);
+        component rsa2048PssSha256Verification = VerifyRsaSig(n, k, SALT_LEN, E_BITS, hashLen);
         rsa2048PssSha256Verification.pubkey <== pubkey;
         rsa2048PssSha256Verification.signature <== signature;
         rsa2048PssSha256Verification.hashed <== hashed;
     }
     if (SIG_ALGO == 4){
-        component rsa4096PssSha256Verification = VerifyRsaPssSig(n, k, SALT_LEN, E_BITS, hashLen);
+        component rsa4096PssSha256Verification = VerifyRsaSig(n, k, SALT_LEN, E_BITS, hashLen);
         rsa4096PssSha256Verification.pubkey <== pubkey;
         rsa4096PssSha256Verification.signature <== signature;
         rsa4096PssSha256Verification.hashed <== hashed;
     }
      if (SIG_ALGO == 5){
-        component rsaPssSha384Verification = VerifyRsaPssSig(n, k, SALT_LEN, E_BITS, hashLen);
+        component rsaPssSha384Verification = VerifyRsaSig(n, k, SALT_LEN, E_BITS, hashLen);
         rsaPssSha384Verification.pubkey <== pubkey;
         rsaPssSha384Verification.signature <== signature;
         rsaPssSha384Verification.hashed <== hashed;
