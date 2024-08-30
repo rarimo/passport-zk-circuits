@@ -128,7 +128,7 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     accumulatorRSAFlows[0] <== passportVerificationFlowRsa1.flowResult;
 
     // FLOW 2
-    no Parameters any NULL | with signed attributes timestamp | DG15 3 blocks
+    // no Parameters any NULL | with signed attributes timestamp | DG15 3 blocks
     component passportVerificationFlowRsa2 = PassportVerificationFlow(
         ENCAPSULATED_CONTENT_SIZE,
         HASH_SIZE,
