@@ -5,7 +5,7 @@ include "./mgf1.circom";
 include "./xor2.circom";
 include "../hasher/passportHash.circom";
 
-template VerifyRsaPssSig (CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, HASH_TYPE){
+template VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, HASH_TYPE){
 
 
     assert((HASH_TYPE == 384 && SALT_LEN == 48) || (HASH_TYPE == 256 && SALT_LEN == 64) || (HASH_TYPE == 256 && SALT_LEN == 32));
@@ -19,7 +19,6 @@ template VerifyRsaPssSig (CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, HASH_TYPE)
     var HASH_LEN = HASH_TYPE\8; //in bytes
     var SALT_LEN_BITS = SALT_LEN*8; //in bits
     var EM_LEN_BITS = CHUNK_SIZE * CHUNK_NUMBER; //in bits
-
 
     signal eM[EM_LEN]; 
     signal eMsgInBits[EM_LEN_BITS];
