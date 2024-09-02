@@ -4,9 +4,9 @@ include "./passportVerificationBuilder.circom";
 
 component main = PassportVerificationBuilder(
     2,
-    6,
-    7,
-    2,
+    8,
+    8,
+    8,
     512,
     256,
     7,
