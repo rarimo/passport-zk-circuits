@@ -15,123 +15,123 @@ Python reference code: https://github.com/algorand/bls_sigs_ref/blob/master/pyth
 Additional exposition: https://hackmd.io/@benjaminion/bls12-381#Simplified-SWU-map
 
 E2 is y^2 = x^3 + 4(1+u) over Fp2
-E2' is a curve of form y^2 = x^3 + a x + b that is 3-isogenous to E2
-Constants are a = 240 u, b = 1012 + 1012 u where u = sqrt(-1)
+E2' is A curve of form y^2 = x^3 + A x + B that is 3-isogenous to E2
+Constants are A = 240 u, B = 1012 + 1012 u where u = sqrt(-1)
 */
 
 // Simplified SWU map, optimized and adapted to E2' 
-// in = t: 2 x k array, element of Fp2 
-// out: 2 x 2 x k array, point (out[0], out[1]) on curve E2' 
+// in = t: 2 x CHUNK_NUMBER array, element of Fp2 
+// out: 2 x 2 x CHUNK_NUMBER array, point (out[0], out[1]) on curve E2' 
 // 
 // This is osswu2_help(t) in Python reference code
 // See Section 4.2 of Wahby-Boneh: https://eprint.iacr.org/2019/403.pdf
 // circom implementation is slightly different since sqrt and inversion are cheap
-template OptSimpleSWU2(n, k){
-    signal input in[2][k];
-    signal output out[2][2][k]; 
-    //signal output isInfinity; optimized simple SWU should never return point at infinity, exceptional case still returns a normal point 
+template OptSimpleSWU2(CHUNK_SIZE, CHUNK_NUMBER){
+    signal input in[2][CHUNK_NUMBER];
+    signal output out[2][2][CHUNK_NUMBER]; 
+    //signal output isInfinity; optimized simple SWU should never return point at infinity, exceptional case still returns A normal point 
     
-    var p[150] = get_BLS12_381_prime(n, k);
+    var P[150] = get_BLS12_381_prime(CHUNK_SIZE, CHUNK_NUMBER);
     
-    var a[2] = [0, 240];
-    var b[2] = [1012, 1012];
+    var A[2] = [0, 240];
+    var B[2] = [1012, 1012];
     
-    // distinguished non-square in Fp2 for SWU map: xi = -2 - u 
+    // distinguished non-square in Fp2 for SWU map: XI = -2 - u 
     // this is Z in the suite 8.8.2 of https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-14#section-10
-    var xi[2] = [-2, -1];
+    var XI[2] = [-2, -1];
 
-    var LOGK = log_ceil(k);
+    var LOGK = log_ceil(CHUNK_NUMBER);
     // in = t, compute t^2, t^3
-    component t_sq = SignedFp2MultiplyNoCarryCompress(n, k, p, n, 3*n + 2*LOGK + 1 );
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){
-        t_sq.a[i][idx] <== in[i][idx];
-        t_sq.b[i][idx] <== in[i][idx];
+    component tSQ = SignedFp2MultiplyNoCarryCompress(CHUNK_SIZE, CHUNK_NUMBER, P, CHUNK_SIZE, 3*CHUNK_SIZE + 2*LOGK + 1 );
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        tSQ.a[i][idx] <== in[i][idx];
+        tSQ.b[i][idx] <== in[i][idx];
     }
-    // compute xi * t^2 
-    component xi_t_sq = SignedFp2CarryModP(n, k, 3*n + 2*LOGK + 3, p);
-    for(var idx=0; idx<k; idx++){
-        xi_t_sq.in[0][idx] <== xi[0] * t_sq.out[0][idx] - xi[1] * t_sq.out[1][idx];
-        xi_t_sq.in[1][idx] <== xi[0] * t_sq.out[1][idx] + xi[1] * t_sq.out[0][idx];
+    // compute XI * t^2 
+    component xiTSq = SignedFp2CarryModP(CHUNK_SIZE, CHUNK_NUMBER, 3*CHUNK_SIZE + 2*LOGK + 3, P);
+    for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        xiTSq.in[0][idx] <== XI[0] * tSQ.out[0][idx] - XI[1] * tSQ.out[1][idx];
+        xiTSq.in[1][idx] <== XI[0] * tSQ.out[1][idx] + XI[1] * tSQ.out[0][idx];
     }
 
-    // xi^2 * t^4
-    component xi2t4 = SignedFp2MultiplyNoCarryCompress(n, k, p, n, 3*n + 2*LOGK + 1); 
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){
-        xi2t4.a[i][idx] <== xi_t_sq.out[i][idx];
-        xi2t4.b[i][idx] <== xi_t_sq.out[i][idx];
+    // XI^2 * t^4
+    component xi2T4 = SignedFp2MultiplyNoCarryCompress(CHUNK_SIZE, CHUNK_NUMBER, P, CHUNK_SIZE, 3*CHUNK_SIZE + 2*LOGK + 1); 
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        xi2T4.a[i][idx] <== xiTSq.out[i][idx];
+        xi2T4.b[i][idx] <== xiTSq.out[i][idx];
     }
-    // xi^2 * t^4 + xi * t^2
-    var num_den_common[2][k];
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++)
-        num_den_common[i][idx] = xi2t4.out[i][idx] + xi_t_sq.out[i][idx];
+    // XI^2 * t^4 + XI * t^2
+    var NUM_DEN_COMMON[2][CHUNK_NUMBER];
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+        NUM_DEN_COMMON[i][idx] = xi2T4.out[i][idx] + xiTSq.out[i][idx];
     
-    // X0(t) = b (xi^2 * t^4 + xi * t^2 + 1) / (-a * (xi^2 * t^4 + xi * t^2)) 
-    component X0_den = SignedFp2CarryModP(n, k, 3*n + 2*LOGK + 2 + 9, p);
-    for(var idx=0; idx<k; idx++){
-        X0_den.in[0][idx] <== -a[0] * num_den_common[0][idx] + a[1] * num_den_common[1][idx];
-        X0_den.in[1][idx] <== -a[0] * num_den_common[1][idx] - a[1] * num_den_common[0][idx];
+    // x0(t) = B (XI^2 * t^4 + XI * t^2 + 1) / (-A * (XI^2 * t^4 + XI * t^2)) 
+    component x0Den = SignedFp2CarryModP(CHUNK_SIZE, CHUNK_NUMBER, 3*CHUNK_SIZE + 2*LOGK + 2 + 9, P);
+    for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        x0Den.in[0][idx] <== -A[0] * NUM_DEN_COMMON[0][idx] + A[1] * NUM_DEN_COMMON[1][idx];
+        x0Den.in[1][idx] <== -A[0] * NUM_DEN_COMMON[1][idx] - A[1] * NUM_DEN_COMMON[0][idx];
     }
 
-    // if X0_den = 0, replace with X1_den = a * xi; this way X1(t) = X0_num / X1_den = b / (xi * a)
-    // X1_den = a * xi = 240 - 480 i 
-    assert( n == 55 && k == 7 );
-    var X1_den[2][k];
-    if( n == 55 && k == 7 ){
-        X1_den = [[240,0,0,0,0,0,0],
+    // if x0Den = 0, replace with X1_DEN = A * XI; this way x1(t) = x0Num / X1_DEN = B / (XI * A)
+    // X1_DEN = A * XI = 240 - 480 i 
+    assert( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 );
+    var X1_DEN[2][CHUNK_NUMBER];
+    if( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 ){
+        X1_DEN = [[240,0,0,0,0,0,0],
                 [35747322042230987,36025922209447795,1084959616957103,7925923977987733,16551456537884751,23443114579904617,1829881462546425]];
     }
 
-    // Exception if X0_den = 0: 
-    component exception = Fp2IsZero(n, k, p);
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++)
-        exception.in[i][idx] <== X0_den.out[i][idx];
+    // Exception if x0Den = 0: 
+    component exception = Fp2IsZero(CHUNK_SIZE, CHUNK_NUMBER, P);
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+        exception.in[i][idx] <== x0Den.out[i][idx];
     //isInfinity <== exception.out; 
     
-    num_den_common[0][0]++;
-    component X0_num = SignedFp2CarryModP(n, k, 3*n + 2*LOGK + 2 + 11, p);
-    for(var idx=0; idx<k; idx++){
-        X0_num.in[0][idx] <== b[0] * num_den_common[0][idx] - b[1] * num_den_common[1][idx];
-        X0_num.in[1][idx] <== b[0] * num_den_common[1][idx] + b[1] * num_den_common[0][idx];
+    NUM_DEN_COMMON[0][0]++;
+    component x0Num = SignedFp2CarryModP(CHUNK_SIZE, CHUNK_NUMBER, 3*CHUNK_SIZE + 2*LOGK + 2 + 11, P);
+    for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        x0Num.in[0][idx] <== B[0] * NUM_DEN_COMMON[0][idx] - B[1] * NUM_DEN_COMMON[1][idx];
+        x0Num.in[1][idx] <== B[0] * NUM_DEN_COMMON[1][idx] + B[1] * NUM_DEN_COMMON[0][idx];
     }
-    // division is same cost/constraints as multiplication, so we will compute X0 and avoid using projective coordinates 
-    component X0 = SignedFp2Divide(n, k, n, n, p);
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){
-        X0.a[i][idx] <== X0_num.out[i][idx];
-        X0.b[i][idx] <== X0_den.out[i][idx] + exception.out * (X1_den[i][idx] - X0_den.out[i][idx]);
+    // division is same cost/constraints as multiplication, so we will compute x0 and avoid using projective coordinates 
+    component x0 = SignedFp2Divide(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_SIZE, CHUNK_SIZE, P);
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        x0.a[i][idx] <== x0Num.out[i][idx];
+        x0.b[i][idx] <== x0Den.out[i][idx] + exception.out * (X1_DEN[i][idx] - x0Den.out[i][idx]);
     }
     
-    // g(x) = x^3 + a x + b 
-    // Compute g(X0(t)) 
-    component gX0 = EllipticCurveFunction(n, k, a, b, p);
-    // X1(t) = xi * t^2 * X0(t)
-    component X1 = Fp2Multiply(n, k, p);
+    // g(x) = x^3 + A x + B 
+    // Compute g(x0(t)) 
+    component gX0 = EllipticCurveFunction(CHUNK_SIZE, CHUNK_NUMBER, A, B, P);
+    // x1(t) = XI * t^2 * x0(t)
+    component x1 = Fp2Multiply(CHUNK_SIZE, CHUNK_NUMBER, P);
 
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){
-        gX0.in[i][idx] <== X0.out[i][idx];
-        X1.a[i][idx] <== xi_t_sq.out[i][idx];
-        X1.b[i][idx] <== X0.out[i][idx];
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        gX0.in[i][idx] <== x0.out[i][idx];
+        x1.a[i][idx] <== xiTSq.out[i][idx];
+        x1.b[i][idx] <== x0.out[i][idx];
     }
     
-    component xi3t6 = Fp2MultiplyThree(n, k, p); // shares a hidden component with xi2t4; I'll let compiler optimize that out for readability
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){ 
-        xi3t6.a[i][idx] <== xi_t_sq.out[i][idx];
-        xi3t6.b[i][idx] <== xi_t_sq.out[i][idx];
-        xi3t6.c[i][idx] <== xi_t_sq.out[i][idx];
+    component xi3T6 = Fp2MultiplyThree(CHUNK_SIZE, CHUNK_NUMBER, P); // shares A hidden component with xi2T4; I'll let compiler optimize that out for readability
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){ 
+        xi3T6.a[i][idx] <== xiTSq.out[i][idx];
+        xi3T6.b[i][idx] <== xiTSq.out[i][idx];
+        xi3T6.c[i][idx] <== xiTSq.out[i][idx];
     }
-    // g(X1(t)) = xi^3 * t^6 * g(X0(t)) 
-    component gX1 = Fp2Multiply(n, k, p);
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){ 
-        gX1.a[i][idx] <== xi3t6.out[i][idx];
+    // g(x1(t)) = XI^3 * t^6 * g(x0(t)) 
+    component gX1 = Fp2Multiply(CHUNK_SIZE, CHUNK_NUMBER, P);
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){ 
+        gX1.a[i][idx] <== xi3T6.out[i][idx];
         gX1.b[i][idx] <== gX0.out[i][idx];
     }
     /* 
-    xi^3 is not a square, so one of gX0, gX1 must be a square 
-    isSquare = 1 if gX0 is a square, = 0 if gX1 is a square
+    XI^3 is not A square, so one of gX0, gX1 must be A square 
+    isSquare = 1 if gX0 is A square, = 0 if gX1 is A square
     sqrt = sqrt(gX0) if isSquare = 1, sqrt = sqrt(gX1) if isSquare = 0
 
-    Implementation is special to p^2 = 9 mod 16
+    Implementation is special to P^2 = 9 mod 16
     References:
-        p. 9 of https://eprint.iacr.org/2019/403.pdf
+        P. 9 of https://eprint.iacr.org/2019/403.pdf
         F.2.1.1 for general version for any field: https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-14#appendix-F.2.1.1
 
     I do not use the trick for combining division and sqrt from Section 5 of 
@@ -141,88 +141,88 @@ template OptSimpleSWU2(n, k){
     
     signal isSquare;
     
-    // Precompute sqrt_candidate = gX0^{(p^2 + 7) / 16} 
-    // p^2 + 7
-    var c1[150] = long_add_unequal(n, 2*k, 1, prod(n, k, p, p), [7]);
-    // (p^2 + 7) // 16
-    var c2[2][150] = long_div2(n, 1, 2*k-1, c1, [16]); 
+    // Precompute SQRT_CANDIDATE = gX0^{(P^2 + 7) / 16} 
+    // P^2 + 7
+    var C1[150] = long_add_unequal(CHUNK_SIZE, 2*CHUNK_NUMBER, 1, prod(CHUNK_SIZE, CHUNK_NUMBER, P, P), [7]);
+    // (P^2 + 7) // 16
+    var C2[2][150] = long_div2(CHUNK_SIZE, 1, 2*CHUNK_NUMBER-1, C1, [16]); 
 
-    assert( c2[1][0] == 0 ); // assert p^2 + 7 is divisible by 16
+    assert( C2[1][0] == 0 ); // assert P^2 + 7 is divisible by 16
 
-    var sqrt_candidate[2][150] = find_Fp2_exp(n, k, gX0.out, p, c2[0]);
-    // if gX0 is a square, square root must be sqrt_candidate * (8th-root of unity) 
-    // -1 is a square in Fp2 (because p^2 - 1 is even) so we only need to check half of the 8th roots of unity
-    var roots[4][2][150] = get_roots_of_unity(n, k);
-    var sqrt_witness[2][2][150];
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++)
-        sqrt_witness[i][j][idx] = 0;
+    var SQRT_CANDIDATE[2][150] = find_Fp2_exp(CHUNK_SIZE, CHUNK_NUMBER, gX0.out, P, C2[0]);
+    // if gX0 is A square, square root must be SQRT_CANDIDATE * (8th-root of unity) 
+    // -1 is A square in Fp2 (because P^2 - 1 is even) so we only need to check half of the 8th ROOTS of unity
+    var ROOTS[4][2][150] = get_roots_of_unity(CHUNK_SIZE, CHUNK_NUMBER);
+    var SQRT_WITHNESS[2][2][150];
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+        SQRT_WITHNESS[i][j][idx] = 0;
 
-    var is_square = 0;
+    var IS_SQUARE = 0;
     for(var i=0; i<4; i++){
-        var sqrt_tmp[2][150] = find_Fp2_product(n, k, sqrt_candidate, roots[i], p); 
-        if(is_equal_Fp2(n, k, find_Fp2_product(n, k, sqrt_tmp, sqrt_tmp, p), gX0.out) == 1){
-            is_square = 1;
-            sqrt_witness[0] = sqrt_tmp;
+        var SQRT_TMP[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, SQRT_CANDIDATE, ROOTS[i], P); 
+        if(is_equal_Fp2(CHUNK_SIZE, CHUNK_NUMBER, find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, SQRT_TMP, SQRT_TMP, P), gX0.out) == 1){
+            IS_SQUARE = 1;
+            SQRT_WITHNESS[0] = SQRT_TMP;
         }
     }
-    isSquare <-- is_square;
+    isSquare <-- IS_SQUARE;
     isSquare * (1-isSquare) === 0; 
     
-    var is_square1 = 0;
-    var etas[4][2][150] = get_etas(n, k);
+    var IS_SQUARE1 = 0;
+    var ETAS[4][2][150] = get_etas(CHUNK_SIZE, CHUNK_NUMBER);
     // find square root of gX1 
-    // square root of gX1 must be = sqrt_candidate * t^3 * eta 
+    // square root of gX1 must be = SQRT_CANDIDATE * t^3 * eta 
     // for one of four precomputed values of eta
-    // eta determined by eta^2 = xi^3 * (-1)^{-1/4}  
-    var t_cu[2][150] = find_Fp2_product(n, k, find_Fp2_product(n, k, in, in, p), in, p);
-    sqrt_candidate = find_Fp2_product(n, k, sqrt_candidate, t_cu, p);
+    // eta determined by eta^2 = XI^3 * (-1)^{-1/4}  
+    var T_CU[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, in, in, P), in, P);
+    SQRT_CANDIDATE = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, SQRT_CANDIDATE, T_CU, P);
     
     for(var i=0; i<4; i++){
-        var sqrt_tmp[2][150] = find_Fp2_product(n, k, sqrt_candidate, etas[i], p); 
-        if(is_equal_Fp2(n, k, find_Fp2_product(n, k, sqrt_tmp, sqrt_tmp, p), gX1.out) == 1){
-            is_square1 = 1;
-            sqrt_witness[1] = sqrt_tmp;
+        var SQRT_TMP[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, SQRT_CANDIDATE, ETAS[i], P); 
+        if(is_equal_Fp2(CHUNK_SIZE, CHUNK_NUMBER, find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, SQRT_TMP, SQRT_TMP, P), gX1.out) == 1){
+            IS_SQUARE1 = 1;
+            SQRT_WITHNESS[1] = SQRT_TMP;
         }
     }
-    assert(is_square == 1 || is_square1 == 1); // one of gX0 or gX1 must be a square!
+    assert(IS_SQUARE == 1 || IS_SQUARE1 == 1); // one of gX0 or gX1 must be A square!
         
      
-    // X = out[0] = X0 if isSquare == 1, else X = X1    
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++)
-        out[0][i][idx] <== isSquare * (X0.out[i][idx] - X1.out[i][idx]) + X1.out[i][idx];  
+    // X = out[0] = x0 if isSquare == 1, else X = x1    
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+        out[0][i][idx] <== isSquare * (x0.out[i][idx] - x1.out[i][idx]) + x1.out[i][idx];  
 
     // sgn0(t) 
-    component sgn_in = Fp2Sgn0(n, k, p);
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++)
+    component sgn_in = Fp2Sgn0(CHUNK_SIZE, CHUNK_NUMBER, P);
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
         sgn_in.in[i][idx] <== in[i][idx];
 
     var Y[2][150];
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++)
-        Y[i][idx] = is_square * sqrt_witness[0][i][idx] + (1-is_square) * sqrt_witness[1][i][idx];
-    // Y = out[1] = +- sqrt_witness; sign determined by sgn0(Y) = sgn0(t) 
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+        Y[i][idx] = IS_SQUARE * SQRT_WITHNESS[0][i][idx] + (1-IS_SQUARE) * SQRT_WITHNESS[1][i][idx];
+    // Y = out[1] = +- SQRT_WITHNESS; sign determined by sgn0(Y) = sgn0(t) 
     
-    if(get_fp2_sgn0(k, Y) != sgn_in.out){
-        Y[0] = long_sub(n, k, p, Y[0]);
-        Y[1] = long_sub(n, k, p, Y[1]);
+    if(get_fp2_sgn0(CHUNK_NUMBER, Y) != sgn_in.out){
+        Y[0] = long_sub(CHUNK_SIZE, CHUNK_NUMBER, P, Y[0]);
+        Y[1] = long_sub(CHUNK_SIZE, CHUNK_NUMBER, P, Y[1]);
     } 
     
-    component Y_sq = Fp2Multiply(n, k, p);
+    component ySq = Fp2Multiply(CHUNK_SIZE, CHUNK_NUMBER, P);
     // Y^2 == g(X) 
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         out[1][i][idx] <-- Y[i][idx];
-        Y_sq.a[i][idx] <== out[1][i][idx];
-        Y_sq.b[i][idx] <== out[1][i][idx];
+        ySq.a[i][idx] <== out[1][i][idx];
+        ySq.b[i][idx] <== out[1][i][idx];
     }
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){
-        Y_sq.out[i][idx] === isSquare * (gX0.out[i][idx] - gX1.out[i][idx]) + gX1.out[i][idx]; 
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        ySq.out[i][idx] === isSquare * (gX0.out[i][idx] - gX1.out[i][idx]) + gX1.out[i][idx]; 
     }
 
     // sgn0(Y) == sgn0(t)
-    component sgn_Y = Fp2Sgn0(n, k, p);
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++)
-        sgn_Y.in[i][idx] <== out[1][i][idx];
+    component sqnY = Fp2Sgn0(CHUNK_SIZE, CHUNK_NUMBER, P);
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+        sqnY.in[i][idx] <== out[1][i][idx];
 
-    sgn_Y.out === sgn_in.out;
+    sqnY.out === sgn_in.out;
     
 }
 
@@ -242,104 +242,104 @@ References:
 //  isInfinity = 1 if one of exceptional cases occurs and output should be point at infinity
 // Exceptions:
 //  inIsInfinity = 1
-//  input is a pole of the isogeny, i.e., x_den or y_den = 0 
-template Iso3Map(n, k){
-    signal input in[2][2][k];
+//  input is A pole of the isogeny, i.e., x_den or y_den = 0 
+template Iso3Map(CHUNK_SIZE, CHUNK_NUMBER){
+    signal input in[2][2][CHUNK_NUMBER];
     //signal input inIsInfinity;
-    signal output out[2][2][k];
+    signal output out[2][2][CHUNK_NUMBER];
     signal output isInfinity;
     
-    var p[150] = get_BLS12_381_prime(n, k);
+    var P[150] = get_BLS12_381_prime(CHUNK_SIZE, CHUNK_NUMBER);
     
     // load coefficients of the isogeny (precomputed)
-    var coeffs[4][4][2][150] = get_iso3_coeffs(n, k);
+    var COEFFS[4][4][2][150] = get_iso3_coeffs(CHUNK_SIZE, CHUNK_NUMBER);
 
     // x = x_num / x_den
     // y = y' * y_num / y_den
-    // x_num = sum_{i=0}^3 coeffs[0][i] * x'^i
-    // x_den = x'^2 + coeffs[1][1] * x' + coeffs[1][0] 
-    // y_num = sum_{i=0}^3 coeffs[2][i] * x'^i
-    // y_den = x'^3 + sum_{i=0}^2 coeffs[3][i] * x'^i
+    // x_num = sum_{i=0}^3 COEFFS[0][i] * x'^i
+    // x_den = x'^2 + COEFFS[1][1] * x' + COEFFS[1][0] 
+    // y_num = sum_{i=0}^3 COEFFS[2][i] * x'^i
+    // y_den = x'^3 + sum_{i=0}^2 COEFFS[3][i] * x'^i
   
-    var LOGK = log_ceil(k); 
-    component xp2_nocarry = SignedFp2MultiplyNoCarry(n, k, 2*n + LOGK + 1); 
-    component xp2 = SignedFp2CompressCarry(n, k, k-1, 2*n+LOGK+1, p);
-    component xp3_nocarry = SignedFp2MultiplyNoCarryUnequal(n, 2*k-1, k, 3*n + 2*LOGK + 2); 
-    component xp3 = SignedFp2CompressCarry(n, k, 2*k-2, 3*n+2*LOGK+2, p);
+    var LOGK = log_ceil(CHUNK_NUMBER); 
+    component xp2NoCarry = SignedFp2MultiplyNoCarry(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_SIZE + LOGK + 1); 
+    component xp2 = SignedFp2CompressCarry(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER-1, 2*CHUNK_SIZE+LOGK+1, P);
+    component xp3NoCarry = SignedFp2MultiplyNoCarryUnequal(CHUNK_SIZE, 2*CHUNK_NUMBER-1, CHUNK_NUMBER, 3*CHUNK_SIZE + 2*LOGK + 2); 
+    component xp3 = SignedFp2CompressCarry(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_NUMBER-2, 3*CHUNK_SIZE+2*LOGK+2, P);
 
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){
-        xp2_nocarry.a[i][idx] <== in[0][i][idx];
-        xp2_nocarry.b[i][idx] <== in[0][i][idx];
-        xp3_nocarry.b[i][idx] <== in[0][i][idx];
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        xp2NoCarry.a[i][idx] <== in[0][i][idx];
+        xp2NoCarry.b[i][idx] <== in[0][i][idx];
+        xp3NoCarry.b[i][idx] <== in[0][i][idx];
     }
-    for(var i=0; i<2; i++)for(var idx=0; idx<2*k-1; idx++){
-        xp3_nocarry.a[i][idx] <== xp2_nocarry.out[i][idx];
-        xp2.in[i][idx] <== xp2_nocarry.out[i][idx];
+    for(var i=0; i<2; i++)for(var idx=0; idx<2*CHUNK_NUMBER-1; idx++){
+        xp3NoCarry.a[i][idx] <== xp2NoCarry.out[i][idx];
+        xp2.in[i][idx] <== xp2NoCarry.out[i][idx];
     }
-    for(var i=0; i<2; i++)for(var idx=0; idx<3*k-2; idx++)
-        xp3.in[i][idx] <== xp3_nocarry.out[i][idx]; 
+    for(var i=0; i<2; i++)for(var idx=0; idx<3*CHUNK_NUMBER-2; idx++)
+        xp3.in[i][idx] <== xp3NoCarry.out[i][idx]; 
 
-    signal xp_pow[3][2][k]; 
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){
-        xp_pow[0][i][idx] <== in[0][i][idx];
-        xp_pow[1][i][idx] <== xp2.out[i][idx];
-        xp_pow[2][i][idx] <== xp3.out[i][idx];
+    signal xpPow[3][2][CHUNK_NUMBER]; 
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        xpPow[0][i][idx] <== in[0][i][idx];
+        xpPow[1][i][idx] <== xp2.out[i][idx];
+        xpPow[2][i][idx] <== xp3.out[i][idx];
     }
      
-    component coeffs_xp[4][3]; 
+    component COEFFS_XP[4][3]; 
     var deg[4] = [3, 1, 3, 2];
     for(var i=0; i<4; i++)for(var j=0; j<deg[i]; j++){
-        coeffs_xp[i][j] = SignedFp2MultiplyNoCarry(n, k, 2*n + LOGK + 1);
-        for(var l=0; l<2; l++)for(var idx=0; idx<k; idx++){
-            coeffs_xp[i][j].a[l][idx] <== coeffs[i][j+1][l][idx];
-            coeffs_xp[i][j].b[l][idx] <== xp_pow[j][l][idx];
+        COEFFS_XP[i][j] = SignedFp2MultiplyNoCarry(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_SIZE + LOGK + 1);
+        for(var l=0; l<2; l++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+            COEFFS_XP[i][j].a[l][idx] <== COEFFS[i][j+1][l][idx];
+            COEFFS_XP[i][j].b[l][idx] <== xpPow[j][l][idx];
         }
     }
     var x_frac[4][2][150];  
     for(var i=0; i<4; i++){
-        for(var l=0; l<2; l++)for(var idx=0; idx<2*k-1; idx++){
-            if(idx<k)
-                x_frac[i][l][idx] = coeffs[i][0][l][idx];
+        for(var l=0; l<2; l++)for(var idx=0; idx<2*CHUNK_NUMBER-1; idx++){
+            if(idx<CHUNK_NUMBER)
+                x_frac[i][l][idx] = COEFFS[i][0][l][idx];
             else
                 x_frac[i][l][idx] = 0;
         }
-        for(var j=0; j<deg[i]; j++)for(var l=0; l<2; l++)for(var idx=0; idx<2*k-1; idx++)
-            x_frac[i][l][idx] += coeffs_xp[i][j].out[l][idx];
+        for(var j=0; j<deg[i]; j++)for(var l=0; l<2; l++)for(var idx=0; idx<2*CHUNK_NUMBER-1; idx++)
+            x_frac[i][l][idx] += COEFFS_XP[i][j].out[l][idx];
     } 
-    for(var l=0; l<2; l++)for(var idx=0; idx<k; idx++){
+    for(var l=0; l<2; l++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         x_frac[1][l][idx] += xp2.out[l][idx];
         x_frac[3][l][idx] += xp3.out[l][idx];
     }
     
     // carry the denominators since we need to check whether they are 0
     component den[2];
-    component den_is_zero[2];
+    component denIsZero[2];
     for(var i=0; i<2; i++){
-        den[i] = SignedFp2CompressCarry(n, k, k-1, 2*n + LOGK + 3, p); 
-        for(var l=0; l<2; l++)for(var idx=0; idx<2*k-1; idx++)
+        den[i] = SignedFp2CompressCarry(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER-1, 2*CHUNK_SIZE + LOGK + 3, P); 
+        for(var l=0; l<2; l++)for(var idx=0; idx<2*CHUNK_NUMBER-1; idx++)
             den[i].in[l][idx] <== x_frac[2*i+1][l][idx];
 
-        den_is_zero[i] = Fp2IsZero(n, k, p);
-        for(var l=0; l<2; l++)for(var idx=0; idx<k; idx++)
-            den_is_zero[i].in[l][idx] <== den[i].out[l][idx];
+        denIsZero[i] = Fp2IsZero(CHUNK_SIZE, CHUNK_NUMBER, P);
+        for(var l=0; l<2; l++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+            denIsZero[i].in[l][idx] <== den[i].out[l][idx];
     }
 
     //component exception = IsZero();
-    //exception.in <== inIsInfinity + den_is_zero[0].out + den_is_zero[1].out; 
-    isInfinity <== den_is_zero[0].out + den_is_zero[1].out - den_is_zero[0].out * den_is_zero[1].out; // OR gate: if either denominator is 0, output point at infinity 
+    //exception.in <== inIsInfinity + denIsZero[0].out + denIsZero[1].out; 
+    isInfinity <== denIsZero[0].out + denIsZero[1].out - denIsZero[0].out * denIsZero[1].out; // OR gate: if either denominator is 0, output point at infinity 
 
     component num[2];
     for(var i=0; i<2; i++){
-        num[i] = Fp2Compress(n, k, k-1, p, 3*n + 2*LOGK + 3); 
-        for(var l=0; l<2; l++)for(var idx=0; idx<2*k-1; idx++)
+        num[i] = Fp2Compress(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER-1, P, 3*CHUNK_SIZE + 2*LOGK + 3); 
+        for(var l=0; l<2; l++)for(var idx=0; idx<2*CHUNK_NUMBER-1; idx++)
             num[i].in[l][idx] <== x_frac[2*i][l][idx];
     }
 
     component x[2];
     // num / den if den != 0, else num / 1
     for(var i=0; i<2; i++){
-        x[i] = SignedFp2Divide(n, k, 3*n + 2*LOGK + 3, n, p);
-        for(var l=0; l<2; l++)for(var idx=0; idx<k; idx++){
+        x[i] = SignedFp2Divide(CHUNK_SIZE, CHUNK_NUMBER, 3*CHUNK_SIZE + 2*LOGK + 3, CHUNK_SIZE, P);
+        for(var l=0; l<2; l++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
             x[i].a[l][idx] <== num[i].out[l][idx];
             if(l==0 && idx==0)
                 x[i].b[l][idx] <== isInfinity * (1 - den[i].out[l][idx]) + den[i].out[l][idx];
@@ -348,13 +348,13 @@ template Iso3Map(n, k){
         } 
     }
 
-    component y = Fp2Multiply(n, k, p);
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){
+    component y = Fp2Multiply(CHUNK_SIZE, CHUNK_NUMBER, P);
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         y.a[i][idx] <== in[1][i][idx];
         y.b[i][idx] <== x[1].out[i][idx];
     } 
 
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         out[0][i][idx] <== x[0].out[i][idx];
         out[1][i][idx] <== y.out[i][idx];
     }
@@ -368,21 +368,21 @@ References:
     BLS For the Rest of Us: https://hackmd.io/@benjaminion/bls12-381#Cofactor-clearing
 */
 
-// Input: in, a point on the curve E2 : y^2 = x^3 + 4(1+u)
+// Input: in, A point on the curve E2 : y^2 = x^3 + 4(1+u)
 //  coordinates of in are in "proper" representation
-// Output: out = psi(in), a point on the same curve.
-template EndomorphismPsi(n, k, p){
-    signal input in[2][2][k];
-    signal output out[2][2][k];
+// Output: out = psi(in), A point on the same curve.
+template EndomorphismPsi(CHUNK_SIZE, CHUNK_NUMBER, P){
+    signal input in[2][2][CHUNK_NUMBER];
+    signal output out[2][2][CHUNK_NUMBER];
     
-    var c[2][2][k];
+    var C[2][2][CHUNK_NUMBER];
     // Constants:
-    // c0 = 1 / (1 + I)^((p - 1) / 3)           # in GF(p^2)
-    // c1 = 1 / (1 + I)^((p - 1) / 2)           # in GF(p^2)
+    // c0 = 1 / (1 + I)^((P - 1) / 3)           # in GF(P^2)
+    // C1 = 1 / (1 + I)^((P - 1) / 2)           # in GF(P^2)
 
-    assert( n == 55 && k == 7 );
-    if( n == 55 && k == 7 ){
-        c = [[[0, 0, 0, 0, 0, 0, 0],
+    assert( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 );
+    if( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 ){
+        C = [[[0, 0, 0, 0, 0, 0, 0],
              [35184372088875693,
               22472499736345367,
               5698637743850064,
@@ -408,36 +408,36 @@ template EndomorphismPsi(n, k, p){
     component frob[2];
     component qx[2];
     for(var i=0; i<2; i++){
-        frob[i] = Fp2FrobeniusMap(n, k, 1, p);
-        for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++)
+        frob[i] = Fp2FrobeniusMap(CHUNK_SIZE, CHUNK_NUMBER, 1, P);
+        for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
             frob[i].in[j][idx] <== in[i][j][idx];
-        qx[i] = Fp2Multiply(n, k, p);
-        for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
-            qx[i].a[j][idx] <== c[i][j][idx]; 
+        qx[i] = Fp2Multiply(CHUNK_SIZE, CHUNK_NUMBER, P);
+        for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+            qx[i].a[j][idx] <== C[i][j][idx]; 
             qx[i].b[j][idx] <== frob[i].out[j][idx];
         } 
     }
 
-    for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
+    for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         out[0][j][idx] <== qx[0].out[j][idx];
         out[1][j][idx] <== qx[1].out[j][idx];
     }
 }
 
-// Input: in, a point on the curve E2 : y^2 = x^3 + 4(1+u)
+// Input: in, A point on the curve E2 : y^2 = x^3 + 4(1+u)
 //  coordinates of in are in "proper" representation
-// Output: out = psi(psi(in)), a point on the same curve.
-template EndomorphismPsi2(n, k, p){
-    signal input in[2][2][k];
-    signal output out[2][2][k];
+// Output: out = psi(psi(in)), A point on the same curve.
+template EndomorphismPsi2(CHUNK_SIZE, CHUNK_NUMBER, P){
+    signal input in[2][2][CHUNK_NUMBER];
+    signal output out[2][2][CHUNK_NUMBER];
 
-    var c[k];
+    var C[CHUNK_NUMBER];
     // Third root of unity:
-    // c = 1 / 2^((p - 1) / 3)          # in GF(p)
+    // C = 1 / 2^((P - 1) / 3)          # in GF(P)
     
-    assert( n == 55 && k == 7 );
-    if( n == 55 && k == 7 ){
-        c = [35184372088875692,
+    assert( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 );
+    if( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 ){
+        C = [35184372088875692,
             22472499736345367,
             5698637743850064,
             21300661132716363,
@@ -449,70 +449,70 @@ template EndomorphismPsi2(n, k, p){
     component qx[2];
     component qy[2];
     for(var i=0; i<2; i++){
-        qx[i] = FpMultiply(n, k, p);
-        for(var idx=0; idx<k; idx++){
-            qx[i].a[idx] <== c[idx];
+        qx[i] = FpMultiply(CHUNK_SIZE, CHUNK_NUMBER, P);
+        for(var idx=0; idx<CHUNK_NUMBER; idx++){
+            qx[i].a[idx] <== C[idx];
             qx[i].b[idx] <== in[0][i][idx];
         }
         
-        qy[i] = BigSub(n, k);
-        for(var idx=0; idx<k; idx++){
-            qy[i].a[idx] <== p[idx];
+        qy[i] = BigSub(CHUNK_SIZE, CHUNK_NUMBER);
+        for(var idx=0; idx<CHUNK_NUMBER; idx++){
+            qy[i].a[idx] <== P[idx];
             qy[i].b[idx] <== in[1][i][idx];
         }
     }
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         out[0][i][idx] <== qx[i].out[idx];
         out[1][i][idx] <== qy[i].out[idx];
     }
 }
 
 
-// in = P, a point on curve E2
+// in = P, A point on curve E2
 // out = [x^2 - x - 1]P + [x-1]*psi(P) + psi2(2*P) 
 // where x = -15132376222941642752 is the parameter for BLS12-381
-template ClearCofactorG2(n, k){
-    signal input in[2][2][k];
+template ClearCofactorG2(CHUNK_SIZE, CHUNK_NUMBER){
+    signal input in[2][2][CHUNK_NUMBER];
     signal input inIsInfinity;
 
-    signal output out[2][2][k];
+    signal output out[2][2][CHUNK_NUMBER];
     signal output isInfinity;
     
-    var p[150] = get_BLS12_381_prime(n, k);
-    var x_abs = get_BLS12_381_parameter(); // this is abs(x). remember x is negative!
-    var a[2] = [0,0];
-    var b[2] = [4,4];
-    var dummy_point[2][2][150] = get_generator_G2(n, k);
+    var P[150] = get_BLS12_381_prime(CHUNK_SIZE, CHUNK_NUMBER);
+    var X_ABS = get_BLS12_381_parameter(); // this is abs(x). remember x is negative!
+    var A[2] = [0,0];
+    var B[2] = [4,4];
+    var DUMMY_POINT[2][2][150] = get_generator_G2(CHUNK_SIZE, CHUNK_NUMBER);
     
     // Output: [|x|^2 + |x| - 1]*P + [-|x|-1]*psi(P) + psi2(2*P) 
     //       = |x| * (|x|*P + P - psi(P)) - P -psi(P) + psi2(2*P)
     
-    // replace `in` with dummy_point if inIsInfinity = 1 to ensure P is on the curve 
-    signal P[2][2][k];
-    component xP = EllipticCurveScalarMultiplyFp2(n, k, b, x_abs, p); 
-    component psiP = EndomorphismPsi(n, k, p);
-    component neg_Py = Fp2Negate(n, k, p);
-    component neg_psiPy = Fp2Negate(n, k, p);
-    component doubP = EllipticCurveDoubleFp2(n, k, a, b, p);
+    // replace `in` with DUMMY_POINT if inIsInfinity = 1 to ensure P is on the curve 
+    signal P[2][2][CHUNK_NUMBER];
+    component xP = EllipticCurveScalarMultiplyFp2(CHUNK_SIZE, CHUNK_NUMBER, B, X_ABS, P); 
+    component psiP = EndomorphismPsi(CHUNK_SIZE, CHUNK_NUMBER, P);
+    component negPy = Fp2Negate(CHUNK_SIZE, CHUNK_NUMBER, P);
+    component negPsiPy = Fp2Negate(CHUNK_SIZE, CHUNK_NUMBER, P);
+    component doubP = EllipticCurveDoubleFp2(CHUNK_SIZE, CHUNK_NUMBER, A, B, P);
      
     xP.inIsInfinity <== inIsInfinity; 
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
-        P[i][j][idx] <== in[i][j][idx] + inIsInfinity * (dummy_point[i][j][idx] - in[i][j][idx]);
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        P[i][j][idx] <== in[i][j][idx] + inIsInfinity * (DUMMY_POINT[i][j][idx] - in[i][j][idx]);
         xP.in[i][j][idx] <== P[i][j][idx];
         psiP.in[i][j][idx] <== P[i][j][idx];
         doubP.in[i][j][idx] <== P[i][j][idx];
     }
-    for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
-        neg_Py.in[j][idx] <== P[1][j][idx];
-        neg_psiPy.in[j][idx] <== psiP.out[1][j][idx];
+    for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        negPy.in[j][idx] <== P[1][j][idx];
+        negPsiPy.in[j][idx] <== psiP.out[1][j][idx];
     }
 
-    component psi22P = EndomorphismPsi2(n, k, p);
+    component psi22P = EndomorphismPsi2(CHUNK_SIZE, CHUNK_NUMBER, P);
     component add[5];
     for(var i=0; i<5; i++)
-        add[i] = EllipticCurveAddFp2(n, k, a, b, p); 
+        add[i] = EllipticCurveAddFp2(CHUNK_SIZE, CHUNK_NUMBER, A, B, P); 
     
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         psi22P.in[i][j][idx] <== doubP.out[i][j][idx];
         add[0].a[i][j][idx] <== xP.out[i][j][idx];
         add[0].b[i][j][idx] <== P[i][j][idx]; 
@@ -520,42 +520,42 @@ template ClearCofactorG2(n, k){
     add[0].aIsInfinity <== xP.isInfinity; 
     add[0].bIsInfinity <== inIsInfinity;
 
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         add[1].a[i][j][idx] <== add[0].out[i][j][idx];
         if(i==0)
             add[1].b[i][j][idx] <== psiP.out[i][j][idx];
         else
-            add[1].b[i][j][idx] <== neg_psiPy.out[j][idx];
+            add[1].b[i][j][idx] <== negPsiPy.out[j][idx];
     }
     add[1].aIsInfinity <== add[0].isInfinity;
     add[1].bIsInfinity <== inIsInfinity;
     
-    component xadd1 = EllipticCurveScalarMultiplyFp2(n, k, b, x_abs, p); 
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++)
-        xadd1.in[i][j][idx] <== add[1].out[i][j][idx];
-    xadd1.inIsInfinity <== add[1].isInfinity; 
+    component xAdd1 = EllipticCurveScalarMultiplyFp2(CHUNK_SIZE, CHUNK_NUMBER, B, X_ABS, P); 
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+        xAdd1.in[i][j][idx] <== add[1].out[i][j][idx];
+    xAdd1.inIsInfinity <== add[1].isInfinity; 
 
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
-        add[2].a[i][j][idx] <== xadd1.out[i][j][idx];
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        add[2].a[i][j][idx] <== xAdd1.out[i][j][idx];
         if(i==0)
             add[2].b[i][j][idx] <== P[i][j][idx];
         else
-            add[2].b[i][j][idx] <== neg_Py.out[j][idx];
+            add[2].b[i][j][idx] <== negPy.out[j][idx];
     }
-    add[2].aIsInfinity <== xadd1.isInfinity;
+    add[2].aIsInfinity <== xAdd1.isInfinity;
     add[2].bIsInfinity <== inIsInfinity;
     
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         add[3].a[i][j][idx] <== add[2].out[i][j][idx];
         if(i==0)
             add[3].b[i][j][idx] <== psiP.out[i][j][idx];
         else
-            add[3].b[i][j][idx] <== neg_psiPy.out[j][idx];
+            add[3].b[i][j][idx] <== negPsiPy.out[j][idx];
     }
     add[3].aIsInfinity <== add[2].isInfinity;
     add[3].bIsInfinity <== inIsInfinity;
 
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         add[4].a[i][j][idx] <== add[3].out[i][j][idx];
         add[4].b[i][j][idx] <== psi22P.out[i][j][idx];
     }
@@ -564,49 +564,49 @@ template ClearCofactorG2(n, k){
 
     // isInfinity = add[4].isInfinity or inIsInfinity (if starting point was O, output must be O)
     isInfinity <== add[4].isInfinity + inIsInfinity - inIsInfinity * add[4].isInfinity; 
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++)
-        out[i][j][idx] <== add[4].out[i][j][idx] + isInfinity * (dummy_point[i][j][idx] - add[4].out[i][j][idx]); 
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+        out[i][j][idx] <== add[4].out[i][j][idx] + isInfinity * (DUMMY_POINT[i][j][idx] - add[4].out[i][j][idx]); 
 }
 
-// `in` is 2 x 2 x k representing two field elements in Fp2 
-// `out` is 2 x 2 x k representing a point in subgroup G2 of E2(Fp2) twisted curve for BLS12-381
+// `in` is 2 x 2 x CHUNK_NUMBER representing two field elements in Fp2 
+// `out` is 2 x 2 x CHUNK_NUMBER representing A point in subgroup G2 of E2(Fp2) twisted curve for BLS12-381
 // isInfinity = 1 if `out` is point at infinity
 // Implements steps 2-6 of hash_to_curve as specified in https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-hash-to-curve-14#section-3 
 // In practice `in` = hash_to_field(msg, 2) for an arbitrary-length byte string, in which case `out` = hash_to_curve(msg) 
-template MapToG2(n, k){
-    signal input in[2][2][k];
-    signal output out[2][2][k];
+template MapToG2(CHUNK_SIZE, CHUNK_NUMBER){
+    signal input in[2][2][CHUNK_NUMBER];
+    signal output out[2][2][CHUNK_NUMBER];
     signal output isInfinity;
 
-    var p[150] = get_BLS12_381_prime(n, k);
+    var P[150] = get_BLS12_381_prime(CHUNK_SIZE, CHUNK_NUMBER);
 
     component Qp[2];
     for(var i=0; i<2; i++){
-        Qp[i] = OptSimpleSWU2(n, k);
-        for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++)
+        Qp[i] = OptSimpleSWU2(CHUNK_SIZE, CHUNK_NUMBER);
+        for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
             Qp[i].in[j][idx] <== in[i][j][idx];
     }
 
-    // There is a small optimization we can do: Iso3Map is a group homomorphism, so we can add first and then apply isogeny. This uses EllipticCurveAdd on E2' 
-    component Rp = EllipticCurveAddFp2(n, k, [0, 240], [1012, 1012], p); 
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
+    // There is A small optimization we can do: Iso3Map is A group homomorphism, so we can add first and then apply isogeny. This uses EllipticCurveAdd on E2' 
+    component Rp = EllipticCurveAddFp2(CHUNK_SIZE, CHUNK_NUMBER, [0, 240], [1012, 1012], P); 
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         Rp.a[i][j][idx] <== Qp[0].out[i][j][idx];
         Rp.b[i][j][idx] <== Qp[1].out[i][j][idx];
     }
     Rp.aIsInfinity <== 0;
     Rp.bIsInfinity <== 0;
     
-    component R = Iso3Map(n, k);
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++)
+    component R = Iso3Map(CHUNK_SIZE, CHUNK_NUMBER);
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
         R.in[i][j][idx] <== Rp.out[i][j][idx];
     
-    component P = ClearCofactorG2(n, k);
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++)
+    component P = ClearCofactorG2(CHUNK_SIZE, CHUNK_NUMBER);
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
         P.in[i][j][idx] <== R.out[i][j][idx]; 
     P.inIsInfinity <== R.isInfinity + Rp.isInfinity - R.isInfinity * Rp.isInfinity; 
     
     isInfinity <== P.isInfinity;
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++)
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
         out[i][j][idx] <== P.out[i][j][idx]; 
 }
 
@@ -618,28 +618,28 @@ Other references:
     El Housni: https://hackmd.io/@yelhousni/bls12_subgroup_check
 */
 
-// `in` = P is 2 x 2 x k, pair of Fp2 elements 
+// `in` = P is 2 x 2 x CHUNK_NUMBER, pair of Fp2 elements 
 // check P is on curve twist E2(Fp2)
 // check psi(P) = [x]P where x is parameter for BLS12-381
-template SubgroupCheckG2(n, k){
-    signal input in[2][2][k];
+template SubgroupCheckG2(CHUNK_SIZE, CHUNK_NUMBER){
+    signal input in[2][2][CHUNK_NUMBER];
     
-    var p[150] = get_BLS12_381_prime(n, k);
-    var x_abs = get_BLS12_381_parameter();
+    var P[150] = get_BLS12_381_prime(CHUNK_SIZE, CHUNK_NUMBER);
+    var X_ABS = get_BLS12_381_parameter();
 
-    component is_on_curve = PointOnCurveFp2(n, k, [0,0], [4,4], p);
+    component isOnCurve = PointOnCurveFp2(CHUNK_SIZE, CHUNK_NUMBER, [0,0], [4,4], P);
 
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++)
-        is_on_curve.in[i][j][idx] <== in[i][j][idx]; 
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+        isOnCurve.in[i][j][idx] <== in[i][j][idx]; 
 
-    component psiP = EndomorphismPsi(n, k, p); 
-    component negP = Fp2Negate(n, k, p);
-    component xP = EllipticCurveScalarMultiplyUnequalFp2(n, k, [4, 4], x_abs, p); 
+    component psiP = EndomorphismPsi(CHUNK_SIZE, CHUNK_NUMBER, P); 
+    component negP = Fp2Negate(CHUNK_SIZE, CHUNK_NUMBER, P);
+    component xP = EllipticCurveScalarMultiplyUnequalFp2(CHUNK_SIZE, CHUNK_NUMBER, [4, 4], X_ABS, P); 
 
-    for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++)
+    for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
         negP.in[j][idx] <== in[1][j][idx];
             
-    for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
+    for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         psiP.in[0][j][idx] <== in[0][j][idx];
         psiP.in[1][j][idx] <== in[1][j][idx];
         xP.in[0][j][idx] <== in[0][j][idx];
@@ -647,38 +647,38 @@ template SubgroupCheckG2(n, k){
     }
     
     // psi(P) == [x]P
-    component is_eq[2];
+    component isEq[2];
     for(var i=0; i<2; i++){
-        is_eq[i] = Fp2IsEqual(n, k, p);
-        for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
-            is_eq[i].a[j][idx] <== psiP.out[i][j][idx];
-            is_eq[i].b[j][idx] <== xP.out[i][j][idx];
+        isEq[i] = Fp2IsEqual(CHUNK_SIZE, CHUNK_NUMBER, P);
+        for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+            isEq[i].a[j][idx] <== psiP.out[i][j][idx];
+            isEq[i].b[j][idx] <== xP.out[i][j][idx];
         }
     }
-    is_eq[0].out === 1;
-    is_eq[1].out === 1;
+    isEq[0].out === 1;
+    isEq[1].out === 1;
 }
 
-// `in` = P is 2 x k, pair of Fp elements
+// `in` = P is 2 x CHUNK_NUMBER, pair of Fp elements
 // check P is on curve E(Fp)
-// check phi(P) == [-x^2] P where phi(x,y) = (omega * x, y) where omega is a cube root of unity in Fp
-template SubgroupCheckG1(n, k){
-    signal input in[2][k];
+// check phi(P) == [-x^2] P where phi(x,y) = (omega * x, y) where omega is A cube root of unity in Fp
+template SubgroupCheckG1(CHUNK_SIZE, CHUNK_NUMBER){
+    signal input in[2][CHUNK_NUMBER];
 
-    var p[150] = get_BLS12_381_prime(n, k);
-    var x_abs = get_BLS12_381_parameter();
-    var b = 4;
+    var P[150] = get_BLS12_381_prime(CHUNK_SIZE, CHUNK_NUMBER);
+    var X_ABS = get_BLS12_381_parameter();
+    var B = 4;
 
-    component is_on_curve = PointOnCurve(n, k, 0, b, p);
+    component isOnCurve = PointOnCurve(CHUNK_SIZE, CHUNK_NUMBER, 0, B, P);
 
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++)
-        is_on_curve.in[i][idx] <== in[i][idx];
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+        isOnCurve.in[i][idx] <== in[i][idx];
          
-    var omega[k];
+    var omega[CHUNK_NUMBER];
     // Third root of unity:
-    // omega = 2^((p - 1) / 3)          # in GF(p)
-    assert( n == 55 && k == 7 );
-    if( n == 55 && k == 7 ){
+    // omega = 2^((P - 1) / 3)          # in GF(P)
+    assert( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 );
+    if( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 ){
         omega = [562949953355774,
                  13553422473102428,
                  31415118892071007,
@@ -688,34 +688,34 @@ template SubgroupCheckG1(n, k){
                  0];
     }
 
-    component phiPx = FpMultiply(n, k, p);
-    for(var idx=0; idx<k; idx++){
+    component phiPx = FpMultiply(CHUNK_SIZE, CHUNK_NUMBER, P);
+    for(var idx=0; idx<CHUNK_NUMBER; idx++){
         phiPx.a[idx] <== omega[idx];
         phiPx.b[idx] <== in[0][idx];
     }
-    component phiPy_neg = BigSub(n, k);
-    for(var idx=0; idx<k; idx++){
-        phiPy_neg.a[idx] <== p[idx];
-        phiPy_neg.b[idx] <== in[1][idx];
+    component phiPyNeg = BigSub(CHUNK_SIZE, CHUNK_NUMBER);
+    for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        phiPyNeg.a[idx] <== P[idx];
+        phiPyNeg.b[idx] <== in[1][idx];
     }
     
     // x has hamming weight 6 while x^2 has hamming weight 17 so better to do double-and-add on x twice
-    component xP = EllipticCurveScalarMultiplyUnequal(n, k, b, x_abs, p); 
-    component x2P = EllipticCurveScalarMultiplyUnequal(n, k, b, x_abs, p);
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++)
+    component xP = EllipticCurveScalarMultiplyUnequal(CHUNK_SIZE, CHUNK_NUMBER, B, X_ABS, P); 
+    component x2P = EllipticCurveScalarMultiplyUnequal(CHUNK_SIZE, CHUNK_NUMBER, B, X_ABS, P);
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
         xP.in[i][idx] <== in[i][idx];
 
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++)
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
         x2P.in[i][idx] <== xP.out[i][idx];
 
     // check -phi(P) == [x^2]P
-    component is_eq = Fp2IsEqual(n, k, p); // using Fp2IsEqual to check two Fp points are equal
-    for(var idx=0; idx<k; idx++){
-        is_eq.a[0][idx] <== phiPx.out[idx];
-        is_eq.a[1][idx] <== phiPy_neg.out[idx];
+    component isEq = Fp2IsEqual(CHUNK_SIZE, CHUNK_NUMBER, P); // using Fp2IsEqual to check two Fp points are equal
+    for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        isEq.a[0][idx] <== phiPx.out[idx];
+        isEq.a[1][idx] <== phiPyNeg.out[idx];
 
-        is_eq.b[0][idx] <== x2P.out[0][idx];
-        is_eq.b[1][idx] <== x2P.out[1][idx];
+        isEq.b[0][idx] <== x2P.out[0][idx];
+        isEq.b[1][idx] <== x2P.out[1][idx];
     }
-    is_eq.out === 1;
+    isEq.out === 1;
 }
