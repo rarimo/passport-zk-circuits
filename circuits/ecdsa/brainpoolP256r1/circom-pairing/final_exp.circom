@@ -321,7 +321,7 @@ template Fp12CyclotomicExp(n, k, e, p) {
     component mult[BITLENGTH];
 
     signal first[6][2][k];
-    var curid = 0; // tracks current index in mult[] 
+    var CUR_ID = 0; // tracks current index in mult[] 
 
     for(var i=0; i<BITLENGTH; i++){
         // compute pow2[i] = pow2[i-1]**2
@@ -338,41 +338,41 @@ template Fp12CyclotomicExp(n, k, e, p) {
         if( ((e >> i) & 1) == 1 ){
             // decompress pow2[i] so we can use it 
             if( i > 0 ){
-                Dpow2[curid] = Fp12CyclotomicDecompress(n, k, p);
+                Dpow2[CUR_ID] = Fp12CyclotomicDecompress(n, k, p);
                 for(var id=0; id<4; id++)for(var eps=0; eps<2; eps++)for(var j=0; j<k; j++)
-                    Dpow2[curid].in[id][eps][j] <== pow2[i].out[id][eps][j];
+                    Dpow2[CUR_ID].in[id][eps][j] <== pow2[i].out[id][eps][j];
             }
-            if(curid == 0){ // this is the least significant bit
+            if(CUR_ID == 0){ // this is the least significant bit
                 if( i == 0 ){
                     for(var id=0; id<6; id++)for(var eps=0; eps<2; eps++)for(var j=0; j<k; j++)
                         first[id][eps][j] <== in[id][eps][j];
                 }else{
                     for(var id=0; id<6; id++)for(var eps=0; eps<2; eps++)for(var j=0; j<k; j++)
-                        first[id][eps][j] <== Dpow2[curid].out[id][eps][j];
+                        first[id][eps][j] <== Dpow2[CUR_ID].out[id][eps][j];
                 }
             }else{
                 // multiply what we already have with pow2[i]
-                mult[curid] = Fp12Multiply(n, k, p); 
+                mult[CUR_ID] = Fp12Multiply(n, k, p); 
                 for(var id=0; id<6; id++)for(var eps=0; eps<2; eps++)for(var j=0; j<k; j++)
-                    mult[curid].a[id][eps][j] <== Dpow2[curid].out[id][eps][j];
-                if(curid == 1){
+                    mult[CUR_ID].a[id][eps][j] <== Dpow2[CUR_ID].out[id][eps][j];
+                if(CUR_ID == 1){
                     for(var id=0; id<6; id++)for(var eps=0; eps<2; eps++)for(var j=0; j<k; j++)
-                        mult[curid].b[id][eps][j] <== first[id][eps][j];
+                        mult[CUR_ID].b[id][eps][j] <== first[id][eps][j];
                 }else{
                     for(var id=0; id<6; id++)for(var eps=0; eps<2; eps++)for(var j=0; j<k; j++)
-                        mult[curid].b[id][eps][j] <== mult[curid-1].out[id][eps][j];
+                        mult[CUR_ID].b[id][eps][j] <== mult[CUR_ID-1].out[id][eps][j];
                 }
             } 
-            curid++; 
+            CUR_ID++; 
         }
     }
-    curid--;
-    if(curid == 0){
+    CUR_ID--;
+    if(CUR_ID == 0){
         for(var id=0; id<6; id++)for(var eps=0; eps<2; eps++)for(var j=0; j<k; j++)
             out[id][eps][j] <== first[id][eps][j];
     }else{
         for(var id=0; id<6; id++)for(var eps=0; eps<2; eps++)for(var j=0; j<k; j++)
-            out[id][eps][j] <== mult[curid].out[id][eps][j];
+            out[id][eps][j] <== mult[CUR_ID].out[id][eps][j];
     }
 }
 

@@ -92,14 +92,14 @@ template FpMultiply(n, k, p) {
 
     var LOGK = log_ceil(k);
 
-    component nocarry = BigMultShortLong(n, k, 2*n + LOGK);
+    component noCarry = BigMultShortLong(n, k, 2*n + LOGK);
     for (var i = 0; i < k; i++) {
-        nocarry.a[i] <== a[i];
-        nocarry.b[i] <== b[i];
+        noCarry.a[i] <== a[i];
+        noCarry.b[i] <== b[i];
     }
     component red = PrimeReduce(n, k, k-1, p, 3*n + 2*LOGK);
     for(var i=0; i<2*k-1; i++)
-        red.in[i] <== nocarry.out[i];
+        red.in[i] <== noCarry.out[i];
 
     component big_mod = SignedFpCarryModP(n, k, 3*n + 2*LOGK, p);
     for (var i = 0; i < k; i++)
