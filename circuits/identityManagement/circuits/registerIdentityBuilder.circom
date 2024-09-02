@@ -31,10 +31,8 @@ template RegisterIdentityBuilder (
     CHUNK_NUMBER,
     DOCUMENT_TYPE,                  // 1: TD1; 3: TD3
     TREE_DEPTH,
-    AA_FLOWS_NUMBER,                // activated Active Auth flows umber
-    AA_FLOWS_BITMASK,               // bitmask of which Active Auth flows are active
-    NoAA_FLOWS_NUMBER,              // activated NoAA (no active auth) flows
-    NoAA_FLOWS_BITMASK              // bitmask of which NoAA (no active auth) flows are active
+    FLOW_MATRIX,
+    FLOW_MATRIX_HEIGHT
 ) {
     // OUTPUT SIGNALS:
     signal output dg15PubKeyHash;
@@ -84,10 +82,8 @@ template RegisterIdentityBuilder (
         CHUNK_SIZE,
         CHUNK_NUMBER,
         TREE_DEPTH,
-        AA_FLOWS_NUMBER,
-        AA_FLOWS_BITMASK,
-        NoAA_FLOWS_NUMBER,
-        NoAA_FLOWS_BITMASK
+        FLOW_MATRIX,
+        FLOW_MATRIX_HEIGHT
     );
 
     passportVerifier.encapsulatedContent <== encapsulatedContent;
@@ -96,8 +92,6 @@ template RegisterIdentityBuilder (
     passportVerifier.signedAttributes    <== signedAttributes;
     passportVerifier.signature           <== signature;
     passportVerifier.pubkey              <== pubkey;
-
-    
 
 }
 
