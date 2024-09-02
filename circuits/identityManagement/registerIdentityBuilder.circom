@@ -21,11 +21,10 @@ component main = RegisterIdentityBuilder(
     256,       // HASH_TYPE
     1,         // SIGNATURE_TYPE
     64,        // CHUNK_SIZE
-    32,         // CHUNK_NUMBER
+    32,        // CHUNK_NUMBER
     1,         // DOCUMENT_TYPE
     80,        // TREE_DEPTH
-    3,         // AA_FLOWS_NUMBER
-    7,         // AA_FLOWS_BITMASK
-    4,         // NoAA_FLOWS_NUMBER
-    15         // NoAA_FLOWS_BITMASK
+    [[]],      // [[DG1_SHIFT, DG15_SHIFT, EC_SHIFT, DG15_BLOCK_NUM, SA_BLOCK_NUM, DG15_CHECK], [...], ... , [...] ]
+    1,         // FLOW_MATRIX_HEIGHT
+    [[],[],[]] // HASH_MATRIX
 );
