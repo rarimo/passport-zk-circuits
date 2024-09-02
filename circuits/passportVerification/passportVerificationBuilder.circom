@@ -63,10 +63,10 @@ template PassportVerificationBuilder(
 
     var HASHES_COUNT[3];
 
-    for (var i = 0; i < 8; i++){
+    for (var i = 0; i < 3; i++){
         HASHES_COUNT[i] = 0;
-        for (var j = 0; j < 6; j++;){
-            HASHES_COUNT += HASH_BLOCK_MATRIX[i][j];
+        for (var j = 0; j < 8; j++){
+            HASHES_COUNT[i] = HASHES_COUNT[i] + HASH_BLOCK_MATRIX[i][j];
         }
     }
 
@@ -83,36 +83,40 @@ template PassportVerificationBuilder(
     var hashCounter = 0;
     
     for (var i = 1; i <= 8; i++){
-        if (HASH_BLOCK_MATRIX[0][i] == 1){
-            component dg15PassportHasher[hashCounter] = PassportHash(HASH_BLOCK_SIZE, i, HASH_TYPE);
+        if (HASH_BLOCK_MATRIX[0][i-1] == 1){
+            dg15PassportHasher[hashCounter] = PassportHash(HASH_BLOCK_SIZE, i, HASH_TYPE);
             for (var j = 0; j < HASH_BLOCK_SIZE*i; j++){
                 dg15PassportHasher[hashCounter].in[j] <== dg15[j];
             }
-            dg15PassportHasher.out ==> dg15Hash[i];
+            dg15PassportHasher[hashCounter].out ==> dg15Hash[i-1];
             hashCounter += 1;
         } else {
-            for (j = 0; j < HASH_TYPE; j++){
-                dg15Hash[i][j] <== 0;
+            for (var j = 0; j < HASH_TYPE; j++){
+                dg15Hash[i-1][j] <== 0;
             }
         }
     }
     
-    var hashCounter = 0;
+    hashCounter = 0;
 
     for (var i = 1; i <= 8; i++){
-        if (HASH_BLOCK_MATRIX[1][i] == 1){
-            component ecPassportHasher[hashCounter] = PassportHash(HASH_BLOCK_SIZE, i, HASH_TYPE);
+        if (HASH_BLOCK_MATRIX[1][i-1] == 1){
+            ecPassportHasher[hashCounter] = PassportHash(HASH_BLOCK_SIZE, i, HASH_TYPE);
             for (var j = 0; j < HASH_BLOCK_SIZE*i; j++){
                 ecPassportHasher[hashCounter].in[j] <== encapsulatedContent[j];
             }
-            ecPassportHasher.out ==> encapsulatedContentHash[i];
+            ecPassportHasher[hashCounter].out ==> encapsulatedContentHash[i-1];
             hashCounter += 1;
+        } else {
+            for (var j = 0; j < HASH_TYPE; j++){
+                encapsulatedContentHash[i-1][j] <== 0;
+            }
         }
     }
 
     for (var i = 1; i <= 8; i++){
-        if (HASH_BLOCK_MATRIX[2][i] == 1){
-            component saPassportHasher = PassportHash(HASH_BLOCK_SIZE, i, HASH_TYPE);
+        if (HASH_BLOCK_MATRIX[2][i-1] == 1){
+            saPassportHasher = PassportHash(HASH_BLOCK_SIZE, i, HASH_TYPE);
             for (var j = 0; j < HASH_BLOCK_SIZE*i; j++){
                 saPassportHasher.in[j] <== signedAttributes[j];
             }
@@ -134,12 +138,12 @@ template PassportVerificationBuilder(
         );
 
         passportVerificationFlow[i].dg1Hash                 <== dg1Hash;
-        passportVerificationFlow[i].dg15Hash                <== dg15Hash[FLOW_MATRIX[i][3]];          //dg15 block num
+        passportVerificationFlow[i].dg15Hash                <== dg15Hash[FLOW_MATRIX[i][3]-1];          //dg15 block num (-1 because of starting from 1 block hash)
         passportVerificationFlow[i].encapsulatedContent     <== encapsulatedContent;       
-        passportVerificationFlow[i].encapsulatedContentHash <== enclapsulated[FLOW_MATRIX[i][4]];     //ec block num
+        passportVerificationFlow[i].encapsulatedContentHash <== encapsulatedContentHash[FLOW_MATRIX[i][4]-1];     //ec block num (-1 the same)
         passportVerificationFlow[i].signedAttributes        <== signedAttributes;
 
-        log(passportVerificationFlow[i].flowResult);
+        log("Flow result:", passportVerificationFlow[i].flowResult);
 
     }
         
