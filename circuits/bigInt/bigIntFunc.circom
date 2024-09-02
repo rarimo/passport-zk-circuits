@@ -1,19 +1,19 @@
 pragma circom 2.0.3;
 
-function min(a, b) {
-    if(a < b)
-        return a;
-    return b;
+function min(A, B) {
+    if(A < B)
+        return A;
+    return B;
 }
 
-function max(a, b) {
-    if(a > b)
-        return a;
-    return b;
+function max(A, B) {
+    if(A > B)
+        return A;
+    return B;
 }
 
-function log_ceil(n) {
-   var n_temp = n;
+function log_ceil(CHUNK_SIZE) {
+   var n_temp = CHUNK_SIZE;
    for (var i = 0; i < 254; i++) {
        if (n_temp == 0) {
           return i;
@@ -23,114 +23,114 @@ function log_ceil(n) {
    return 254;
 }
 
-function SplitFn(in, n, m) {
-    return [in % (1 << n), (in \ (1 << n)) % (1 << m)];
+function SplitFn(IN, CHUNK_SIZE, M) {
+    return [IN % (1 << CHUNK_SIZE), (IN \ (1 << CHUNK_SIZE)) % (1 << M)];
 }
 
-function SplitThreeFn(in, n, m, k) {
-    return [in % (1 << n), (in \ (1 << n)) % (1 << m), (in \ (1 << n + m)) % (1 << k)];
+function SplitThreeFn(IN, CHUNK_SIZE, M, CHUNK_NUMBER) {
+    return [IN % (1 << CHUNK_SIZE), (IN \ (1 << CHUNK_SIZE)) % (1 << M), (IN \ (1 << CHUNK_SIZE + M)) % (1 << CHUNK_NUMBER)];
 }
 
 // 1 if true, 0 if false
-function long_gt(n, k, a, b) {
-    for (var i = k - 1; i >= 0; i--) {
-        if (a[i] > b[i]) {
+function long_gt(CHUNK_SIZE, CHUNK_NUMBER, A, B) {
+    for (var i = CHUNK_NUMBER - 1; i >= 0; i--) {
+        if (A[i] > B[i]) {
             return 1;
         }
-        if (a[i] < b[i]) {
+        if (A[i] < B[i]) {
             return 0;
         }
     }
     return 0;
 }
 
-function long_is_zero(k, a){
-    for(var idx=0; idx<k; idx++){
-        if(a[idx] != 0)
+function long_is_zero(CHUNK_NUMBER, A){
+    for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        if(A[idx] != 0)
             return 0;
     }
     return 1;
 }
 
-// n bits per register
-// a has k registers
-// b has k registers
-// output has k+1 registers
-function long_add(n, k, a, b){
+// CHUNK_SIZE bits per register
+// A has CHUNK_NUMBER registers
+// B has CHUNK_NUMBER registers
+// output has CHUNK_NUMBER+1 registers
+function long_add(CHUNK_SIZE, CHUNK_NUMBER, A, B){
     var carry = 0;
     var sum[150];
-    for(var i=0; i<k; i++){
-        var sumAndCarry[2] = SplitFn(a[i] + b[i] + carry, n, n);
+    for(var i=0; i<CHUNK_NUMBER; i++){
+        var sumAndCarry[2] = SplitFn(A[i] + B[i] + carry, CHUNK_SIZE, CHUNK_SIZE);
         sum[i] = sumAndCarry[0];
         carry = sumAndCarry[1];
     }
-    sum[k] = carry;
+    sum[CHUNK_NUMBER] = carry;
     return sum;
 }
 
-// n bits per register
-// a has k registers
-// b has k registers
-// c has k registers
-// d has k registers
-// output has k+1 registers
-function long_add4(n, k, a, b, c, d){
+// CHUNK_SIZE bits per register
+// A has CHUNK_NUMBER registers
+// B has CHUNK_NUMBER registers
+// c has CHUNK_NUMBER registers
+// d has CHUNK_NUMBER registers
+// output has CHUNK_NUMBER+1 registers
+function long_add4(CHUNK_SIZE, CHUNK_NUMBER, A, B, c, d){
     var carry = 0;
     var sum[150];
-    for(var i=0; i < k; i++){
-        var sumAndCarry[2] = SplitFn(a[i] + b[i] + c[i] + d[i] + carry, n, n);
+    for(var i=0; i < CHUNK_NUMBER; i++){
+        var sumAndCarry[2] = SplitFn(A[i] + B[i] + c[i] + d[i] + carry, CHUNK_SIZE, CHUNK_SIZE);
         sum[i] = sumAndCarry[0];
         carry = sumAndCarry[1];
     }
-    sum[k] = carry;
+    sum[CHUNK_NUMBER] = carry;
     return sum;
 }
 
-// n bits per register
-// a has k1 registers
-// b has k2 registers
-// assume k1 > k2
-// output has k1+1 registers
-function long_add_unequal(n, k1, k2, a, b){
+// CHUNK_SIZE bits per register
+// A has K1 registers
+// B has K2 registers
+// assume K1 > K2
+// output has K1+1 registers
+function long_add_unequal(CHUNK_SIZE, K1, K2, A, B){
     var carry = 0;
     var sum[150];
-    for(var i=0; i<k1; i++){
-        if (i < k2) {
-            var sumAndCarry[2] = SplitFn(a[i] + b[i] + carry, n, n);
+    for(var i=0; i<K1; i++){
+        if (i < K2) {
+            var sumAndCarry[2] = SplitFn(A[i] + B[i] + carry, CHUNK_SIZE, CHUNK_SIZE);
             sum[i] = sumAndCarry[0];
             carry = sumAndCarry[1];
         } else {
-            var sumAndCarry[2] = SplitFn(a[i] + carry, n, n);
+            var sumAndCarry[2] = SplitFn(A[i] + carry, CHUNK_SIZE, CHUNK_SIZE);
             sum[i] = sumAndCarry[0];
             carry = sumAndCarry[1];
         }
     }
-    sum[k1] = carry;
+    sum[K1] = carry;
     return sum;
 }
 
-// n bits per register
-// a has k registers
-// b has k registers
-// a >= b
-function long_sub(n, k, a, b) {
+// CHUNK_SIZE bits per register
+// A has CHUNK_NUMBER registers
+// B has CHUNK_NUMBER registers
+// A >= B
+function long_sub(CHUNK_SIZE, CHUNK_NUMBER, A, B) {
     var diff[150];
     var borrow[150];
-    for (var i = 0; i < k; i++) {
+    for (var i = 0; i < CHUNK_NUMBER; i++) {
         if (i == 0) {
-           if (a[i] >= b[i]) {
-               diff[i] = a[i] - b[i];
+           if (A[i] >= B[i]) {
+               diff[i] = A[i] - B[i];
                borrow[i] = 0;
             } else {
-               diff[i] = a[i] - b[i] + (1 << n);
+               diff[i] = A[i] - B[i] + (1 << CHUNK_SIZE);
                borrow[i] = 1;
             }
         } else {
-            if (a[i] >= b[i] + borrow[i - 1]) {
-               diff[i] = a[i] - b[i] - borrow[i - 1];
+            if (A[i] >= B[i] + borrow[i - 1]) {
+               diff[i] = A[i] - B[i] - borrow[i - 1];
                borrow[i] = 0;
             } else {
-               diff[i] = (1 << n) + a[i] - b[i] - borrow[i - 1];
+               diff[i] = (1 << CHUNK_SIZE) + A[i] - B[i] - borrow[i - 1];
                borrow[i] = 1;
             }
         }
@@ -138,134 +138,134 @@ function long_sub(n, k, a, b) {
     return diff;
 }
 
-// a is a n-bit scalar
-// b has k registers
-function long_scalar_mult(n, k, a, b) {
+// A is A CHUNK_SIZE-bit scalar
+// B has CHUNK_NUMBER registers
+function long_scalar_mult(CHUNK_SIZE, CHUNK_NUMBER, A, B) {
     var out[150];
     for (var i = 0; i < 150; i++) {
         out[i] = 0;
     }
-    for (var i = 0; i < k; i++) {
-        var temp = out[i] + (a * b[i]);
-        out[i] = temp % (1 << n);
-        out[i + 1] = out[i + 1] + temp \ (1 << n);
+    for (var i = 0; i < CHUNK_NUMBER; i++) {
+        var temp = out[i] + (A * B[i]);
+        out[i] = temp % (1 << CHUNK_SIZE);
+        out[i + 1] = out[i + 1] + temp \ (1 << CHUNK_SIZE);
     }
     return out;
 }
 
 
-// n bits per register
-// a has k + m registers
-// b has k registers
-// out[0] has length m + 1 -- quotient
-// out[1] has length k -- remainder
+// CHUNK_SIZE bits per register
+// A has CHUNK_NUMBER + M registers
+// B has CHUNK_NUMBER registers
+// out[0] has length M + 1 -- quotient
+// out[1] has length CHUNK_NUMBER -- remainder
 // implements algorithm of https://people.eecs.berkeley.edu/~fateman/282/F%20Wright%20notes/week4.pdf
-// b[k-1] must be nonzero!
-function long_div2(n, k, m, a, b){
+// B[CHUNK_NUMBER-1] must be nonzero!
+function long_div2(CHUNK_SIZE, CHUNK_NUMBER, M, A, B){
     var out[2][150];
-    // assume k+m < 150
+    // assume CHUNK_NUMBER+M < 150
     var remainder[150];
-    for (var i = 0; i < m + k; i++) {
-        remainder[i] = a[i];
+    for (var i = 0; i < M + CHUNK_NUMBER; i++) {
+        remainder[i] = A[i];
     }
 
     var dividend[150];
-    for (var i = m; i >= 0; i--) {
-        if (i == m) {
-            dividend[k] = 0;
-            for (var j = k - 1; j >= 0; j--) {
-                dividend[j] = remainder[j + m];
+    for (var i = M; i >= 0; i--) {
+        if (i == M) {
+            dividend[CHUNK_NUMBER] = 0;
+            for (var j = CHUNK_NUMBER - 1; j >= 0; j--) {
+                dividend[j] = remainder[j + M];
             }
         } else {
-            for (var j = k; j >= 0; j--) {
+            for (var j = CHUNK_NUMBER; j >= 0; j--) {
                 dividend[j] = remainder[j + i];
             }
         }
-        out[0][i] = short_div(n, k, dividend, b);
-        var mult_shift[150] = long_scalar_mult(n, k, out[0][i], b);
+        out[0][i] = short_div(CHUNK_SIZE, CHUNK_NUMBER, dividend, B);
+        var MULT_SHIFT[150] = long_scalar_mult(CHUNK_SIZE, CHUNK_NUMBER, out[0][i], B);
         var subtrahend[150];
-        for (var j = 0; j < m + k; j++) {
+        for (var j = 0; j < M + CHUNK_NUMBER; j++) {
             subtrahend[j] = 0;
         }
-        for (var j = 0; j <= k; j++) {
-            if (i + j < m + k) {
-               subtrahend[i + j] = mult_shift[j];
+        for (var j = 0; j <= CHUNK_NUMBER; j++) {
+            if (i + j < M + CHUNK_NUMBER) {
+               subtrahend[i + j] = MULT_SHIFT[j];
             }
         }
-        remainder = long_sub(n, m + k, remainder, subtrahend);
+        remainder = long_sub(CHUNK_SIZE, M + CHUNK_NUMBER, remainder, subtrahend);
     }
-    for (var i = 0; i < k; i++) {
+    for (var i = 0; i < CHUNK_NUMBER; i++) {
         out[1][i] = remainder[i];
     }
-    out[1][k] = 0;
+    out[1][CHUNK_NUMBER] = 0;
     return out;
 }
 
-function long_div(n, k, a, b) {
-    return long_div2(n, k, k, a, b);
+function long_div(CHUNK_SIZE, CHUNK_NUMBER, A, B) {
+    return long_div2(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER, A, B);
 }
 
-// n bits per register
-// a has k + 1 registers
-// b has k registers
-// assumes leading digit of b is at least 2^(n - 1)
-// 0 <= a < (2**n) * b
-function short_div_norm(n, k, a, b) {
-   var qhat = (a[k] * (1 << n) + a[k - 1]) \ b[k - 1];
-   if (qhat > (1 << n) - 1) {
-      qhat = (1 << n) - 1;
-   }
+// CHUNK_SIZE bits per register
+// A has CHUNK_NUMBER + 1 registers
+// B has CHUNK_NUMBER registers
+// assumes leading digit of B is at least 2^(CHUNK_SIZE - 1)
+// 0 <= A < (2**CHUNK_SIZE) * B
+function short_div_norm(CHUNK_SIZE, CHUNK_NUMBER, A, B) {
+    var qhat = (A[CHUNK_NUMBER] * (1 << CHUNK_SIZE) + A[CHUNK_NUMBER - 1]) \ B[CHUNK_NUMBER - 1];
+    if (qhat > (1 << CHUNK_SIZE) - 1) {
+        qhat = (1 << CHUNK_SIZE) - 1;
+    }
 
-   var mult[150] = long_scalar_mult(n, k, qhat, b);
-   if (long_gt(n, k + 1, mult, a) == 1) {
-      mult = long_sub(n, k + 1, mult, b);
-      if (long_gt(n, k + 1, mult, a) == 1) {
-         return qhat - 2;
-      } else {
-         return qhat - 1;
-      }
-   } else {
+    var MULT[150] = long_scalar_mult(CHUNK_SIZE, CHUNK_NUMBER, qhat, B);
+    if (long_gt(CHUNK_SIZE, CHUNK_NUMBER + 1, MULT, A) == 1) {
+        MULT = long_sub(CHUNK_SIZE, CHUNK_NUMBER + 1, MULT, B);
+        if (long_gt(CHUNK_SIZE, CHUNK_NUMBER + 1, MULT, A) == 1) {
+            return qhat - 2;
+        } else {
+            return qhat - 1;
+        }
+    } else {
        return qhat;
    }
 }
 
-// n bits per register
-// a has k + 1 registers
-// b has k registers
-// assumes leading digit of b is non-zero
-// 0 <= a < b * 2^n
-function short_div(n, k, a, b) {
-    var scale = (1 << n) \ (1 + b[k - 1]);
-    // k + 2 registers now
-    var norm_a[150] = long_scalar_mult(n, k + 1, scale, a);
-    // k + 1 registers now
-    var norm_b[150] = long_scalar_mult(n, k, scale, b);
+// CHUNK_SIZE bits per register
+// A has CHUNK_NUMBER + 1 registers
+// B has CHUNK_NUMBER registers
+// assumes leading digit of B is non-zero
+// 0 <= A < B * 2^CHUNK_SIZE
+function short_div(CHUNK_SIZE, CHUNK_NUMBER, A, B) {
+    var scale = (1 << CHUNK_SIZE) \ (1 + B[CHUNK_NUMBER - 1]);
+    // CHUNK_NUMBER + 2 registers now
+    var norm_a[150] = long_scalar_mult(CHUNK_SIZE, CHUNK_NUMBER + 1, scale, A);
+    // CHUNK_NUMBER + 1 registers now
+    var norm_b[150] = long_scalar_mult(CHUNK_SIZE, CHUNK_NUMBER, scale, B);
     
     var ret;
-    if (norm_b[k] != 0) {
-	ret = short_div_norm(n, k + 1, norm_a, norm_b);
+    if (norm_b[CHUNK_NUMBER] != 0) {
+	ret = short_div_norm(CHUNK_SIZE, CHUNK_NUMBER + 1, norm_a, norm_b);
     } else {
-	ret = short_div_norm(n, k, norm_a, norm_b);
+	ret = short_div_norm(CHUNK_SIZE, CHUNK_NUMBER, norm_a, norm_b);
     }
     return ret;
 }
 
-// a = a0 + a1 * X + ... + a[k-1] * X^{k-1} with X = 2^n
-//  a_i can be "negative" assume a_i in (-2^251, 2^251) 
-// output is the value of a with a_i all of the same sign 
+// A = a0 + a1 * X + ... + A[CHUNK_NUMBER-1] * X^{CHUNK_NUMBER-1} with X = 2^CHUNK_SIZE
+//  a_i can be "negative" assume a_i IN (-2^251, 2^251) 
+// output is the value of A with a_i all of the same sign 
 // out[150] = 0 if positive, 1 if negative
-function signed_long_to_short(n, k, a){
+function signed_long_to_short(CHUNK_SIZE, CHUNK_NUMBER, A){
     var out[151];
     var MAXL = 150;
     var temp[151];
 
-    // is a positive?
-    for(var i=0; i<k; i++) temp[i] = a[i];
-    for(var i=k; i<=MAXL; i++) temp[i] = 0;
+    // is A positive?
+    for(var i=0; i<CHUNK_NUMBER; i++) temp[i] = A[i];
+    for(var i=CHUNK_NUMBER; i<=MAXL; i++) temp[i] = 0;
 
-    var X = (1<<n); 
+    var X = (1<<CHUNK_SIZE); 
     for(var i=0; i<MAXL; i++){
-        if(temp[i] >= 0){ // circom automatically takes care of signs in comparator 
+        if(temp[i] >= 0){ // circom automatically takes care of signs IN comparator 
             out[i] = temp[i] % X;
             temp[i+1] += temp[i] \ X;
         }else{
@@ -281,8 +281,8 @@ function signed_long_to_short(n, k, a){
     }
     
     // must be negative then, reset
-    for(var i=0; i<k; i++) temp[i] = a[i];
-    for(var i=k; i<=MAXL; i++) temp[i] = 0;
+    for(var i=0; i<CHUNK_NUMBER; i++) temp[i] = A[i];
+    for(var i=CHUNK_NUMBER; i<=MAXL; i++) temp[i] = 0;
 
     for(var i=0; i<MAXL; i++){
         if(temp[i] < 0){
@@ -300,103 +300,103 @@ function signed_long_to_short(n, k, a){
     return out;
 }
 
-// n bits per register
-// a and b both have k registers
-// out[0] has length 2 * k
+// CHUNK_SIZE bits per register
+// A and B both have CHUNK_NUMBER registers
+// out[0] has length 2 * CHUNK_NUMBER
 // adapted from BigMulShortLong and LongToShortNoEndCarry witness computation
-function prod(n, k, a, b) {
+function prod(CHUNK_SIZE, CHUNK_NUMBER, A, B) {
     // first compute the intermediate values. taken from BigMulShortLong
-    var prod_val[150]; // length is 2 * k - 1
-    for (var i = 0; i < 2 * k - 1; i++) {
+    var prod_val[150]; // length is 2 * CHUNK_NUMBER - 1
+    for (var i = 0; i < 2 * CHUNK_NUMBER - 1; i++) {
         prod_val[i] = 0;
-        if (i < k) {
+        if (i < CHUNK_NUMBER) {
             for (var a_idx = 0; a_idx <= i; a_idx++) {
-                prod_val[i] = prod_val[i] + a[a_idx] * b[i - a_idx];
+                prod_val[i] = prod_val[i] + A[a_idx] * B[i - a_idx];
             }
         } else {
-            for (var a_idx = i - k + 1; a_idx < k; a_idx++) {
-                prod_val[i] = prod_val[i] + a[a_idx] * b[i - a_idx];
+            for (var a_idx = i - CHUNK_NUMBER + 1; a_idx < CHUNK_NUMBER; a_idx++) {
+                prod_val[i] = prod_val[i] + A[a_idx] * B[i - a_idx];
             }
         }
     }
 
-    // now do a bunch of carrying to make sure registers not overflowed. taken from LongToShortNoEndCarry
-    var out[150]; // length is 2 * k
+    // now do A bunch of carrying to make sure registers not overflowed. taken from LongToShortNoEndCarry
+    var out[150]; // length is 2 * CHUNK_NUMBER
 
-    var split[150][3]; // first dimension has length 2 * k - 1
-    for (var i = 0; i < 2 * k - 1; i++) {
-        split[i] = SplitThreeFn(prod_val[i], n, n, n);
+    var SPLIT[150][3]; // first dimension has length 2 * CHUNK_NUMBER - 1
+    for (var i = 0; i < 2 * CHUNK_NUMBER - 1; i++) {
+        SPLIT[i] = SplitThreeFn(prod_val[i], CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE);
     }
 
-    var carry[150]; // length is 2 * k - 1
+    var carry[150]; // length is 2 * CHUNK_NUMBER - 1
     carry[0] = 0;
-    out[0] = split[0][0];
-    if (2 * k - 1 > 1) {
-        var sumAndCarry[2] = SplitFn(split[0][1] + split[1][0], n, n);
+    out[0] = SPLIT[0][0];
+    if (2 * CHUNK_NUMBER - 1 > 1) {
+        var sumAndCarry[2] = SplitFn(SPLIT[0][1] + SPLIT[1][0], CHUNK_SIZE, CHUNK_SIZE);
         out[1] = sumAndCarry[0];
         carry[1] = sumAndCarry[1];
     }
-    if (2 * k - 1 > 2) {
-        for (var i = 2; i < 2 * k - 1; i++) {
-            var sumAndCarry[2] = SplitFn(split[i][0] + split[i-1][1] + split[i-2][2] + carry[i-1], n, n);
+    if (2 * CHUNK_NUMBER - 1 > 2) {
+        for (var i = 2; i < 2 * CHUNK_NUMBER - 1; i++) {
+            var sumAndCarry[2] = SplitFn(SPLIT[i][0] + SPLIT[i-1][1] + SPLIT[i-2][2] + carry[i-1], CHUNK_SIZE, CHUNK_SIZE);
             out[i] = sumAndCarry[0];
             carry[i] = sumAndCarry[1];
         }
-        out[2 * k - 1] = split[2*k-2][1] + split[2*k-3][2] + carry[2*k-2];
+        out[2 * CHUNK_NUMBER - 1] = SPLIT[2*CHUNK_NUMBER-2][1] + SPLIT[2*CHUNK_NUMBER-3][2] + carry[2*CHUNK_NUMBER-2];
     }
     return out;
 }
 
 
-// n bits per register
-// a and b both have l x k registers
+// CHUNK_SIZE bits per register
+// A and B both have SMALL_CHUNK_SIZE x CHUNK_NUMBER registers
 // out has length 2l - 1 x 2k
 // adapted from BigMultShortLong2D and LongToShortNoEndCarry2 witness computation
-function prod2D(n, k, l, a, b) {
+function prod2D(CHUNK_SIZE, CHUNK_NUMBER, SMALL_CHUNK_SIZE, A, B) {
     // first compute the intermediate values. taken from BigMulShortLong
     var prod_val[20][150]; // length is 2l - 1 by 2k - 1
-    for (var i = 0; i < 2 * k - 1; i++) {
-        for (var j = 0; j < 2 * l - 1; j ++) {
+    for (var i = 0; i < 2 * CHUNK_NUMBER - 1; i++) {
+        for (var j = 0; j < 2 * SMALL_CHUNK_SIZE - 1; j ++) {
             prod_val[j][i] = 0;
         }
     }
-    for (var i1 = 0; i1 < k; i1 ++) {
-        for (var i2 = 0; i2 < k; i2 ++) {
-            for (var j1 = 0; j1 < l; j1 ++) {
-                for (var j2 = 0; j2 < l; j2 ++) {
-                    prod_val[j1+j2][i1+i2] = prod_val[j1+j2][i1+i2] + a[j1][i1] * b[j2][i2];
+    for (var i1 = 0; i1 < CHUNK_NUMBER; i1 ++) {
+        for (var i2 = 0; i2 < CHUNK_NUMBER; i2 ++) {
+            for (var j1 = 0; j1 < SMALL_CHUNK_SIZE; j1 ++) {
+                for (var j2 = 0; j2 < SMALL_CHUNK_SIZE; j2 ++) {
+                    prod_val[j1+j2][i1+i2] = prod_val[j1+j2][i1+i2] + A[j1][i1] * B[j2][i2];
                 }
             }
         }
     }
 
-    // now do a bunch of carrying to make sure registers not overflowed. taken from LongToShortNoEndCarry2
-    var out[20][150]; // length is 2 * l by 2 * k
+    // now do A bunch of carrying to make sure registers not overflowed. taken from LongToShortNoEndCarry2
+    var out[20][150]; // length is 2 * SMALL_CHUNK_SIZE by 2 * CHUNK_NUMBER
 
-    var split[20][150][3]; // second dimension has length 2 * k - 1
-    for (var j = 0; j < 2 * l - 1; j ++) {
-        for (var i = 0; i < 2 * k - 1; i++) {
-            split[j][i] = SplitThreeFn(prod_val[j][i], n, n, n);
+    var SPLIT[20][150][3]; // second dimension has length 2 * CHUNK_NUMBER - 1
+    for (var j = 0; j < 2 * SMALL_CHUNK_SIZE - 1; j ++) {
+        for (var i = 0; i < 2 * CHUNK_NUMBER - 1; i++) {
+            SPLIT[j][i] = SplitThreeFn(prod_val[j][i], CHUNK_SIZE, CHUNK_SIZE, CHUNK_SIZE);
         }
     }
 
     var carry[20][150]; // length is 2l-1 x 2k
     var sumAndCarry[20][2];
-    for ( var j = 0; j < 2 * l - 1; j ++) {
+    for ( var j = 0; j < 2 * SMALL_CHUNK_SIZE - 1; j ++) {
         carry[j][0] = 0;
-        out[j][0] = split[j][0][0];
-        if (2 * k - 1 > 1) {
-            sumAndCarry[j] = SplitFn(split[j][0][1] + split[j][1][0], n, n);
+        out[j][0] = SPLIT[j][0][0];
+        if (2 * CHUNK_NUMBER - 1 > 1) {
+            sumAndCarry[j] = SplitFn(SPLIT[j][0][1] + SPLIT[j][1][0], CHUNK_SIZE, CHUNK_SIZE);
             out[j][1] = sumAndCarry[j][0];
             carry[j][1] = sumAndCarry[j][1];
         }
-        if (2 * k - 1 > 2) {
-            for (var i = 2; i < 2 * k - 1; i++) {
-                sumAndCarry[j] = SplitFn(split[j][i][0] + split[j][i-1][1] + split[j][i-2][2] + carry[j][i-1], n, n);
+        if (2 * CHUNK_NUMBER - 1 > 2) {
+            for (var i = 2; i < 2 * CHUNK_NUMBER - 1; i++) {
+                sumAndCarry[j] = SplitFn(SPLIT[j][i][0] + SPLIT[j][i-1][1] + SPLIT[j][i-2][2] + carry[j][i-1], CHUNK_SIZE, CHUNK_SIZE);
                 out[j][i] = sumAndCarry[j][0];
                 carry[j][i] = sumAndCarry[j][1];
             }
-            out[j][2 * k - 1] = split[j][2*k-2][1] + split[j][2*k-3][2] + carry[j][2*k-2];
+            out[j][2 * CHUNK_NUMBER - 1] = SPLIT[j][2*CHUNK_NUMBER-2][1] + SPLIT[j][2*CHUNK_NUMBER-3][2] + carry[j][2*CHUNK_NUMBER-2];
         }
     }
 
@@ -405,68 +405,68 @@ function prod2D(n, k, l, a, b) {
 
 // Put all modular arithmetic, aka F_p field stuff, at the end
 
-function long_add_mod(n, k, a, b, p) {
-    var sum[150] = long_add(n,k,a,b); 
-    var temp[2][150] = long_div2(n,k,1,sum,p);
+function long_add_mod(CHUNK_SIZE, CHUNK_NUMBER, A, B, P) {
+    var sum[150] = long_add(CHUNK_SIZE,CHUNK_NUMBER,A,B); 
+    var temp[2][150] = long_div2(CHUNK_SIZE,CHUNK_NUMBER,1,sum,P);
     return temp[1];
 }
 
-function long_sub_mod(n, k, a, b, p) {
-    if(long_gt(n, k, b, a) == 1){
-        return long_add(n, k, a, long_sub(n,k,p,b));
+function long_sub_mod(CHUNK_SIZE, CHUNK_NUMBER, A, B, P) {
+    if(long_gt(CHUNK_SIZE, CHUNK_NUMBER, B, A) == 1){
+        return long_add(CHUNK_SIZE, CHUNK_NUMBER, A, long_sub(CHUNK_SIZE,CHUNK_NUMBER,P,B));
     }else{
-        return long_sub(n, k, a, b);
+        return long_sub(CHUNK_SIZE, CHUNK_NUMBER, A, B);
     }
 }
 
-function prod_mod(n, k, a, b, p) {
-    var prod[150] = prod(n,k,a,b);
-    var temp[2][150] = long_div(n,k,prod,p);
+function prod_mod(CHUNK_SIZE, CHUNK_NUMBER, A, B, P) {
+    var prod[150] = prod(CHUNK_SIZE,CHUNK_NUMBER,A,B);
+    var temp[2][150] = long_div(CHUNK_SIZE,CHUNK_NUMBER,prod,P);
     return temp[1];
 }
 
 
-// n bits per register
-// a has k registers
-// p has k registers
-// e has k registers
-// k * n <= 500
-// p is a prime
-// computes a^e mod p
-function mod_exp(n, k, a, p, e) {
-    var eBits[500]; // length is k * n
-    var bitlength; 
-    for (var i = 0; i < k; i++) {
-        for (var j = 0; j < n; j++) {
-            eBits[j + n * i] = (e[i] >> j) & 1;
-            if(eBits[j + n * i] == 1)
-                bitlength = j + n * i + 1;
+// CHUNK_SIZE bits per register
+// A has CHUNK_NUMBER registers
+// P has CHUNK_NUMBER registers
+// EXP has CHUNK_NUMBER registers
+// CHUNK_NUMBER * CHUNK_SIZE <= 500
+// P is A prime
+// computes A^EXP mod P
+function mod_exp(CHUNK_SIZE, CHUNK_NUMBER, A, P, EXP) {
+    var eBits[500]; // length is CHUNK_NUMBER * CHUNK_SIZE
+    var BIT_LENGTH; 
+    for (var i = 0; i < CHUNK_NUMBER; i++) {
+        for (var j = 0; j < CHUNK_SIZE; j++) {
+            eBits[j + CHUNK_SIZE * i] = (EXP[i] >> j) & 1;
+            if(eBits[j + CHUNK_SIZE * i] == 1)
+                BIT_LENGTH = j + CHUNK_SIZE * i + 1;
         }
     }
 
-    var out[150]; // length is k
+    var out[150]; // length is CHUNK_NUMBER
     for (var i = 0; i < 150; i++) {
         out[i] = 0;
     }
     out[0] = 1;
 
     // repeated squaring
-    for (var i = bitlength-1; i >= 0; i--) {
-        // multiply by a if bit is 0
+    for (var i = BIT_LENGTH-1; i >= 0; i--) {
+        // multiply by A if bit is 0
         if (eBits[i] == 1) {
-            var temp[150]; // length 2 * k
-            temp = prod(n, k, out, a);
+            var temp[150]; // length 2 * CHUNK_NUMBER
+            temp = prod(CHUNK_SIZE, CHUNK_NUMBER, out, A);
             var temp2[2][150];
-            temp2 = long_div(n, k, temp, p);
+            temp2 = long_div(CHUNK_SIZE, CHUNK_NUMBER, temp, P);
             out = temp2[1];
         }
 
         // square, unless we're at the end
         if (i > 0) {
-            var temp[150]; // length 2 * k
-            temp = prod(n, k, out, out);
+            var temp[150]; // length 2 * CHUNK_NUMBER
+            temp = prod(CHUNK_SIZE, CHUNK_NUMBER, out, out);
             var temp2[2][150];
-            temp2 = long_div(n, k, temp, p);
+            temp2 = long_div(CHUNK_SIZE, CHUNK_NUMBER, temp, P);
             out = temp2[1];
         }
 
@@ -474,23 +474,23 @@ function mod_exp(n, k, a, p, e) {
     return out;
 }
 
-// n bits per register
-// a has k registers
-// p has k registers
-// k * n <= 500
-// p is a prime
-// if a == 0 mod p, returns 0
-// else computes inv = a^(p-2) mod p
-function mod_inv(n, k, a, p) {
+// CHUNK_SIZE bits per register
+// A has CHUNK_NUMBER registers
+// P has CHUNK_NUMBER registers
+// CHUNK_NUMBER * CHUNK_SIZE <= 500
+// P is A prime
+// if A == 0 mod P, returns 0
+// else computes inv = A^(P-2) mod P
+function mod_inv(CHUNK_SIZE, CHUNK_NUMBER, A, P) {
     var isZero = 1;
-    for (var i = 0; i < k; i++) {
-        if (a[i] != 0) {
+    for (var i = 0; i < CHUNK_NUMBER; i++) {
+        if (A[i] != 0) {
             isZero = 0;
         }
     }
     if (isZero == 1) {
         var ret[150];
-        for (var i = 0; i < k; i++) {
+        for (var i = 0; i < CHUNK_NUMBER; i++) {
             ret[i] = 0;
         }
         return ret;
@@ -498,8 +498,8 @@ function mod_inv(n, k, a, p) {
 
     var pCopy[150];
     for (var i = 0; i < 150; i++) {
-        if (i < k) {
-            pCopy[i] = p[i];
+        if (i < CHUNK_NUMBER) {
+            pCopy[i] = P[i];
         } else {
             pCopy[i] = 0;
         }
@@ -512,9 +512,9 @@ function mod_inv(n, k, a, p) {
     two[0] = 2;
 
     var pMinusTwo[150];
-    pMinusTwo = long_sub(n, k, pCopy, two); // length k
+    pMinusTwo = long_sub(CHUNK_SIZE, CHUNK_NUMBER, pCopy, two); // length CHUNK_NUMBER
     var out[150];
-    out = mod_exp(n, k, a, pCopy, pMinusTwo);
+    out = mod_exp(CHUNK_SIZE, CHUNK_NUMBER, A, pCopy, pMinusTwo);
     return out;
 }
 
