@@ -9,51 +9,51 @@ include "bls12_381_hash_to_G2.circom";
 // Input: pubkey in G_1 
 //        signature, H(m) in G_2
 // Output: out = 1 if valid signature, else = 0
-// Verifies that e(g1, signature) = e(pubkey, H(m)) by checking e(g1, signature)*e(pubkey, -H(m)) === 1 where e(,) is optimal Ate pairing
-template CoreVerifyPubkeyG1NoCheck(n, k){
-    signal input pubkey[2][k];
-    signal input signature[2][2][k];
-    signal input Hm[2][2][k];
+// Verifies that e(G1, signature) = e(pubkey, H(m)) by checking e(G1, signature)*e(pubkey, -H(m)) === 1 where e(,) is optimal Ate pairing
+template CoreVerifyPubkeyG1NoCheck(CHUNK_SIZE, CHUNK_NUMBER){
+    signal input pubkey[2][CHUNK_NUMBER];
+    signal input signature[2][2][CHUNK_NUMBER];
+    signal input Hm[2][2][CHUNK_NUMBER];
     signal output out;
 
-    var q[150] = get_BLS12_381_prime(n, k);
-    var x = get_BLS12_381_parameter();
-    var g1[2][150] = get_generator_G1(n, k); 
+    var Q[150] = get_BLS12_381_prime(CHUNK_SIZE, CHUNK_NUMBER);
+    var X = get_BLS12_381_parameter();
+    var G1[2][150] = get_generator_G1(CHUNK_SIZE, CHUNK_NUMBER); 
 
-    signal neg_s[2][2][k];
+    signal negS[2][2][CHUNK_NUMBER];
     component neg[2];
     for(var j=0; j<2; j++){
-        neg[j] = FpNegate(n, k, q); 
-        for(var idx=0; idx<k; idx++)
+        neg[j] = FpNegate(CHUNK_SIZE, CHUNK_NUMBER, Q); 
+        for(var idx=0; idx<CHUNK_NUMBER; idx++)
             neg[j].in[idx] <== signature[1][j][idx];
-        for(var idx=0; idx<k; idx++){
-            neg_s[0][j][idx] <== signature[0][j][idx];
-            neg_s[1][j][idx] <== neg[j].out[idx];
+        for(var idx=0; idx<CHUNK_NUMBER; idx++){
+            negS[0][j][idx] <== signature[0][j][idx];
+            negS[1][j][idx] <== neg[j].out[idx];
         }
     }
 
-    component miller = MillerLoopFp2Two(n, k, [4,4], x, q);
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
-        miller.P[0][i][j][idx] <== neg_s[i][j][idx];
+    component miller = MillerLoopFp2Two(CHUNK_SIZE, CHUNK_NUMBER, [4,4], X, Q);
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        miller.P[0][i][j][idx] <== negS[i][j][idx];
         miller.P[1][i][j][idx] <== Hm[i][j][idx];
     }
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){
-        miller.Q[0][i][idx] <== g1[i][idx];
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+        miller.Q[0][i][idx] <== G1[i][idx];
         miller.Q[1][i][idx] <== pubkey[i][idx];
     }
 
-    component finalexp = FinalExponentiate(n, k, q);
-    for(var i=0; i<6; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++)
-        finalexp.in[i][j][idx] <== miller.out[i][j][idx];
+    component finalExp = FinalExponentiate(CHUNK_SIZE, CHUNK_NUMBER, Q);
+    for(var i=0; i<6; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+        finalExp.in[i][j][idx] <== miller.out[i][j][idx];
 
-    component is_valid[6][2][k];
-    var total = 12*k;
-    for(var i=0; i<6; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
+    component is_valid[6][2][CHUNK_NUMBER];
+    var total = 12*CHUNK_NUMBER;
+    for(var i=0; i<6; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         is_valid[i][j][idx] = IsZero(); 
         if(i==0 && j==0 && idx==0)
-            is_valid[i][j][idx].in <== finalexp.out[i][j][idx] - 1;
+            is_valid[i][j][idx].in <== finalExp.out[i][j][idx] - 1;
         else
-            is_valid[i][j][idx].in <== finalexp.out[i][j][idx];
+            is_valid[i][j][idx].in <== finalExp.out[i][j][idx];
         total -= is_valid[i][j][idx].out; 
     }
     component valid = IsZero(); 
@@ -66,21 +66,21 @@ template CoreVerifyPubkeyG1NoCheck(n, k){
 //   - hash represents two field elements in Fp2, in practice hash = hash_to_field(msg,2).
 //   - signature, as element of E2(Fq2) 
 // Assume signature is not point at infinity 
-template CoreVerifyPubkeyG1(n, k){
-    signal input pubkey[2][k];
-    signal input signature[2][2][k];
-    signal input hash[2][2][k];
+template CoreVerifyPubkeyG1(CHUNK_SIZE, CHUNK_NUMBER){
+    signal input pubkey[2][CHUNK_NUMBER];
+    signal input signature[2][2][CHUNK_NUMBER];
+    signal input hash[2][2][CHUNK_NUMBER];
      
-    var q[150] = get_BLS12_381_prime(n, k);
+    var Q[150] = get_BLS12_381_prime(CHUNK_SIZE, CHUNK_NUMBER);
 
     component lt[10];
-    // check all len k input arrays are correctly formatted bigints < q (BigLessThan calls Num2Bits)
+    // check all len CHUNK_NUMBER input arrays are correctly formatted bigints < Q (BigLessThan calls Num2Bits)
     for(var i=0; i<10; i++){
-        lt[i] = BigLessThan(n, k);
-        for(var idx=0; idx<k; idx++)
-            lt[i].b[idx] <== q[idx];
+        lt[i] = BigLessThan(CHUNK_SIZE, CHUNK_NUMBER);
+        for(var idx=0; idx<CHUNK_NUMBER; idx++)
+            lt[i].b[idx] <== Q[idx];
     }
-    for(var idx=0; idx<k; idx++){
+    for(var idx=0; idx<CHUNK_NUMBER; idx++){
         lt[0].a[idx] <== pubkey[0][idx];
         lt[1].a[idx] <== pubkey[1][idx];
         lt[2].a[idx] <== signature[0][0][idx];
@@ -97,11 +97,11 @@ template CoreVerifyPubkeyG1(n, k){
         r += lt[i].out;
     }
     r === 10;
-    // check all registers are in [0, 2^n)
+    // check all registers are in [0, 2^CHUNK_SIZE)
     component check[5]; 
     for(var i=0; i<5; i++)
-        check[i] = RangeCheck2D(n, k); 
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){
+        check[i] = RangeCheck2D(CHUNK_SIZE, CHUNK_NUMBER); 
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         check[0].in[i][idx] <== pubkey[i][idx];
         check[1].in[i][idx] <== signature[0][i][idx];
         check[2].in[i][idx] <== signature[1][i][idx];
@@ -109,25 +109,25 @@ template CoreVerifyPubkeyG1(n, k){
         check[4].in[i][idx] <== hash[1][i][idx];
     }
     
-    component pubkey_valid = SubgroupCheckG1(n, k);
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++)
-        pubkey_valid.in[i][idx] <== pubkey[i][idx];
+    component pubkeyValid = SubgroupCheckG1(CHUNK_SIZE, CHUNK_NUMBER);
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+        pubkeyValid.in[i][idx] <== pubkey[i][idx];
 
-    component signature_valid = SubgroupCheckG2(n, k);
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++)
-        signature_valid.in[i][j][idx] <== signature[i][j][idx];
+    component signatureValid = SubgroupCheckG2(CHUNK_SIZE, CHUNK_NUMBER);
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+        signatureValid.in[i][j][idx] <== signature[i][j][idx];
 
-    component Hm = MapToG2(n, k);
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++)
+    component Hm = MapToG2(CHUNK_SIZE, CHUNK_NUMBER);
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
         Hm.in[i][j][idx] <== hash[i][j][idx];
 
     Hm.isInfinity === 0;
     
-    component verify = CoreVerifyPubkeyG1NoCheck(n, k);
+    component verify = CoreVerifyPubkeyG1NoCheck(CHUNK_SIZE, CHUNK_NUMBER);
 
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++)
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
         verify.pubkey[i][idx] <== pubkey[i][idx];
-    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<k; idx++){
+    for(var i=0; i<2; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
         verify.signature[i][j][idx] <== signature[i][j][idx];
         verify.Hm[i][j][idx] <== Hm.out[i][j][idx]; 
     }
