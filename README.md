@@ -294,8 +294,8 @@ QUERY SELECTOR:
 11 - identity counter upperbound (+)
 12 - passport expiration lowerbound (+)
 13 - passport expiration upperbound (+)
-14 - birth date upperbound (+)
-15 - birth date lowerbound (+)
+14 - birth date lowerbound (+)
+15 - birth date upperbound (+)
 16 - verify citizenship mask as a whitelist (-) // not implemented currently
 17 - verify citizenship mask as a blacklist (-) // not implemented currently
 ```
