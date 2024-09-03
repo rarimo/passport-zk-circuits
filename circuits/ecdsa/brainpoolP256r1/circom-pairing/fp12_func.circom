@@ -1,214 +1,214 @@
 pragma circom 2.0.3;
 
-function find_Fp12_sum(n, k, a, b, p) {
+function find_Fp12_sum(CHUNK_SIZE, CHUNK_NUMBER, a, b, p) {
     var out[6][2][150];
     for(var i=0; i<6; i++)
-        out[i] = find_Fp2_sum(n, k, a[i], b[i], p);
+        out[i] = find_Fp2_sum(CHUNK_SIZE, CHUNK_NUMBER, a[i], b[i], p);
     return out;
 }
 
-function find_Fp12_diff(n, k, a, b, p) {
+function find_Fp12_diff(CHUNK_SIZE, CHUNK_NUMBER, a, b, p) {
     var out[6][2][150];
     for(var i=0; i<6; i++)
-        out[i] = find_Fp2_diff(n, k, a[i], b[i], p);
+        out[i] = find_Fp2_diff(CHUNK_SIZE, CHUNK_NUMBER, a[i], b[i], p);
     return out;
 }
 
-function find_Fp12_product(n, k, a, b, p) {
+function find_Fp12_product(CHUNK_SIZE, CHUNK_NUMBER, a, b, p) {
     var l = 6;
-    var a0[l][150];
-    var a1[l][150];
-    var b0[l][150];
-    var b1[l][150];
-    var neg_b0[l][150];
-    var neg_b1[l][150];
+    var A0[l][150];
+    var A1[l][150];
+    var B0[l][150];
+    var B1[l][150];
+    var NEG_B0[l][150];
+    var NEG_B1[l][150];
     var out[l][2][150];
     for (var i = 0; i < l; i ++) { 
-        for ( var j = 0; j < k; j ++) {
-            a0[i][j] = a[i][0][j];
-            a1[i][j] = a[i][1][j];
-            b0[i][j] = b[i][0][j];
-            b1[i][j] = b[i][1][j];
+        for ( var j = 0; j < CHUNK_NUMBER; j ++) {
+            A0[i][j] = a[i][0][j];
+            A1[i][j] = a[i][1][j];
+            B0[i][j] = b[i][0][j];
+            B1[i][j] = b[i][1][j];
         }
     }
     for ( var i = 0; i < l; i ++) {
-        neg_b0[i] = long_sub(n, k, p, b0[i]);
-        neg_b1[i] = long_sub(n, k, p, b1[i]);
+        NEG_B0[i] = long_sub(CHUNK_SIZE, CHUNK_NUMBER, p, B0[i]);
+        NEG_B1[i] = long_sub(CHUNK_SIZE, CHUNK_NUMBER, p, B1[i]);
     }
 
-    var real_init[20][150];
-    var imag_init[20][150];
-    var imag_init_neg[20][150];
+    var REAL_INIT[20][150];
+    var INAG_INIT[20][150];
+    var INAG_INIT_NEG[20][150];
     // var real[l][2][150];
     // var imag[l][2][150];
     // each product will be 2l-1 x 2k
-    var a0b0_var[20][150] = prod2D(n, k, l, a0, b0);
-    var a1b1_neg[20][150] = prod2D(n, k, l, a1, neg_b1);
-    var a0b1_var[20][150] = prod2D(n, k, l, a0, b1);
-    var a1b0_var[20][150] = prod2D(n, k, l, a1, b0);
-    var a0b1_neg[20][150] = prod2D(n, k, l, a0, neg_b1);
-    var a1b0_neg[20][150] = prod2D(n, k, l, a1, neg_b0);
+    var A0B0_VAR[20][150] = prod2D(CHUNK_SIZE, CHUNK_NUMBER, l, A0, B0);
+    var A1B1_NEG[20][150] = prod2D(CHUNK_SIZE, CHUNK_NUMBER, l, A1, NEG_B1);
+    var A0B1_VAR[20][150] = prod2D(CHUNK_SIZE, CHUNK_NUMBER, l, A0, B1);
+    var A1B0_VAR[20][150] = prod2D(CHUNK_SIZE, CHUNK_NUMBER, l, A1, B0);
+    var A0B1_NEG[20][150] = prod2D(CHUNK_SIZE, CHUNK_NUMBER, l, A0, NEG_B1);
+    var A1B0_NEG[20][150] = prod2D(CHUNK_SIZE, CHUNK_NUMBER, l, A1, NEG_B0);
     for (var i = 0; i < 2*l - 1; i ++) { // compute initial rep (deg w = 10)
-        real_init[i] = long_add(n, 2*k, a0b0_var[i], a1b1_neg[i]); // 2*k+1 registers each
-        imag_init[i] = long_add(n, 2*k, a0b1_var[i], a1b0_var[i]);
-        imag_init_neg[i] = long_add(n, 2*k, a0b1_neg[i], a1b0_neg[i]);
+        REAL_INIT[i] = long_add(CHUNK_SIZE, 2*CHUNK_NUMBER, A0B0_VAR[i], A1B1_NEG[i]); // 2*CHUNK_NUMBER+1 registers each
+        INAG_INIT[i] = long_add(CHUNK_SIZE, 2*CHUNK_NUMBER, A0B1_VAR[i], A1B0_VAR[i]);
+        INAG_INIT_NEG[i] = long_add(CHUNK_SIZE, 2*CHUNK_NUMBER, A0B1_NEG[i], A1B0_NEG[i]);
     }
-    var real_carry[l][150];
-    var imag_carry[l][150];
-    var real_final[l][150];
-    var imag_final[l][150];
+    var REAL_CARRY[l][150];
+    var IMAG_CARRY[l][150];
+    var REAL_FINAL[l][150];
+    var IMAG_FINAL[l][150];
     var zeros[150]; // to balance register sizes
     for (var i = 0; i < 150; i ++) {
         zeros[i] = 0;
     }
     for (var i = 0; i < l; i ++) {
         if (i == l - 1) {
-            real_carry[i] = long_add(n, 2*k+1, zeros, zeros);
-            imag_carry[i] = long_add(n, 2*k+1, zeros, zeros);
+            REAL_CARRY[i] = long_add(CHUNK_SIZE, 2*CHUNK_NUMBER+1, zeros, zeros);
+            IMAG_CARRY[i] = long_add(CHUNK_SIZE, 2*CHUNK_NUMBER+1, zeros, zeros);
         } else {
-            real_carry[i] = long_add(n, 2*k+1, real_init[i+l], imag_init_neg[i+l]); // now 2*k+2 registers
-            imag_carry[i] = long_add(n, 2*k+1, imag_init[i+l], real_init[i+l]);
+            REAL_CARRY[i] = long_add(CHUNK_SIZE, 2*CHUNK_NUMBER+1, REAL_INIT[i+l], INAG_INIT_NEG[i+l]); // now 2*CHUNK_NUMBER+2 registers
+            IMAG_CARRY[i] = long_add(CHUNK_SIZE, 2*CHUNK_NUMBER+1, INAG_INIT[i+l], REAL_INIT[i+l]);
         }
     }
     for (var i = 0; i < l; i ++) {
-        real_final[i] = long_add_unequal(n, 2*k+2, 2*k+1, real_carry[i], real_init[i]); // now 2*k+3 registers
-        imag_final[i] = long_add_unequal(n, 2*k+2, 2*k+1, imag_carry[i], imag_init[i]);
+        REAL_FINAL[i] = long_add_unequal(CHUNK_SIZE, 2*CHUNK_NUMBER+2, 2*CHUNK_NUMBER+1, REAL_CARRY[i], REAL_INIT[i]); // now 2*CHUNK_NUMBER+3 registers
+        IMAG_FINAL[i] = long_add_unequal(CHUNK_SIZE, 2*CHUNK_NUMBER+2, 2*CHUNK_NUMBER+1, IMAG_CARRY[i], INAG_INIT[i]);
     }
-    var XYreal_temp[l][2][150];
-    var XYimag_temp[l][2][150];
+    var X_Y_REAL_TEMP[l][2][150];
+    var X_Y_IMAG_TEMP[l][2][150];
     for (var i = 0; i < l; i ++) {
-        XYreal_temp[i] = long_div2(n, k, k+3, real_final[i], p); // k+4 register quotient, k register remainder
-        XYimag_temp[i] = long_div2(n, k, k+3, imag_final[i], p);
+        X_Y_REAL_TEMP[i] = long_div2(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER+3, REAL_FINAL[i], p); // CHUNK_NUMBER+4 register quotient, CHUNK_NUMBER register remainder
+        X_Y_IMAG_TEMP[i] = long_div2(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER+3, IMAG_FINAL[i], p);
     }
     for (var i = 0; i < l; i ++) {
-        for (var j = 0; j < k; j ++) {
-            out[i][0][j] = XYreal_temp[i][1][j];
-            out[i][1][j] = XYimag_temp[i][1][j];
+        for (var j = 0; j < CHUNK_NUMBER; j ++) {
+            out[i][0][j] = X_Y_REAL_TEMP[i][1][j];
+            out[i][1][j] = X_Y_IMAG_TEMP[i][1][j];
         }
     }
     return out;
 }
 
-// a is 6 x 2 x k element of Fp^12
+// a is 6 x 2 x CHUNK_NUMBER element of Fp^12
 // compute inverse. first multiply by conjugate a + bw (a,b in Fp^6, w^6=1+u, u^2=-1)
 // then reduce to inverting in Fp^6
-function find_Fp12_inverse(n, k, p, a) {
+function find_Fp12_inverse(CHUNK_SIZE, CHUNK_NUMBER, p, a) {
     var A[6][2][150];
     var B[6][2][150];
-    var Bw[6][2][150];
+    var BW[6][2][150];
     for (var i = 0; i < 3; i ++) {
         for (var j = 0; j < 2; j ++) {
-            for (var m = 0; m < k; m ++) {
+            for (var m = 0; m < CHUNK_NUMBER; m ++) {
                 A[2*i+1][j][m] = 0;
                 B[2*i+1][j][m] = 0;
                 A[2*i][j][m] = a[2*i][j][m];
                 B[2*i][j][m] = a[2*i+1][j][m];
-                Bw[2*i][j][m] = 0;
-                Bw[2*i+1][j][m] = a[2*i+1][j][m];
+                BW[2*i][j][m] = 0;
+                BW[2*i+1][j][m] = a[2*i+1][j][m];
             }
         }
     }
-    var A2[6][2][150] = find_Fp12_product(n, k, A, A, p);
-    var B2[6][2][150] = find_Fp12_product(n, k, B, B, p);
-    var conj[6][2][150] = find_Fp12_diff(n, k, A, Bw, p);
-    var w2[6][2][150];
+    var A2[6][2][150] = find_Fp12_product(CHUNK_SIZE, CHUNK_NUMBER, A, A, p);
+    var B2[6][2][150] = find_Fp12_product(CHUNK_SIZE, CHUNK_NUMBER, B, B, p);
+    var CONJ[6][2][150] = find_Fp12_diff(CHUNK_SIZE, CHUNK_NUMBER, A, BW, p);
+    var W2[6][2][150];
     for (var i = 0; i < 6; i ++) {
         for (var j = 0; j < 2; j ++) {
-            for (var m = 0; m < k; m ++) {
+            for (var m = 0; m < CHUNK_NUMBER; m ++) {
                 if (i == 2 && j == 0 && m == 0) {
-                    w2[i][j][m] = 1;
+                    W2[i][j][m] = 1;
                 } else {
-                    w2[i][j][m] = 0;
+                    W2[i][j][m] = 0;
                 }
             }
         }
     }
-    var B2w2[6][2][150] = find_Fp12_product(n, k, B2, w2, p);
-    var conjProd[6][2][150] = find_Fp12_diff(n, k, A2, B2w2, p);
-    var a0[2][150];
-    var a1[2][150];
-    var a2[2][150];
+    var B2_W2[6][2][150] = find_Fp12_product(CHUNK_SIZE, CHUNK_NUMBER, B2, W2, p);
+    var CONJ_PROD[6][2][150] = find_Fp12_diff(CHUNK_SIZE, CHUNK_NUMBER, A2, B2_W2, p);
+    var A0[2][150];
+    var A1[2][150];
+    var A2[2][150];
     for (var i = 0; i < 2; i ++) {
-        for (var m = 0; m < k; m ++) {
-            a0[i][m] = conjProd[0][i][m];
-            a1[i][m] = conjProd[2][i][m];
-            a2[i][m] = conjProd[4][i][m];
+        for (var m = 0; m < CHUNK_NUMBER; m ++) {
+            A0[i][m] = CONJ_PROD[0][i][m];
+            A1[i][m] = CONJ_PROD[2][i][m];
+            A2[i][m] = CONJ_PROD[4][i][m];
         }
     }
-    var conjProdInv[6][2][150] = find_Fp6_inverse(n, k, p, a0, a1, a2);
-    var out[6][2][150] = find_Fp12_product(n, k, conj, conjProdInv, p);
+    var conjProdInv[6][2][150] = find_Fp6_inverse(CHUNK_SIZE, CHUNK_NUMBER, p, A0, A1, A2);
+    var out[6][2][150] = find_Fp12_product(CHUNK_SIZE, CHUNK_NUMBER, CONJ, conjProdInv, p);
     return out;
 }
 
-// compute the inverse of a0 + a1v + a2v^2 in Fp6, where 
-// v^3 = 1+u, u^2 = -1, a0 a1 a2 in Fp2 (2 x k)
-// returns an element in standard Fp12 representation (6 x 2 x k)
-function find_Fp6_inverse(n, k, p, a0, a1, a2) {
+// compute the inverse of A0 + a1v + a2v^2 in Fp6, where 
+// v^3 = 1+u, u^2 = -1, A0 A1 A2 in Fp2 (2 x CHUNK_NUMBER)
+// returns an element in standard Fp12 representation (6 x 2 x CHUNK_NUMBER)
+function find_Fp6_inverse(CHUNK_SIZE, CHUNK_NUMBER, p, A0, A1, A2) {
     var out[6][2][150];
 
-    var a0_squared[2][150] = find_Fp2_product(n, k, a0, a0, p);
-    var a1_squared[2][150] = find_Fp2_product(n, k, a1, a1, p);
-    var a2_squared[2][150] = find_Fp2_product(n, k, a2, a2, p);
-    var a0a1[2][150] = find_Fp2_product(n, k, a0, a1, p);
-    var a0a2[2][150] = find_Fp2_product(n, k, a0, a2, p);
-    var a1a2[2][150] = find_Fp2_product(n, k, a1, a2, p);
-    var a0a1a2[2][150] = find_Fp2_product(n, k, a0a1, a2, p);
+    var A0_SQUARED[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A0, A0, p);
+    var A1_SQUARED[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A1, A1, p);
+    var A2_SQUARED[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A2, A2, p);
+    var A0_A1[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A0, A1, p);
+    var A0_A2[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A0, A2, p);
+    var A1_A2[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A1, A2, p);
+    var A0_A1_A2[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A0_A1, A2, p);
 
-    var v3[2][150]; // v^3 = 1 + u
+    var V3[2][150]; // v^3 = 1 + u
     for (var i = 0; i < 2; i ++) {
-        for (var j = 0; j < k; j ++) {
+        for (var j = 0; j < CHUNK_NUMBER; j ++) {
             if (j == 0) {
-                v3[i][j] = 1;
+                V3[i][j] = 1;
             } else {
-                v3[i][j] = 0;
+                V3[i][j] = 0;
             }
         }
     }
 
-    var three_v3[2][150]; // 3v^3 = 3 + 3u
+    var THREE_V3[2][150]; // 3v^3 = 3 + 3u
     for (var i = 0; i < 2; i ++) {
-        for (var j = 0; j < k; j ++) {
+        for (var j = 0; j < CHUNK_NUMBER; j ++) {
             if (j == 0) {
-                three_v3[i][j] = 3;
+                THREE_V3[i][j] = 3;
             } else {
-                three_v3[i][j] = 0;
+                THREE_V3[i][j] = 0;
             }
         }
     }
 
-    var v6[2][150]; // v^6 = 2u
+    var V6[2][150]; // v^6 = 2u
     for (var i = 0; i < 2; i ++) {
-        for (var j = 0; j < k; j ++) {
+        for (var j = 0; j < CHUNK_NUMBER; j ++) {
             if (i == 1 && j == 0) {
-                v6[i][j] = 2;
+                V6[i][j] = 2;
             } else {
-                v6[i][j] = 0;
+                V6[i][j] = 0;
             }
         }
     }
 
-    var v0_1[2][150] = find_Fp2_product(n, k, a1a2, v3, p);
-    var v0_temp[2][150] = find_Fp2_diff(n, k, a0_squared, v0_1, p); // a0^2 - a1a2v^3
-    var v1_1[2][150] = find_Fp2_product(n, k, a2_squared, v3, p);
-    var v1_temp[2][150] = find_Fp2_diff(n, k, v1_1, a0a1, p); // v^3a2^2 - a0a1
-    var v2_temp[2][150] = find_Fp2_diff(n, k, a1_squared, a0a2, p); // a1^2 - a0a2
+    var V0_1[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A1_A2, V3, p);
+    var V0_TEMP[2][150] = find_Fp2_diff(CHUNK_SIZE, CHUNK_NUMBER, A0_SQUARED, V0_1, p); // A0^2 - a1a2v^3
+    var V1_1[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A2_SQUARED, V3, p);
+    var V1_TEMP[2][150] = find_Fp2_diff(CHUNK_SIZE, CHUNK_NUMBER, V1_1, A0_A1, p); // v^3a2^2 - A0_A1
+    var V2_TEMP[2][150] = find_Fp2_diff(CHUNK_SIZE, CHUNK_NUMBER, A1_SQUARED, A0_A2, p); // A1^2 - A0_A2
 
-    var a0_cubed[2][150] = find_Fp2_product(n, k, a0, a0_squared, p);
-    var a1_cubed[2][150] = find_Fp2_product(n, k, a1, a1_squared, p);
-    var a2_cubed[2][150] = find_Fp2_product(n, k, a2, a2_squared, p);
-    var a13v3[2][150] = find_Fp2_product(n, k, a1_cubed, v3, p);
-    var a23v6[2][150] = find_Fp2_product(n, k, a2_cubed, v6, p);
-    var a0a1a23v3[2][150] = find_Fp2_product(n, k, a0a1a2, three_v3, p);
+    var A0_CUBED[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A0, A0_SQUARED, p);
+    var A1_CUBED[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A1, A1_SQUARED, p);
+    var A2_CUBED[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A2, A2_SQUARED, p);
+    var A1_3V3[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A1_CUBED, V3, p);
+    var A2_3V6[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A2_CUBED, V6, p);
+    var A0_A1_A2_3V3[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, A0_A1_A2, THREE_V3, p);
 
-    var denom_1[2][150] = find_Fp2_sum(n, k, a0_cubed, a13v3, p);
-    var denom_2[2][150] = find_Fp2_diff(n, k, a23v6, a0a1a23v3, p);
-    var denom[2][150] = find_Fp2_sum(n, k, denom_1, denom_2, p); // a0^3 + a1^3v^3 + a2^3v^6 - 3a0a1a2v^3
+    var DENOM_1[2][150] = find_Fp2_sum(CHUNK_SIZE, CHUNK_NUMBER, A0_CUBED, A1_3V3, p);
+    var DENOM_2[2][150] = find_Fp2_diff(CHUNK_SIZE, CHUNK_NUMBER, A2_3V6, A0_A1_A2_3V3, p);
+    var DENOM[2][150] = find_Fp2_sum(CHUNK_SIZE, CHUNK_NUMBER, DENOM_1, DENOM_2, p); // A0^3 + A1^3v^3 + A2^3v^6 - 3a0a1a2v^3
 
-    var denom_inv[2][150] = find_Fp2_inverse(n, k, denom, p);
+    var DENOM_INV[2][150] = find_Fp2_inverse(CHUNK_SIZE, CHUNK_NUMBER, DENOM, p);
 
-    var v0_final[2][150] = find_Fp2_product(n, k, v0_temp, denom_inv, p);
-    var v1_final[2][150] = find_Fp2_product(n, k, v1_temp, denom_inv, p);
-    var v2_final[2][150] = find_Fp2_product(n, k, v2_temp, denom_inv, p);
+    var V0_FINAL[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, V0_TEMP, DENOM_INV, p);
+    var V1_FINAL[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, V1_TEMP, DENOM_INV, p);
+    var V2_FINAL[2][150] = find_Fp2_product(CHUNK_SIZE, CHUNK_NUMBER, V2_TEMP, DENOM_INV, p);
 
     for (var i = 1; i < 6; i = i + 2) {
         for (var j = 0; j < 2; j ++) {
@@ -216,13 +216,13 @@ function find_Fp6_inverse(n, k, p, a0, a1, a2) {
                 if (i > 1)
                 out[i][j][m] = 0;
                 else 
-                out[i][j][m] = 0;//v3[j][m];
+                out[i][j][m] = 0;//V3[j][m];
             }
         }
     }
-    out[0] = v0_final;
-    out[2] = v1_final;
-    out[4] = v2_final;
+    out[0] = V0_FINAL;
+    out[2] = V1_FINAL;
+    out[4] = V2_FINAL;
     return out;
 }
 
