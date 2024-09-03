@@ -4,16 +4,16 @@ function get_fp_sgn0(a){
     return a[0] % 2; 
 }
 
-// n bits per register
-// num has k registers
-// p has k registers
-// k * n <= 500
+// CHUNK_SIZE bits per register
+// num has CHUNK_NMBER registers
+// p has CHUNK_NMBER registers
+// CHUNK_NMBER * CHUNK_SIZE <= 500
 // p is a prime
 // if num == 0 mod p, returns 0
 // else computes inv = num^{-1} mod p using extended euclidean algorithm
 // https://brilliant.org/wiki/extended-euclidean-algorithm/
-function find_Fp_inverse(n, k, num, p) {
-    var amodp[2][150] = long_div2(n, k, 0, num, p); 
+function find_Fp_inverse(CHUNK_SIZE, CHUNK_NMBER, num, p) {
+    var A_MOD_P[2][150] = long_div2(CHUNK_SIZE, CHUNK_NMBER, 0, num, p); 
     var a[150];
     var b[150]; 
     var x[150];
@@ -23,8 +23,8 @@ function find_Fp_inverse(n, k, num, p) {
 
     var ret[150];
 
-    for(var i=0; i<k; i++){
-        a[i] = amodp[1][i];
+    for(var i=0; i<CHUNK_NMBER; i++){
+        a[i] = A_MOD_P[1][i];
         b[i] = p[i];
         x[i] = 0;
         y[i] = 0;
@@ -36,39 +36,39 @@ function find_Fp_inverse(n, k, num, p) {
     // euclidean algorithm takes log_phi( min(a, p) ) iterations, where phi is golden ratio
     // should be less than 1000 for our cases...
     for(var l=0; l<1000; l++){
-        var ka = 0;
-        for (var i = 0; i < k; i++) {
+        var k_a = 0;
+        for (var i = 0; i < CHUNK_NMBER; i++) {
             if (a[i] != 0) {
-                ka = i + 1;
+                k_a = i + 1;
             }
         }
-        if (ka == 0) {
-            for (var i = 0; i < k; i++) {
+        if (k_a == 0) {
+            for (var i = 0; i < CHUNK_NMBER; i++) {
                 ret[i] = x[i];
             }
             return ret;
         }
 
-        var r[2][150] = long_div2(n, ka, k - ka, b, a); 
+        var r[2][150] = long_div2(CHUNK_SIZE, k_a, CHUNK_NMBER - k_a, b, a); 
         var q[150]; 
-        for(var i = 0; i < k - ka + 1; i++)
+        for(var i = 0; i < CHUNK_NMBER - k_a + 1; i++)
             q[i] = r[0][i];
-        for(var i = k - ka + 1; i < k; i++)
+        for(var i = CHUNK_NMBER - k_a + 1; i < CHUNK_NMBER; i++)
             q[i] = 0;
         
-        var newu[150] = long_sub_mod(n, k, x, prod_mod(n, k, u, q, p), p); 
-        var newv[150] = long_sub_mod(n, k, y, prod_mod(n, k, v, q, p), p); 
+        var NEW_U[150] = long_sub_mod(CHUNK_SIZE, CHUNK_NMBER, x, prod_mod(CHUNK_SIZE, CHUNK_NMBER, u, q, p), p); 
+        var NEW_V[150] = long_sub_mod(CHUNK_SIZE, CHUNK_NMBER, y, prod_mod(CHUNK_SIZE, CHUNK_NMBER, v, q, p), p); 
         
-        for(var i = 0; i < k; i++){
+        for(var i = 0; i < CHUNK_NMBER; i++){
             b[i] = a[i];
-            if( i < ka )
+            if( i < k_a )
                 a[i] = r[1][i];
             else
                 a[i] = 0;
             x[i] = u[i];
             y[i] = v[i];
-            u[i] = newu[i];
-            v[i] = newv[i];
+            u[i] = NEW_U[i];
+            v[i] = NEW_V[i];
         }
     }
     // should never reach here (loop should always return before now)
@@ -76,50 +76,50 @@ function find_Fp_inverse(n, k, num, p) {
     return ret;
 }
 
-// a[k] registers can overflow
-//  assume actual value of a < 2^{n*(k+m)} 
-// p[k] registers in [0, 2^n)
-// out[2][k] solving
+// a[CHUNK_NMBER] registers can overflow
+//  assume actual value of a < 2^{CHUNK_SIZE*(CHUNK_NMBER+m)} 
+// p[CHUNK_NMBER] registers in [0, 2^CHUNK_SIZE)
+// out[2][CHUNK_NMBER] solving
 //      a = p * out[0] + out[1] with out[1] in [0,p) 
-// out[0] has m registers in range [-2^n, 2^n)
-// out[1] has k registers in range [0, 2^n)
-function get_signed_Fp_carry_witness(n, k, m, a, p){
+// out[0] has m registers in range [-2^CHUNK_SIZE, 2^CHUNK_SIZE)
+// out[1] has CHUNK_NMBER registers in range [0, 2^CHUNK_SIZE)
+function get_signed_Fp_carry_witness(CHUNK_SIZE, CHUNK_NMBER, m, a, p){
     var out[2][150];
-    var a_short[151] = signed_long_to_short(n, k, a); 
+    var A_SHORT[151] = signed_long_to_short(CHUNK_SIZE, CHUNK_NMBER, a); 
 
     /* // commenting out to improve speed
-    // let me make sure everything is in <= k+m registers
-    for(var j=k+m; j<150; j++)
-        assert( a_short[j] == 0 );
+    // let me make sure everything is in <= CHUNK_NMBER+m registers
+    for(var j=CHUNK_NMBER+m; j<150; j++)
+        assert( A_SHORT[j] == 0 );
     */
 
-    if(a_short[150] == 0){
-        out = long_div2(n, k, m, a_short, p);    
+    if(A_SHORT[150] == 0){
+        out = long_div2(CHUNK_SIZE, CHUNK_NMBER, m, A_SHORT, p);    
     }else{
-        var a_pos[150];
-        for(var i=0; i<k+m; i++) 
-            a_pos[i] = -a_short[i];
+        var A_POS[150];
+        for(var i=0; i<CHUNK_NMBER+m; i++) 
+            A_POS[i] = -A_SHORT[i];
 
-        var X[2][150] = long_div2(n, k, m, a_pos, p);
+        var X[2][150] = long_div2(CHUNK_SIZE, CHUNK_NMBER, m, A_POS, p);
         // what if X[1] is 0? 
-        var Y_is_zero = 1;
-        for(var i=0; i<k; i++){
+        var Y_IS_ZERO = 1;
+        for(var i=0; i<CHUNK_NMBER; i++){
             if(X[1][i] != 0)
-                Y_is_zero = 0;
+                Y_IS_ZERO = 0;
         }
-        if( Y_is_zero == 1 ){
+        if( Y_IS_ZERO == 1 ){
             out[1] = X[1];
         }else{
-            out[1] = long_sub(n, k, p, X[1]); 
+            out[1] = long_sub(CHUNK_SIZE, CHUNK_NMBER, p, X[1]); 
             
             X[0][0]++;
-            if(X[0][0] >= (1<<n)){
+            if(X[0][0] >= (1<<CHUNK_SIZE)){
                 for(var i=0; i<m-1; i++){
-                    var carry = X[0][i] \ (1<<n); 
+                    var carry = X[0][i] \ (1<<CHUNK_SIZE); 
                     X[0][i+1] += carry;
-                    X[0][i] -= carry * (1<<n);
+                    X[0][i] -= carry * (1<<CHUNK_SIZE);
                 }
-                assert( X[0][m-1] < (1<<n) ); 
+                assert( X[0][m-1] < (1<<CHUNK_SIZE) ); 
             }
         }
         for(var i=0; i<m; i++)
@@ -132,87 +132,87 @@ function get_signed_Fp_carry_witness(n, k, m, a, p){
 
 // Implements: 
 //      calls get_signed_Fp_carry_witness twice
-// a[2][k] registers can overflow
-//  assume actual value of each a[i] < (2^n)^{k+m} 
-// p[k] registers in [0, 2^n)
-// out[2][2][k] solving
+// a[2][CHUNK_NMBER] registers can overflow
+//  assume actual value of each a[i] < (2^CHUNK_SIZE)^{CHUNK_NMBER+m} 
+// p[CHUNK_NMBER] registers in [0, 2^CHUNK_SIZE)
+// out[2][2][CHUNK_NMBER] solving
 //      a[0] = p * out[0][0] + out[0][1] with out[0][1] in [0,p) 
 //      a[1] = p * out[1][0] + out[1][1] with out[1][1] in [0,p) 
-// out[i][0] has m registers in range [-2^n, 2^n)
-// out[i][1] has k registers in range [0, 2^n)
-function get_signed_Fp2_carry_witness(n, k, m, a, p){
+// out[i][0] has m registers in range [-2^CHUNK_SIZE, 2^CHUNK_SIZE)
+// out[i][1] has CHUNK_NMBER registers in range [0, 2^CHUNK_SIZE)
+function get_signed_Fp2_carry_witness(CHUNK_SIZE, CHUNK_NMBER, m, a, p){
     var out[2][2][150];
 
     for(var i=0; i<2; i++)
-        out[i] = get_signed_Fp_carry_witness(n, k, m, a[i], p);
+        out[i] = get_signed_Fp_carry_witness(CHUNK_SIZE, CHUNK_NMBER, m, a[i], p);
 
     return out;
 }
 
 
-function get_fp2_sgn0(k, a){
-    var z = long_is_zero(k, a[0]);
-    var sgn0 = a[0][0] % 2;
-    var sgn1 = a[1][0] % 2;
-    return sgn0 | (z & sgn1);
+function get_fp2_sgn0(CHUNK_NMBER, a){
+    var IS_ZERO = long_is_zero(CHUNK_NMBER, a[0]);
+    var SGN_0 = a[0][0] % 2;
+    var SGN_1 = a[1][0] % 2;
+    return SGN_0 | (IS_ZERO & SGN_1);
 }
 
 // helper function to precompute the product of two elements a, b in Fp2
-// a[2][k], b[2][k] all registers in [0, 2^n) 
+// a[2][CHUNK_NMBER], b[2][CHUNK_NMBER] all registers in [0, 2^CHUNK_SIZE) 
 // (a0 + a1 u)*(b0 + b1 u) = (a0*b0 - a1*b1) + (a0*b1 + a1*b0)u 
 // this is a direct computation - totally distinct from the combo of Fp2multiplyNoCarry and get_Fp2_carry_witness
-function find_Fp2_product(n, k, a, b, p){
+function find_Fp2_product(CHUNK_SIZE, CHUNK_NMBER, a, b, p){
     var out[2][150];
     var ab[2][2][150]; 
     for(var i=0; i<2; i++)for(var j=0; j<2; j++){
-        ab[i][j] = prod_mod(n,k,a[i],b[j],p);
+        ab[i][j] = prod_mod(CHUNK_SIZE,CHUNK_NMBER,a[i],b[j],p);
     }
-    out[0] = long_sub_mod(n,k,ab[0][0],ab[1][1],p); 
-    out[1] = long_add_mod(n,k,ab[0][1],ab[1][0],p);
+    out[0] = long_sub_mod(CHUNK_SIZE,CHUNK_NMBER,ab[0][0],ab[1][1],p); 
+    out[1] = long_add_mod(CHUNK_SIZE,CHUNK_NMBER,ab[0][1],ab[1][0],p);
 
     return out;
 }
 
 // helper function to precompute the sum of two elements a, b in Fp2
-// a[2][k], b[2][k] all registers in [0, 2^n) 
+// a[2][CHUNK_NMBER], b[2][CHUNK_NMBER] all registers in [0, 2^CHUNK_SIZE) 
 // this is a direct computation
-function find_Fp2_sum(n, k, a, b, p){
+function find_Fp2_sum(CHUNK_SIZE, CHUNK_NMBER, a, b, p){
     var out[2][150];
-    out[0] = long_add_mod(n,k,a[0],b[0],p); 
-    out[1] = long_add_mod(n,k,a[1],b[1],p);
+    out[0] = long_add_mod(CHUNK_SIZE,CHUNK_NMBER,a[0],b[0],p); 
+    out[1] = long_add_mod(CHUNK_SIZE,CHUNK_NMBER,a[1],b[1],p);
     return out;
 }
 
 // helper function to precompute the difference of two elements a, b in Fp2
-// a[2][k], b[2][k] all registers in [0, 2^n) 
+// a[2][CHUNK_NMBER], b[2][CHUNK_NMBER] all registers in [0, 2^CHUNK_SIZE) 
 // this is a direct computation
-function find_Fp2_diff(n, k, a, b, p){
+function find_Fp2_diff(CHUNK_SIZE, CHUNK_NMBER, a, b, p){
     var out[2][150];
-    out[0] = long_sub_mod(n,k,a[0],b[0],p); 
-    out[1] = long_sub_mod(n,k,a[1],b[1],p);
+    out[0] = long_sub_mod(CHUNK_SIZE,CHUNK_NMBER,a[0],b[0],p); 
+    out[1] = long_sub_mod(CHUNK_SIZE,CHUNK_NMBER,a[1],b[1],p);
     return out;
 }
 
 
-// n bits per register
-// a has 2 x k registers, elt of Fp2
-// p has k registers
+// CHUNK_SIZE bits per register
+// a has 2 x CHUNK_NMBER registers, elt of Fp2
+// p has CHUNK_NMBER registers
 // e has 2k registers
-// k * n <= 400
+// CHUNK_NMBER * CHUNK_SIZE <= 400
 // p is a prime
 // computes a^e in Fp2
-function find_Fp2_exp(n, k, a, p, e){
-    var eBits[800]; // length is (2k-1) * n
-    var bitLength; 
-    for (var i = 0; i < 2*k; i++) {
-        for (var j = 0; j < n; j++) {
-            eBits[j + n * i] = (e[i] >> j) & 1;
-            if(eBits[j + n * i] == 1)
-                bitLength = j + n * i + 1;
+function find_Fp2_exp(CHUNK_SIZE, CHUNK_NMBER, a, p, e){
+    var E_BITS[800]; // length is (2k-1) * CHUNK_SIZE
+    var BIT_LENGTH; 
+    for (var i = 0; i < 2*CHUNK_NMBER; i++) {
+        for (var j = 0; j < CHUNK_SIZE; j++) {
+            E_BITS[j + CHUNK_SIZE * i] = (e[i] >> j) & 1;
+            if(E_BITS[j + CHUNK_SIZE * i] == 1)
+                BIT_LENGTH = j + CHUNK_SIZE * i + 1;
         }
     }
 
-    var out[2][150]; // length is k
+    var out[2][150]; // length is CHUNK_NMBER
     for(var i = 0; i < 150; i++) {
         out[0][i] = 0;
         out[1][i] = 0;
@@ -220,31 +220,31 @@ function find_Fp2_exp(n, k, a, p, e){
     out[0][0] = 1;
 
     // repeated squaring
-    for(var i = bitLength-1; i >= 0; i--) {
+    for(var i = BIT_LENGTH-1; i >= 0; i--) {
         // multiply by a if bit is 0
-        if (eBits[i] == 1)
-            out = find_Fp2_product(n, k, out, a, p);
+        if (E_BITS[i] == 1)
+            out = find_Fp2_product(CHUNK_SIZE, CHUNK_NMBER, out, a, p);
         // square, unless we're at the end
         if (i > 0)
-            out = find_Fp2_product(n, k, out, out, p);
+            out = find_Fp2_product(CHUNK_SIZE, CHUNK_NMBER, out, out, p);
     }
     return out;
 }
 
-function is_equal_Fp2(n, k, a, b){
-    for(var i=0; i<2; i++)for(var idx=0; idx<k; idx++){
+function is_equal_Fp2(CHUNK_SIZE, CHUNK_NMBER, a, b){
+    for(var i=0; i<2; i++)for(var idx=0; idx<CHUNK_NMBER; idx++){
         if(a[i][idx] != b[i][idx])
             return 0;
     }
     return 1;
 }
 
-// a[2][k] elt in Fp2 
+// a[2][CHUNK_NMBER] elt in Fp2 
 // output multiplies by XI0 +u
 // multiplies register bounds by (XI0 + 1)
-function signed_Fp2_mult_w6(k, a, XI0){
+function signed_Fp2_mult_w6(CHUNK_NMBER, a, XI0){
     var out[2][150];
-    for(var i=0; i<k; i++){
+    for(var i=0; i<CHUNK_NMBER; i++){
         out[0][i] = a[0][i]*XI0 - a[1][i];
         out[1][i] = a[0][i] + a[1][i]*XI0;
     }
@@ -252,8 +252,8 @@ function signed_Fp2_mult_w6(k, a, XI0){
 }
 
 
-// a is 2 x k, represents element of Fp^2
-// out is the inverse of a in Fp^2 (2 x k array of shorts)
+// a is 2 x CHUNK_NMBER, represents element of Fp^2
+// out is the inverse of a in Fp^2 (2 x CHUNK_NMBER array of shorts)
 
 // Src: https://github.com/paulmillr/noble-bls12-381/blob/23823d664b1767fb20c9c19c5800c66993b576a5/math.ts#L444
 // We wish to find the multiplicative inverse of a nonzero
@@ -268,22 +268,22 @@ function signed_Fp2_mult_w6(k, a, XI0){
 // because a² + b² = 0 has no nonzero solutions for (a, b).
 // This gives that (a - bu)/(a² + b²) is the inverse
 // of (a + bu). 
-function find_Fp2_inverse(n, k, a, p) {
-    var sq0[150] = prod(n, k, a[0], a[0]);
-    var sq1[150] = prod(n, k, a[1], a[1]);
-    var sq_sum[150] = long_add(n, 2*k, sq0, sq1);
-    var sq_sum_div[2][150] = long_div2(n, k, k+1, sq_sum, p);
-    // lambda = 1/(sq_sum)%p
-    var lambda[150] = mod_inv(n, k, sq_sum_div[1], p);
-    var out0[150] = prod(n, k, lambda, a[0]);
-    var out0_div[2][150] = long_div(n, k, out0, p);
+function find_Fp2_inverse(CHUNK_SIZE, CHUNK_NMBER, a, p) {
+    var SQ0[150] = prod(CHUNK_SIZE, CHUNK_NMBER, a[0], a[0]);
+    var SQ1[150] = prod(CHUNK_SIZE, CHUNK_NMBER, a[1], a[1]);
+    var SQ_SUM[150] = long_add(CHUNK_SIZE, 2*CHUNK_NMBER, SQ0, SQ1);
+    var SQ_SUM_DIV[2][150] = long_div2(CHUNK_SIZE, CHUNK_NMBER, CHUNK_NMBER+1, SQ_SUM, p);
+    // LAMBDA = 1/(SQ_SUM)%p
+    var LAMBDA[150] = mod_inv(CHUNK_SIZE, CHUNK_NMBER, SQ_SUM_DIV[1], p);
+    var OUT0[150] = prod(CHUNK_SIZE, CHUNK_NMBER, LAMBDA, a[0]);
+    var OUT0_DIV[2][150] = long_div(CHUNK_SIZE, CHUNK_NMBER, OUT0, p);
     var out[2][150];
-    out[0] = out0_div[1];
+    out[0] = OUT0_DIV[1];
     
-    var out1_pre[150] = long_sub(n, k, p, a[1]);
-    var out1[150] = prod(n, k, lambda, out1_pre);
-    var out1_div[2][150] = long_div(n, k, out1, p);
-    out[1] = out1_div[1];
+    var OUT1_PRE[150] = long_sub(CHUNK_SIZE, CHUNK_NMBER, p, a[1]);
+    var OUT1[150] = prod(CHUNK_SIZE, CHUNK_NMBER, LAMBDA, OUT1_PRE);
+    var OUT1_DIV[2][150] = long_div(CHUNK_SIZE, CHUNK_NMBER, OUT1, p);
+    out[1] = OUT1_DIV[1];
     return out;
 }
 

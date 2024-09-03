@@ -718,10 +718,10 @@ template BigModInv(CHUNK_SIZE, CHUNK_NUMBER) {
     for (var i = 0; i < CHUNK_NUMBER; i++) {
         out[i] <-- inv[i];
     }
-    component range_checks[CHUNK_NUMBER];
+    component rangeChecks[CHUNK_NUMBER];
     for (var i = 0; i < CHUNK_NUMBER; i++) {
-        range_checks[i] = Num2Bits(CHUNK_SIZE);
-        range_checks[i].in <== out[i];
+        rangeChecks[i] = Num2Bits(CHUNK_SIZE);
+        rangeChecks[i].in <== out[i];
     }
 
     component mult = BigMult(CHUNK_SIZE, CHUNK_NUMBER);
@@ -829,10 +829,10 @@ template PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, M, P, M_OUT){
             out_sum[j] += in[i+CHUNK_NUMBER] * r[i][j]; // linear constraint 
     for(var i=0; i<CHUNK_NUMBER; i++)
         out[i] <== out_sum[i]; 
-    /*component range_checks[CHUNK_NUMBER];
+    /*component rangeChecks[CHUNK_NUMBER];
     for (var i = 0; i < CHUNK_NUMBER; i++) {
-        range_checks[i] = Num2Bits(M_OUT+1);
-        range_checks[i].in <== out[i] + (1 << M_OUT);
+        rangeChecks[i] = Num2Bits(M_OUT+1);
+        rangeChecks[i].in <== out[i] + (1 << M_OUT);
     }*/
 }
 
