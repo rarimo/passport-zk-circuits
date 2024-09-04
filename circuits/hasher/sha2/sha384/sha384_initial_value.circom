@@ -7,7 +7,7 @@ template Sha384_initial_value() {
 
   signal output out[8][64];
 
-  var initial_state[8] =  
+  var INITIAL_STATE[8] =  
         [ 0xcbbb9d5dc1059ed8
         , 0x629a292a367cd507
         , 0x9159015a3070dd17
@@ -20,7 +20,7 @@ template Sha384_initial_value() {
 
   for(var k=0; k<8; k++) { 
     for(var i=0; i<64; i++) {
-      out[k][i] <== (initial_state[k] >> i) & 1; 
+      out[k][i] <== (INITIAL_STATE[k] >> i) & 1; 
     }
   }
 }

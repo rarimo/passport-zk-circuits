@@ -8,14 +8,14 @@ include "sha256_round_const.circom";
 // execute `n` rounds of the SHA224 / SHA256 inner loop
 // NOTE: hash state is stored as 8 dwords, each little-endian
 
-template SHA2_224_256_rounds(n) {
+template Sha2_224_256Rounds(n) {
  
   assert( n >  0  );
   assert( n <= 64 );
 
   signal input  words[n];            // round words (32-bit words)
-  signal input  inp_hash[8][32];     // initial state
-  signal output out_hash[8][32];     // final state after n rounds (n <= 64)
+  signal input  inpHash[8][32];     // initial state
+  signal output outHash[8][32];     // final state after n rounds (n <= 64)
 
   signal  a [n+1][32];
   signal  b [n+1][32];
@@ -30,19 +30,19 @@ template SHA2_224_256_rounds(n) {
   component RC = SHA2_224_256_round_keys();
   round_keys <== RC.out;
 
-  a[0] <== inp_hash[0];
-  b[0] <== inp_hash[1];
-  c[0] <== inp_hash[2];
+  a[0] <== inpHash[0];
+  b[0] <== inpHash[1];
+  c[0] <== inpHash[2];
 
-  e[0] <== inp_hash[4];
-  f[0] <== inp_hash[5];
-  g[0] <== inp_hash[6];
+  e[0] <== inpHash[4];
+  f[0] <== inpHash[5];
+  g[0] <== inpHash[6];
   
   var sum_dd = 0;
   var sum_hh = 0;
   for(var i=0; i<32; i++) {
-    sum_dd  +=  inp_hash[3][i] * (1<<i);  
-    sum_hh  +=  inp_hash[7][i] * (1<<i);  
+    sum_dd  +=  inpHash[3][i] * (1<<i);  
+    sum_hh  +=  inpHash[7][i] * (1<<i);  
   }
   dd[0] <== sum_dd;
   hh[0] <== sum_hh;
@@ -51,7 +51,7 @@ template SHA2_224_256_rounds(n) {
   for(var j=0; j<8; j++) {
     var sum = 0;
     for(var i=0; i<32; i++) {
-      sum += (1<<i) * inp_hash[j][i];
+      sum += (1<<i) * inpHash[j][i];
     }
     hash_words[j] <== sum;
   }
@@ -114,7 +114,7 @@ template SHA2_224_256_rounds(n) {
   modulo[7].inp <== hash_words[7] + hh[n];
 
   for(var j=0; j<8; j++) {
-    modulo[j].out_bits ==> out_hash[j];
+    modulo[j].out_bits ==> outHash[j];
   }
 
 }

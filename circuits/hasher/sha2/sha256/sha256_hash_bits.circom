@@ -21,19 +21,19 @@ template Sha256_hash_chunks(BLOCK_NUM) {
 
   for(var m=0; m<BLOCK_NUM; m++) { 
 
-    sch[m] = SHA2_224_256_schedule();
-    rds[m] = SHA2_224_256_rounds(64); 
+    sch[m] = Sha2_224_256Shedule();
+    rds[m] = Sha2_224_256Rounds(64); 
 
     for(var k=0; k<16; k++) {
       for(var i=0; i<32; i++) {
-        sch[m].chunk_bits[k][i] <== in[m * 512 +  k*32 + (31-i) ];
+        sch[m].chunkBits[k][i] <== in[m * 512 +  k*32 + (31-i) ];
       }
     }
 
-    sch[m].out_words ==> rds[m].words;
+    sch[m].outWords ==> rds[m].words;
 
-    rds[m].inp_hash  <== states[m  ];
-    rds[m].out_hash  ==> states[m+1];
+    rds[m].inpHash  <== states[m  ];
+    rds[m].outHash  ==> states[m+1];
   }
 
   for (var j=0; j<8; j++) {

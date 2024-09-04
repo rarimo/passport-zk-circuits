@@ -10,15 +10,15 @@ include "../sha2_common.circom";
 
 template SHA2_384_512_schedule() {
   
-  signal input  chunk_bits[16][64];   // 1024 bits = 16 qwords = 128 bytes
-  signal output out_words [80];       // 80 words
+  signal input  chunkBits[16][64];   // 1024 bits = 16 qwords = 128 bytes
+  signal output outWords [80];       // 80 words
   signal        out_bits  [80][64];   // 5120 bits = 80 qwords = 640 bytes
 
   for(var k=0; k<16; k++) {
     var sum = 0;
-    for(var i=0; i<64; i++) { sum += (1<<i) * chunk_bits[k][i]; }
-    out_words[k] <== sum;
-    out_bits [k] <== chunk_bits[k];
+    for(var i=0; i<64; i++) { sum += (1<<i) * chunkBits[k][i]; }
+    outWords[k] <== sum;
+    out_bits [k] <== chunkBits[k];
   }
 
   component s0xor [80-16][64];
@@ -52,12 +52,12 @@ template SHA2_384_512_schedule() {
 
     }
 
-    var tmp = s1_sum + out_words[m-7] + s0_sum + out_words[m-16] ;
+    var tmp = s1_sum + outWords[m-7] + s0_sum + outWords[m-16] ;
 
     modulo[r] = Bits66();
     modulo[r].inp      <== tmp;
     modulo[r].out_bits ==> out_bits [m];
-    modulo[r].out_word ==> out_words[m];
+    modulo[r].out_word ==> outWords[m];
 
   }
 }
