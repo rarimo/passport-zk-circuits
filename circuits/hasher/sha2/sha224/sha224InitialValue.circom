@@ -3,11 +3,11 @@ pragma circom 2.0.0;
 //------------------------------------------------------------------------------
 // initial hash value for SHA2-224
 
-template Sha224_initial_value() {
+template Sha224InitialValue() {
 
   signal output out[8][32];
 
-  var initial_state[8] =  
+  var INITIAL_STATE[8] =  
         [ 0xc1059ed8
         , 0x367cd507
         , 0x3070dd17
@@ -20,7 +20,7 @@ template Sha224_initial_value() {
 
   for(var k=0; k<8; k++) { 
     for(var i=0; i<32; i++) {
-      out[k][i] <== (initial_state[k] >> i) & 1; 
+      out[k][i] <== (INITIAL_STATE[k] >> i) & 1; 
     }
   }
 

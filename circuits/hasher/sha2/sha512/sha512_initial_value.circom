@@ -7,7 +7,7 @@ template Sha512_initial_value() {
 
   signal output out[8][64];
 
-  var initial_state[8] =  
+  var INITIAL_STATE[8] =  
         [ 0x6a09e667f3bcc908
         , 0xbb67ae8584caa73b
         , 0x3c6ef372fe94f82b
@@ -20,7 +20,7 @@ template Sha512_initial_value() {
 
   for(var k=0; k<8; k++) { 
     for(var i=0; i<64; i++) {
-      out[k][i] <== (initial_state[k] >> i) & 1; 
+      out[k][i] <== (INITIAL_STATE[k] >> i) & 1; 
     }
   }
 

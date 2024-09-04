@@ -8,17 +8,17 @@ include "../sha2_common.circom";
 // NOTE: the individual 64 bit words are in little-endian order 
 //
 
-template SHA2_224_256_schedule() {
+template Sha2_224_256Shedule() {
   
-  signal input  chunk_bits[16][32];   // 512 bits = 16 dwords = 64 bytes
-  signal output out_words [64];       // 64 dwords
+  signal input  chunkBits[16][32];   // 512 bits = 16 dwords = 64 bytes
+  signal output outWords [64];       // 64 dwords
   signal        out_bits  [64][32];   // 2048 bits = 64 dwords = 256 bytes
 
   for(var k=0; k<16; k++) {
     var sum = 0;
-    for(var i=0; i<32; i++) { sum += (1<<i) * chunk_bits[k][i]; }
-    out_words[k] <== sum;
-    out_bits [k] <== chunk_bits[k];
+    for(var i=0; i<32; i++) { sum += (1<<i) * chunkBits[k][i]; }
+    outWords[k] <== sum;
+    out_bits [k] <== chunkBits[k];
   }
 
   component s0xor [64-16][32];
@@ -52,12 +52,12 @@ template SHA2_224_256_schedule() {
 
     }
 
-    var tmp = s1_sum + out_words[m-7] + s0_sum + out_words[m-16] ;
+    var tmp = s1_sum + outWords[m-7] + s0_sum + outWords[m-16] ;
 
     modulo[r] = Bits34();
     modulo[r].inp      <== tmp;
     modulo[r].out_bits ==> out_bits [m];
-    modulo[r].out_word ==> out_words[m];
+    modulo[r].out_word ==> outWords[m];
 
   }
 }

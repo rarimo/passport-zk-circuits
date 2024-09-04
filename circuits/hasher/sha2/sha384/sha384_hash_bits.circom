@@ -26,14 +26,14 @@ template Sha384_hash_chunks(BLOCK_NUM) {
 
     for(var k=0; k<16; k++) {
       for(var i=0; i<64; i++) {
-        sch[m].chunk_bits[k][i] <== in[m*1024 +  k*64 + (63-i) ];
+        sch[m].chunkBits[k][i] <== in[m*1024 +  k*64 + (63-i) ];
       }
     }
 
-    sch[m].out_words ==> rds[m].words;
+    sch[m].outWords ==> rds[m].words;
 
-    rds[m].inp_hash  <== states[m  ];
-    rds[m].out_hash  ==> states[m+1];
+    rds[m].inpHash  <== states[m  ];
+    rds[m].outHash  ==> states[m+1];
   }
 
   for(var j=0; j<6; j++) {
