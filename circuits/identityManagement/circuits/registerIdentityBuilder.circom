@@ -2,6 +2,8 @@ pragma circom  2.1.6;
 
 include "../../passportVerification/passportVerificationBuilder.circom";
 include "./identity.circom";
+include "circomlib/circuits/poseidon.circom";
+include "../../merkleTree/SMTVerifier.circom";
 
 // HASH_TYPE: 
 //   - 160: SHA1 (160 bits)
@@ -117,6 +119,37 @@ template RegisterIdentityBuilder (
     registerIdentity.dg15PubKeyHash ==> dg15PubKeyHash;
     registerIdentity.dg1Commitment  ==> dg1Commitment;
     registerIdentity.pkIdentityHash ==> pkIdentityHash;
+
+    //RSA || RSAPSS SIG
+    signal pubkeyHash;
+
+    if (SIGNATURE_TYPE <= 5){
+        component pubkeyHasherRsa = Poseidon(5);
+        signal tempModulus[5];
+        for (var i = 0; i < 5; i++) {
+            var currIndex = i * 3;
+            tempModulus[i] <== pubkey[currIndex] * 2**128 + pubkey[currIndex + 1] * 2**64;
+            pubkeyHasherRsa.inputs[i] <== tempModulus[i] + pubkey[currIndex + 2];
+        }
+        pubkeyHash <== pubkeyHasherRsa.out;
+    }
+    //ECDSA SIG
+    else {
+        //change algo for ECDSA after such case will be discovered and algo will be created
+        component pubkeyHasherEcdsa = Poseidon(1);
+        pubkeyHasherEcdsa.inputs[0] <== pubkey[0];
+        pubkeyHash <== pubkeyHasherEcdsa.out;
+    }
+
+        
+        // Verifying that public key inclusion into the Slave Certificates Merkle Tree
+    component smtVerifier = SMTVerifier(TREE_DEPTH);
+    smtVerifier.root     <== slaveMerkleRoot;
+    smtVerifier.leaf     <== pubkeyHash;
+    smtVerifier.key      <== pubkeyHash;
+    smtVerifier.siblings <== slaveMerkleInclusionBranches;
+
+    smtVerifier.isVerified === 1;
 
 }
 
