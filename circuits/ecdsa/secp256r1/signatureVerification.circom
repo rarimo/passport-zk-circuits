@@ -1,7 +1,7 @@
 pragma circom 2.1.9;
 
 include "p256.circom";
-include "p256_func.circom";
+include "p256Func.circom";
 include "circomlib/circuits/bitify.circom";
 
 template verifyP256(n, k, ALGO){

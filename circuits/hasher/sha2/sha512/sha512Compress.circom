@@ -8,7 +8,7 @@ include "../sha2Common.circom";
 // note: the d,h,inp,key inputs (and outputs) are 64 bit numbers;
 // the rest are little-endian bit vectors.
 
-template SHA2_384_512_compress_inner() {
+template Sha2_384_512CompressInner() {
   
   signal input inp;
   signal input key;
@@ -22,27 +22,27 @@ template SHA2_384_512_compress_inner() {
   signal input g[64];
   signal input hh;
 
-  signal output out_a[64];
-  signal output out_b[64];
-  signal output out_c[64];
-  signal output out_dd;
-  signal output out_e[64];
-  signal output out_f[64];
-  signal output out_g[64];
-  signal output out_hh;
+  signal output outA[64];
+  signal output outB[64];
+  signal output outC[64];
+  signal output outDD;
+  signal output outE[64];
+  signal output outF[64];
+  signal output outG[64];
+  signal output outHH;
 
   var d_sum = 0;
   var h_sum = 0;
   for(var i=0; i<64; i++) {
-    out_g[i] <== f[i];
-    out_f[i] <== e[i];
-    out_c[i] <== b[i];
-    out_b[i] <== a[i];
+    outG[i] <== f[i];
+    outF[i] <== e[i];
+    outC[i] <== b[i];
+    outB[i] <== a[i];
     d_sum += (1<<i) * c[i];
     h_sum += (1<<i) * g[i];
   }
-  out_dd <== d_sum;
-  out_hh <== h_sum;
+  outDD <== d_sum;
+  outHH <== h_sum;
   
   signal chb[64];
 
@@ -80,16 +80,16 @@ template SHA2_384_512_compress_inner() {
 
   }
 
-  signal overflow_e <== dd + hh + S1_SUM + ch_sum + key + inp;
-  signal overflow_a <==      hh + S1_SUM + ch_sum + key + inp + S0_SUM + mj_sum;
+  signal owerflowE <== dd + hh + S1_SUM + ch_sum + key + inp;
+  signal owerflowA <==      hh + S1_SUM + ch_sum + key + inp + S0_SUM + mj_sum;
 
-  component decompose_e = Bits67();
-  decompose_e.inp      <== overflow_e;
-  decompose_e.outBits ==> out_e;
+  component decomposeE = Bits67();
+  decomposeE.inp      <== owerflowE;
+  decomposeE.outBits ==> outE;
 
-  component decompose_a = Bits67();
-  decompose_a.inp      <== overflow_a;
-  decompose_a.outBits ==> out_a;
+  component decomposeA = Bits67();
+  decomposeA.inp      <== owerflowA;
+  decomposeA.outBits ==> outA;
 
 }
 

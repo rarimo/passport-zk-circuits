@@ -69,7 +69,7 @@ template ToBits(n) {
 template Bits33() {
   signal input  inp;
   signal output outBits[32];
-  signal output out_word;
+  signal output outWord;
   signal u;
 
   var sum = 0;
@@ -83,7 +83,7 @@ template Bits33() {
   u*(1-u) === 0;
 
   inp === sum + (1<<32)*u;
-  out_word <== sum;
+  outWord <== sum;
 }
 
 //------------------------------------------------------------------------------
@@ -92,7 +92,7 @@ template Bits33() {
 template Bits34() {
   signal input  inp;
   signal output outBits[32];
-  signal output out_word;
+  signal output outWord;
   signal u,v;
 
   var sum = 0;
@@ -108,7 +108,7 @@ template Bits34() {
   v*(1-v) === 0;
 
   inp === sum + (1<<32)*u + (1<<33)*v;
-  out_word <== sum;
+  outWord <== sum;
 }
 
 //------------------------------------------------------------------------------
@@ -117,7 +117,7 @@ template Bits34() {
 template Bits35() {
   signal input  inp;
   signal output outBits[32];
-  signal output out_word;
+  signal output outWord;
   signal u,v,w;
 
   var sum = 0;
@@ -135,7 +135,7 @@ template Bits35() {
   w*(1-w) === 0;
 
   inp === sum + (1<<32)*u + (1<<33)*v + (1<<34)*w;
-  out_word <== sum;
+  outWord <== sum;
 }
 
 //------------------------------------------------------------------------------
@@ -144,7 +144,7 @@ template Bits35() {
 template Bits65() {
   signal input  inp;
   signal output outBits[64];
-  signal output out_word;
+  signal output outWord;
   signal u;
 
   var sum = 0;
@@ -158,7 +158,7 @@ template Bits65() {
   u*(1-u) === 0;
 
   inp === sum + (1<<64)*u;
-  out_word <== sum;
+  outWord <== sum;
 }
 
 //------------------------------------------------------------------------------
@@ -167,7 +167,7 @@ template Bits65() {
 template Bits66() {
   signal input  inp;
   signal output outBits[64];
-  signal output out_word;
+  signal output outWord;
   signal u,v;
 
   var sum = 0;
@@ -183,7 +183,7 @@ template Bits66() {
   v*(1-v) === 0;
 
   inp === sum + (1<<64)*u + (1<<65)*v;
-  out_word <== sum;
+  outWord <== sum;
 }
 
 
@@ -193,7 +193,7 @@ template Bits66() {
 template Bits67() {
   signal input  inp;
   signal output outBits[64];
-  signal output out_word;
+  signal output outWord;
   signal u,v,w;
 
   var sum = 0;
@@ -211,7 +211,7 @@ template Bits67() {
   w*(1-w) === 0;
 
   inp === sum + (1<<64)*u + (1<<65)*v + (1<<66)*w;
-  out_word <== sum;
+  outWord <== sum;
 }
 
 //------------------------------------------------------------------------------

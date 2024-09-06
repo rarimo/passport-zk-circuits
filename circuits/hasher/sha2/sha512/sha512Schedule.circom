@@ -8,7 +8,7 @@ include "../sha2Common.circom";
 // NOTE: the individual 64 bit words are in little-endian order 
 //
 
-template SHA2_384_512_schedule() {
+template Sha2_384_512Schedule() {
   
   signal input  chunkBits[16][64];   // 1024 bits = 16 qwords = 128 bytes
   signal output outWords [80];       // 80 words
@@ -57,7 +57,7 @@ template SHA2_384_512_schedule() {
     modulo[r] = Bits66();
     modulo[r].inp      <== tmp;
     modulo[r].outBits ==> outBits [m];
-    modulo[r].out_word ==> outWords[m];
+    modulo[r].outWord ==> outWords[m];
 
   }
 }

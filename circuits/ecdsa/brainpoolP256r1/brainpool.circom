@@ -1,8 +1,8 @@
 pragma circom 2.1.8;
 
-include "./circom-pairing/curve.circom";
-include "./brainpool_func.circom";
-include "./brainpool_pows.circom";
+include "./circomPairing/curve.circom";
+include "./brainpoolFunc.circom";
+include "./brainpoolPows.circom";
 include "circomlib/circuits/multiplexer.circom";
 
 template BrainpoolScalarMult(CHUNK_SIZE, CHUNK_NUMBER){

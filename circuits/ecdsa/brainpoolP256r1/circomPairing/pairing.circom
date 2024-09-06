@@ -1,10 +1,10 @@
 pragma circom 2.0.3;
 
 include "curve.circom";
-include "curve_fp2.circom";
+include "curveFp2.circom";
 include "fp12.circom";
-include "final_exp.circom";
-include "bls12_381_func.circom";
+include "finalExp.circom";
+include "bls12_381Func.circom";
 
 // Inputs:
 //  P is 2 x 2 x CHUNK_NUMBER array where P0 = (x_1, y_1) and P1 = (x_2, y_2) are points in E(Fp)

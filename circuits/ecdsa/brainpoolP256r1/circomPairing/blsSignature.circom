@@ -2,8 +2,8 @@ pragma circom 2.0.3;
 
 include "final_exp.circom";
 include "pairing.circom";
-include "bls12_381_func.circom";
-include "bls12_381_hash_to_G2.circom";
+include "bls12_381Func.circom";
+include "bls12_381HashToG2.circom";
 
 
 // Input: pubkey in G_1 

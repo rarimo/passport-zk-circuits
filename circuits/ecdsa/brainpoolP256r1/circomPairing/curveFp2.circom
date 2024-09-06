@@ -8,7 +8,7 @@ include "./fp.circom";
 include "./fp2.circom";
 include "./fp12.circom";
 include "./curve.circom";
-include "./bls12_381_func.circom";
+include "./bls12_381Func.circom";
 
 // in[i] = (x_i, y_i) 
 // Implements constraint: (y_1 + y_3) * (x_2 - x_1) - (y_2 - y_1)*(x_1 - x_3) = 0 mod P

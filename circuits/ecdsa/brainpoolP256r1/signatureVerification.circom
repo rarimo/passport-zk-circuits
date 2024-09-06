@@ -1,9 +1,9 @@
 pragma circom 2.1.8;
 
-include "./circom-pairing/curve.circom";
+include "./circomPairing/curve.circom";
 include "circomlib/circuits/bitify.circom";
 include "./brainpool.circom";
-include "./brainpool_func.circom";
+include "./brainpoolFunc.circom";
 
 
 template verifyBrainpool(CHUNK_SIZE,CHUNK_NUMBER, ALGO){

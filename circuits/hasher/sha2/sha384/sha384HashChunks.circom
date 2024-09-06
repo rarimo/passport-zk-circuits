@@ -1,19 +1,18 @@
 pragma circom 2.0.0;
 
 include "../sha2Common.circom";
-include "../sha512/sha512_padding.circom";
-include "../sha512/sha512_schedule.circom";
-include "../sha512/sha512_rounds.circom";
-include "sha384_initial_value.circom";
+include "../sha512/sha512Schedule.circom";
+include "../sha512/sha512Rounds.circom";
+include "sha384InitialValue.circom";
 
-template Sha384_hash_chunks(BLOCK_NUM) {
+template Sha384HashChunks(BLOCK_NUM) {
 
   signal input  in[BLOCK_NUM * 1024];           
   signal output out[384];
 
   signal states[BLOCK_NUM+1][8][64];
 
-  component iv = Sha384_initial_value();
+  component iv = Sha384InitialValues();
   iv.out ==> states[0];
 
   component sch[BLOCK_NUM]; 
@@ -21,8 +20,8 @@ template Sha384_hash_chunks(BLOCK_NUM) {
 
   for(var m=0; m<BLOCK_NUM; m++) { 
 
-    sch[m] = SHA2_384_512_schedule();
-    rds[m] = SHA2_384_512_rounds(80); 
+    sch[m] = Sha2_384_512Schedule();
+    rds[m] = Sha2_384_512Rounds(80); 
 
     for(var k=0; k<16; k++) {
       for(var i=0; i<64; i++) {
