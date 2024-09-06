@@ -5,8 +5,8 @@ include "../../../bigInt/bigIntFunc.circom";
 include "fp.circom";
 include "fp2.circom";
 include "curve.circom";
-include "curve_fp2.circom";
-include "bls12_381_func.circom";
+include "curveFp2.circom";
+include "bls12_381Func.circom";
 
 /* 
 implementation of optimized simplified SWU map to BLS12-381 G2

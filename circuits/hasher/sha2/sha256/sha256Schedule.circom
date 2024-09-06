@@ -56,8 +56,8 @@ template Sha2_224_256Shedule() {
 
     modulo[r] = Bits34();
     modulo[r].inp      <== tmp;
-    modulo[r].outBits ==> outBits [m];
-    modulo[r].out_word ==> outWords[m];
+    modulo[r].outBits  ==> outBits [m];
+    modulo[r].outWord ==> outWords[m];
 
   }
 }

@@ -3,8 +3,8 @@ pragma circom 2.1.8;
 include "./sha1/sha1.circom";
 include "./sha2/sha224/sha224HashChunks.circom";
 include "./sha2/sha256/sha256HashChunks.circom";
-include "./sha2/sha384/sha384_hash_bits.circom";
-include "./sha2/sha512/sha512_hash_bits.circom";
+include "./sha2/sha384/sha384HashChunks.circom";
+include "./sha2/sha512/sha512HashChunks.circom";
 
 template PassportHash(BLOCK_SIZE, BLOCK_NUM, ALGO){
 
@@ -29,12 +29,12 @@ template PassportHash(BLOCK_SIZE, BLOCK_NUM, ALGO){
         hash256.out ==> out;
     }
     if (ALGO == 384) {
-        component hash384 = Sha384_hash_chunks(BLOCK_NUM);
+        component hash384 = Sha384HashChunks(BLOCK_NUM);
         hash384.in <== in;
         hash384.out ==> out;
     }
     if (ALGO == 512) {
-        component hash512 = Sha512_hash_chunks(BLOCK_NUM);
+        component hash512 = Sha512HashChunks(BLOCK_NUM);
         hash512.in <== in;
         hash512.out ==> out;
     }

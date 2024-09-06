@@ -2,11 +2,11 @@ pragma circom 2.0.3;
 
 include "../../../bigInt/bigInt.circom";
 include "../../../bigInt/bigIntFunc.circom";
-include "field_elements_func.circom";
+include "fieldElementsFunc.circom";
 include "fp.circom";
 include "fp2.circom";
-include "fp12_func.circom";
-include "bls12_381_func.circom";
+include "fp12Func.circom";
+include "bls12_381Func.circom";
 
 template Fp12FrobeniusMap(CHUNK_SIZE, CHUNK_NUMBER, POWER){
     signal input in[6][2][CHUNK_NUMBER];

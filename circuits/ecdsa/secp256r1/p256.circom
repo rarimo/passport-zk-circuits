@@ -1,8 +1,8 @@
 pragma circom 2.1.5;
 
-include "../brainpoolP256r1/circom-pairing/curve.circom";
-include "p256_func.circom";
-include "p256_pows.circom";
+include "../brainpoolP256r1/circomPairing/curve.circom";
+include "p256Func.circom";
+include "p256Pows.circom";
 
 template P256AddUnequal(CHUNK_SIZE, CHUNK_NUMBER) {
     signal input point1[2][CHUNK_NUMBER];

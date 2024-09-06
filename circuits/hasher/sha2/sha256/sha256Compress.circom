@@ -22,19 +22,19 @@ template Sha2_224_256CompressInner() {
   signal input g[32];
   signal input hh;
 
-  signal output out_a[32];
-  signal output out_b[32];
-  signal output out_c[32];
-  signal output out_dd;
-  signal output out_e[32];
-  signal output out_f[32];
-  signal output out_g[32];
-  signal output out_hh;
+  signal output outA[32];
+  signal output outB[32];
+  signal output outC[32];
+  signal output outDD;
+  signal output outE[32];
+  signal output outF[32];
+  signal output outG[32];
+  signal output outHH;
 
-  out_g <== f;
-  out_f <== e;
-  out_c <== b;
-  out_b <== a;
+  outG <== f;
+  outF <== e;
+  outC <== b;
+  outB <== a;
 
   var d_sum = 0;
   var h_sum = 0;
@@ -42,8 +42,8 @@ template Sha2_224_256CompressInner() {
     d_sum += (1<<i) * c[i];
     h_sum += (1<<i) * g[i];
   }
-  out_dd <== d_sum;
-  out_hh <== h_sum;
+  outDD <== d_sum;
+  outHH <== h_sum;
   
   signal chb[32];
 
@@ -81,16 +81,16 @@ template Sha2_224_256CompressInner() {
 
   }
 
-  signal overflow_e <== dd + hh + S1_SUM + ch_sum + key + inp;
-  signal overflow_a <==      hh + S1_SUM + ch_sum + key + inp + S0_SUM + mj_sum;
+  signal owerflowE <== dd + hh + S1_SUM + ch_sum + key + inp;
+  signal owerflowA <==      hh + S1_SUM + ch_sum + key + inp + S0_SUM + mj_sum;
 
-  component decompose_e = Bits35();
-  decompose_e.inp      <== overflow_e;
-  decompose_e.outBits ==> out_e;
+  component decomposeE = Bits35();
+  decomposeE.inp      <== owerflowE;
+  decomposeE.outBits ==> outE;
 
-  component decompose_a = Bits35();
-  decompose_a.inp      <== overflow_a;
-  decompose_a.outBits ==> out_a;
+  component decomposeA = Bits35();
+  decomposeA.inp      <== owerflowA;
+  decomposeA.outBits ==> outA;
 
 }
 

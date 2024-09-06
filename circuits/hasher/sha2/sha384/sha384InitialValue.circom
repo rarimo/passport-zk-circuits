@@ -3,7 +3,7 @@ pragma circom 2.0.0;
 //------------------------------------------------------------------------------
 // initial hash value for SHA2-384
 
-template Sha384_initial_value() {
+template Sha384InitialValues() {
 
   signal output out[8][64];
 
