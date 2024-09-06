@@ -1,6 +1,6 @@
 pragma circom 2.0.0;
 
-include "../sha2_common.circom";
+include "../sha2Common.circom";
 include "sha512_hash_bits.circom";
 
 //------------------------------------------------------------------------------

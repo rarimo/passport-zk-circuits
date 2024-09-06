@@ -1,19 +1,18 @@
 pragma circom 2.0.0;
 
-include "../sha2_common.circom";
-include "sha256_padding.circom";
-include "sha256_initial_value.circom";
-include "sha256_schedule.circom";
-include "sha256_rounds.circom";
+include "../sha2Common.circom";
+include "sha256InitialValue.circom";
+include "sha256Schedule.circom";
+include "sha256Rounds.circom";
 
-template Sha256_hash_chunks(BLOCK_NUM) {
+template Sha256HashChunks(BLOCK_NUM) {
 
   signal input  in[BLOCK_NUM * 512];            
   signal output out[256];       
 
   signal states[BLOCK_NUM+1][8][32];
   
-  component iv = Sha256_initial_value();
+  component iv = Sha256InitialValue();
   iv.out ==> states[0];
 
   component sch[BLOCK_NUM]; 

@@ -1,6 +1,6 @@
 pragma circom 2.0.0;
   
-include "../sha2_common.circom";
+include "../sha2Common.circom";
 
 //------------------------------------------------------------------------------
 // SHA256 (and also SHA224) compression function inner loop
@@ -8,7 +8,7 @@ include "../sha2_common.circom";
 // note: the d,h,inp,key inputs (and outputs) are 32 bit numbers;
 // the rest are little-endian bit vectors.
 
-template SHA2_224_256_compress_inner() {
+template Sha2_224_256CompressInner() {
   
   signal input inp;
   signal input key;
@@ -48,11 +48,11 @@ template SHA2_224_256_compress_inner() {
   signal chb[32];
 
   component major[32];
-  component s0xor[32];
-  component s1xor[32];
+  component s0Xor[32];
+  component s1Xor[32];
 
-  var s0_sum = 0;
-  var s1_sum = 0;
+  var S0_SUM = 0;
+  var S1_SUM = 0;
   var mj_sum = 0;
   var ch_sum = 0;
 
@@ -67,30 +67,30 @@ template SHA2_224_256_compress_inner() {
     major[i].xy <== a[i] + b[i] + c[i];
     mj_sum += (1<<i) * major[i].hi;
 
-    s0xor[i] = XOR3_v2();
-    s0xor[i].x <== a[ (i +  2) % 32 ];
-    s0xor[i].y <== a[ (i + 13) % 32 ];
-    s0xor[i].z <== a[ (i + 22) % 32 ];
-    s0_sum += (1<<i) * s0xor[i].out;
+    s0Xor[i] = XOR3_v2();
+    s0Xor[i].x <== a[ (i +  2) % 32 ];
+    s0Xor[i].y <== a[ (i + 13) % 32 ];
+    s0Xor[i].z <== a[ (i + 22) % 32 ];
+    S0_SUM += (1<<i) * s0Xor[i].out;
 
-    s1xor[i] = XOR3_v2();
-    s1xor[i].x <== e[ (i +  6) % 32 ]; 
-    s1xor[i].y <== e[ (i + 11) % 32 ];
-    s1xor[i].z <== e[ (i + 25) % 32 ];
-    s1_sum += (1<<i) * s1xor[i].out;
+    s1Xor[i] = XOR3_v2();
+    s1Xor[i].x <== e[ (i +  6) % 32 ]; 
+    s1Xor[i].y <== e[ (i + 11) % 32 ];
+    s1Xor[i].z <== e[ (i + 25) % 32 ];
+    S1_SUM += (1<<i) * s1Xor[i].out;
 
   }
 
-  signal overflow_e <== dd + hh + s1_sum + ch_sum + key + inp;
-  signal overflow_a <==      hh + s1_sum + ch_sum + key + inp + s0_sum + mj_sum;
+  signal overflow_e <== dd + hh + S1_SUM + ch_sum + key + inp;
+  signal overflow_a <==      hh + S1_SUM + ch_sum + key + inp + S0_SUM + mj_sum;
 
   component decompose_e = Bits35();
   decompose_e.inp      <== overflow_e;
-  decompose_e.out_bits ==> out_e;
+  decompose_e.outBits ==> out_e;
 
   component decompose_a = Bits35();
   decompose_a.inp      <== overflow_a;
-  decompose_a.out_bits ==> out_a;
+  decompose_a.outBits ==> out_a;
 
 }
 

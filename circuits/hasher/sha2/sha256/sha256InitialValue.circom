@@ -3,7 +3,7 @@ pragma circom 2.0.0;
 //------------------------------------------------------------------------------
 // initial hash value for SHA2-256 
 
-template Sha256_initial_value() {
+template Sha256InitialValue() {
 
   signal output out[8][32];
 
