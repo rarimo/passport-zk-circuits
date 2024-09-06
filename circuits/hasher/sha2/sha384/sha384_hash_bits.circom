@@ -1,6 +1,6 @@
 pragma circom 2.0.0;
 
-include "../sha2_common.circom";
+include "../sha2Common.circom";
 include "../sha512/sha512_padding.circom";
 include "../sha512/sha512_schedule.circom";
 include "../sha512/sha512_rounds.circom";

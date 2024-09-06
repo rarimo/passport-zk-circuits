@@ -1,9 +1,8 @@
 pragma circom 2.0.0;
 
-include "../sha2_common.circom";
-include "../sha256/sha256_padding.circom";
-include "../sha256/sha256_schedule.circom";
-include "../sha256/sha256_rounds.circom";
+include "../sha2Common.circom";
+include "../sha256/sha256Schedule.circom";
+include "../sha256/sha256Rounds.circom";
 include "sha224InitialValue.circom";
 
 template Sha224HashChunks(BLOCK_NUM) {

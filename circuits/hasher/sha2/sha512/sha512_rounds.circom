@@ -1,6 +1,6 @@
 pragma circom 2.0.0;
   
-include "../sha2_common.circom";
+include "../sha2Common.circom";
 include "sha512_compress.circom";
 include "sha512_round_const.circom";
 
@@ -114,7 +114,7 @@ template SHA2_384_512_rounds(n) {
   modulo[7].inp <== hash_words[7] + hh[n];
 
   for(var j=0; j<8; j++) {
-    modulo[j].out_bits ==> outHash[j];
+    modulo[j].outBits ==> outHash[j];
   }
 
 }

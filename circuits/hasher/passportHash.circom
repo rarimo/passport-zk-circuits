@@ -2,7 +2,7 @@ pragma circom 2.1.8;
 
 include "./sha1/sha1.circom";
 include "./sha2/sha224/sha224HashChunks.circom";
-include "./sha2/sha256/sha256_hash_bits.circom";
+include "./sha2/sha256/sha256HashChunks.circom";
 include "./sha2/sha384/sha384_hash_bits.circom";
 include "./sha2/sha512/sha512_hash_bits.circom";
 
@@ -24,7 +24,7 @@ template PassportHash(BLOCK_SIZE, BLOCK_NUM, ALGO){
         hash224.out ==> out;
     }
     if (ALGO == 256) {
-        component hash256 = Sha256_hash_chunks(BLOCK_NUM);
+        component hash256 = Sha256HashChunks(BLOCK_NUM);
         hash256.in <== in;
         hash256.out ==> out;
     }

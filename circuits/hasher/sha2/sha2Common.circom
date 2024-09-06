@@ -68,15 +68,15 @@ template ToBits(n) {
 
 template Bits33() {
   signal input  inp;
-  signal output out_bits[32];
+  signal output outBits[32];
   signal output out_word;
   signal u;
 
   var sum = 0;
   for(var i=0; i<32; i++) {
-    out_bits[i] <-- (inp >> i) & 1;
-    out_bits[i] * (1-out_bits[i]) === 0;
-    sum += (1<<i) * out_bits[i];
+    outBits[i] <-- (inp >> i) & 1;
+    outBits[i] * (1-outBits[i]) === 0;
+    sum += (1<<i) * outBits[i];
   }
 
   u <-- (inp >> 32) & 1;
@@ -91,15 +91,15 @@ template Bits33() {
 
 template Bits34() {
   signal input  inp;
-  signal output out_bits[32];
+  signal output outBits[32];
   signal output out_word;
   signal u,v;
 
   var sum = 0;
   for(var i=0; i<32; i++) {
-    out_bits[i] <-- (inp >> i) & 1;
-    out_bits[i] * (1-out_bits[i]) === 0;
-    sum += (1<<i) * out_bits[i];
+    outBits[i] <-- (inp >> i) & 1;
+    outBits[i] * (1-outBits[i]) === 0;
+    sum += (1<<i) * outBits[i];
   }
 
   u <-- (inp >> 32) & 1;
@@ -116,15 +116,15 @@ template Bits34() {
 
 template Bits35() {
   signal input  inp;
-  signal output out_bits[32];
+  signal output outBits[32];
   signal output out_word;
   signal u,v,w;
 
   var sum = 0;
   for(var i=0; i<32; i++) {
-    out_bits[i] <-- (inp >> i) & 1;
-    out_bits[i] * (1-out_bits[i]) === 0;
-    sum += (1<<i) * out_bits[i];
+    outBits[i] <-- (inp >> i) & 1;
+    outBits[i] * (1-outBits[i]) === 0;
+    sum += (1<<i) * outBits[i];
   }
 
   u <-- (inp >> 32) & 1;
@@ -143,15 +143,15 @@ template Bits35() {
 
 template Bits65() {
   signal input  inp;
-  signal output out_bits[64];
+  signal output outBits[64];
   signal output out_word;
   signal u;
 
   var sum = 0;
   for(var i=0; i<64; i++) {
-    out_bits[i] <-- (inp >> i) & 1;
-    out_bits[i] * (1-out_bits[i]) === 0;
-    sum += (1<<i) * out_bits[i];
+    outBits[i] <-- (inp >> i) & 1;
+    outBits[i] * (1-outBits[i]) === 0;
+    sum += (1<<i) * outBits[i];
   }
 
   u <-- (inp >> 64) & 1;
@@ -166,15 +166,15 @@ template Bits65() {
 
 template Bits66() {
   signal input  inp;
-  signal output out_bits[64];
+  signal output outBits[64];
   signal output out_word;
   signal u,v;
 
   var sum = 0;
   for(var i=0; i<64; i++) {
-    out_bits[i] <-- (inp >> i) & 1;
-    out_bits[i] * (1-out_bits[i]) === 0;
-    sum += (1<<i) * out_bits[i];
+    outBits[i] <-- (inp >> i) & 1;
+    outBits[i] * (1-outBits[i]) === 0;
+    sum += (1<<i) * outBits[i];
   }
 
   u <-- (inp >> 64) & 1;
@@ -192,15 +192,15 @@ template Bits66() {
 
 template Bits67() {
   signal input  inp;
-  signal output out_bits[64];
+  signal output outBits[64];
   signal output out_word;
   signal u,v,w;
 
   var sum = 0;
   for(var i=0; i<64; i++) {
-    out_bits[i] <-- (inp >> i) & 1;
-    out_bits[i] * (1-out_bits[i]) === 0;
-    sum += (1<<i) * out_bits[i];
+    outBits[i] <-- (inp >> i) & 1;
+    outBits[i] * (1-outBits[i]) === 0;
+    sum += (1<<i) * outBits[i];
   }
 
   u <-- (inp >> 64) & 1;

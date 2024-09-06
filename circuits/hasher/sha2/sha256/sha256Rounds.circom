@@ -1,8 +1,8 @@
 pragma circom 2.0.0;
   
-include "../sha2_common.circom";
-include "sha256_compress.circom";
-include "sha256_round_const.circom";
+include "../sha2Common.circom";
+include "sha256Compress.circom";
+include "sha256RoundConst.circom";
 
 //------------------------------------------------------------------------------
 // execute `n` rounds of the SHA224 / SHA256 inner loop
@@ -27,7 +27,7 @@ template Sha2_224_256Rounds(n) {
   signal  hh[n+1];
 
   signal round_keys[64];
-  component RC = SHA2_224_256_round_keys();
+  component RC = Sha2_224_256RoundKeys();
   round_keys <== RC.out;
 
   a[0] <== inpHash[0];
@@ -60,7 +60,7 @@ template Sha2_224_256Rounds(n) {
 
   for(var k=0; k<n; k++) {
 
-    compress[k] = SHA2_224_256_compress_inner();
+    compress[k] = Sha2_224_256CompressInner();
 
     compress[k].inp <== words[k];
     compress[k].key <== round_keys[k];
@@ -114,7 +114,7 @@ template Sha2_224_256Rounds(n) {
   modulo[7].inp <== hash_words[7] + hh[n];
 
   for(var j=0; j<8; j++) {
-    modulo[j].out_bits ==> outHash[j];
+    modulo[j].outBits ==> outHash[j];
   }
 
 }
