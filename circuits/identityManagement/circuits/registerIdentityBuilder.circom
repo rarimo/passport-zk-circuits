@@ -17,7 +17,7 @@ include "../../merkleTree/SMTVerifier.circom";
 //   - 2: RSA 4096 bits + SHA2-256
 //   - 3: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256
 //   - 4: RSASSA-PSS 4096 bits MGF1 (SHA2-256) + SHA2-256
-//   - 5: RSASSA-PSS 2048 bits MGF1 (SHA2-384) + SHA2-384
+//   - 5: RSASSA-PSS 2048 bits MGF1 (SHA2-384) +Ку SHA2-384
 //   - 6: ECDSA secp256r1 + SHA256
 //   - 7: ECDSA brainpoolP256r1 + SHA256
 
@@ -33,6 +33,7 @@ template RegisterIdentityBuilder (
     E_BITS,                         // 2, 17 
     CHUNK_SIZE,
     CHUNK_NUMBER,
+    DG_HASH_TYPE,                   // 160, 224, 256, 384, 512 (list above)^^^
     DOCUMENT_TYPE,                  // 1: TD1; 3: TD3
     TREE_DEPTH,
     FLOW_MATRIX,
@@ -91,6 +92,7 @@ template RegisterIdentityBuilder (
         E_BITS,
         CHUNK_SIZE,
         CHUNK_NUMBER,
+        DG_HASH_TYPE,
         TREE_DEPTH,
         FLOW_MATRIX,
         FLOW_MATRIX_HEIGHT,
@@ -142,14 +144,15 @@ template RegisterIdentityBuilder (
     }
 
         
-        // Verifying that public key inclusion into the Slave Certificates Merkle Tree
+    // Verifying that public key inclusion into the Slave Certificates Merkle Tree
     component smtVerifier = SMTVerifier(TREE_DEPTH);
     smtVerifier.root     <== slaveMerkleRoot;
     smtVerifier.leaf     <== pubkeyHash;
     smtVerifier.key      <== pubkeyHash;
     smtVerifier.siblings <== slaveMerkleInclusionBranches;
 
-    smtVerifier.isVerified === 1;
+    smtVerifier.isVerified === 1; 
+    // log("SMT: ", smtVerifier.isVerified);
 
 }
 
