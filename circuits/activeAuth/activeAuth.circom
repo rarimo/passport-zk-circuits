@@ -25,7 +25,7 @@ template ActiveAuthenticationBuilder(
     }
 
 
-    signal input pubkey[PUBKEY_LEN];
+    signal input pubkey   [PUBKEY_LEN];
     signal input signature[SIGNATURE_LEN];
     signal input challenge[CHALLENGE_HASH_TYPE];
 

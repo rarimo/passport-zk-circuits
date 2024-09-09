@@ -1,6 +1,6 @@
 pragma circom 2.0.3;
 
-include "final_exp.circom";
+include "finalExp.circom";
 include "pairing.circom";
 include "bls12_381Func.circom";
 include "bls12_381HashToG2.circom";
