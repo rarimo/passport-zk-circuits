@@ -60,7 +60,6 @@ template PassportVerificationBuilder(
     component dg1PassportHasher = PassportHash(HASH_BLOCK_SIZE, DG1_SIZE, DG_HASH_TYPE);
     dg1PassportHasher.in   <== dg1;
     dg1PassportHasher.out  ==> dg1Hash;
-  
 
     var HASHES_COUNT[3];
 
