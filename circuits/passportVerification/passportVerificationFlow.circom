@@ -1,19 +1,25 @@
 pragma circom  2.1.6;
 
-include "../node_modules/circomlib/circuits/comparators.circom";
+include "circomlib/circuits/comparators.circom";
 
 
-template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_ATTRIBUTES_SIZE, 
-                                  DG1_DIGEST_POSITION_SHIFT, DG15_DIGEST_POSITION_SHIFT, SIGNED_ATTRIBUTES_SHIFT) 
+template PassportVerificationFlow( 
+    ENCAPSULATED_CONTENT_SIZE,
+    HASH_SIZE,
+    ENCAPSULATED_CONTENT_HASH_TYPE,
+    SIGNED_ATTRIBUTES_SIZE,
+    DG1_DIGEST_POSITION_SHIFT,
+    DG15_DIGEST_POSITION_SHIFT,
+    SIGNED_ATTRIBUTES_SHIFT,    
+    DG15_VERIFICATION) 
 {
     signal output flowResult;
 
     signal input dg1Hash[HASH_SIZE];
     signal input dg15Hash[HASH_SIZE];
     signal input encapsulatedContent[ENCAPSULATED_CONTENT_SIZE];
-    signal input encapsulatedContentHash[HASH_SIZE];
+    signal input encapsulatedContentHash[ENCAPSULATED_CONTENT_HASH_TYPE];
     signal input signedAttributes[SIGNED_ATTRIBUTES_SIZE];
-    signal input dg15Verification;
 
     // 1) Checking DG1 hash inclusion into encapsulatedContent
     component dg1HashEqualsEncapsulated[HASH_SIZE];
@@ -28,9 +34,9 @@ template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
     component dg15HashEqualsEncapsulated[HASH_SIZE];
     for (var i = 0; i < HASH_SIZE; i++) {
         dg15HashEqualsEncapsulated[i] = IsEqual();
-        dg15HashEqualsEncapsulated[i].in[0] <== dg15Hash[i] * dg15Verification;
-        dg15HashEqualsEncapsulated[i].in[1] <== encapsulatedContent[DG15_DIGEST_POSITION_SHIFT + i] * dg15Verification;
-        // log("DG15 equals: ", dg15HashEqualsEncapsulated[i].out);
+        dg15HashEqualsEncapsulated[i].in[0] <== dg15Hash[i] * DG15_VERIFICATION;
+        dg15HashEqualsEncapsulated[i].in[1] <== encapsulatedContent[DG15_DIGEST_POSITION_SHIFT + i] * DG15_VERIFICATION;
+        // log("DG15 hash: ", dg15HashEqualsEncapsulated[i].out);
     }
     
     // 3) Checking encapsulatedContent hash inclusion into signedAttributed
@@ -39,7 +45,7 @@ template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
         encapsulateHashEqualsSigned[i] = IsEqual();
         encapsulateHashEqualsSigned[i].in[0] <== encapsulatedContentHash[i];
         encapsulateHashEqualsSigned[i].in[1] <== signedAttributes[SIGNED_ATTRIBUTES_SHIFT + i];
-        // log("Encapsulated equals: ", encapsulateHashEqualsSigned[i].out);
+        // log("Encapsulated hash: ", encapsulateHashEqualsSigned[i].out);
     }
 
     // 4) Checking DG15 prefix equals 0x0F = 15
@@ -48,8 +54,8 @@ template PassportVerificationFlow(ENCAPSULATED_CONTENT_SIZE, HASH_SIZE, SIGNED_A
     var PREFIX_SHIFT = 24; // 3 bytes
     for (var i = 0; i < 8; i++) {
         dg15PrefixCorrect[i] = IsEqual();
-        dg15PrefixCorrect[i].in[0] <== dg15Prefix[i] * dg15Verification;
-        dg15PrefixCorrect[i].in[1] <== encapsulatedContent[DG15_DIGEST_POSITION_SHIFT - PREFIX_SHIFT + i] * dg15Verification;
+        dg15PrefixCorrect[i].in[0] <== dg15Prefix[i] * DG15_VERIFICATION;
+        dg15PrefixCorrect[i].in[1] <== encapsulatedContent[DG15_DIGEST_POSITION_SHIFT - PREFIX_SHIFT + i] * DG15_VERIFICATION;
         // log("EncCont: ", encapsulatedContent[DG15_DIGEST_POSITION_SHIFT - PREFIX_SHIFT + i]);
         // log("ExpectedPrefix: ", dg15Prefix[i]);
         // log("dg15PrefixCorrect", dg15PrefixCorrect[i].out);

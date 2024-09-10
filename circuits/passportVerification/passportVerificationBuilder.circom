@@ -18,11 +18,11 @@ template PassportVerificationBuilder(
     E_BITS,
     CHUNK_SIZE,
     CHUNK_NUMBER,
+    DG_HASH_TYPE,
     TREE_DEPTH,
-    AA_FLOWS_NUMBER,
-    AA_FLOWS_BITMASK,
-    NoAA_FLOWS_NUMBER,
-    NoAA_FLOWS_BITMASK
+    FLOW_MATRIX,
+    FLOW_MATRIX_HEIGHT,
+    HASH_BLOCK_MATRIX //[3][8]
 ) {
 
     var DG1_LEN                  = DG1_SIZE                  * HASH_BLOCK_SIZE;
@@ -36,7 +36,7 @@ template PassportVerificationBuilder(
     //ECDSA
     if (SIGNATURE_TYPE > 5){
         PUBKEY_LEN    = 2 * CHUNK_NUMBER * CHUNK_SIZE;
-        SIGNATURE_LEN = 2 * CHUNK_NUMBER * CHUNK_SIZE;   
+        SIGNATURE_LEN = 2 * CHUNK_NUMBER * CHUNK_SIZE;
     }
     //RSA
     if (SIGNATURE_TYPE <= 5){
@@ -56,55 +56,99 @@ template PassportVerificationBuilder(
 
     signal output passportHash;
     
-
-    component dg1PassportHasher  = PassportHash(HASH_BLOCK_SIZE, DG1_SIZE,                  HASH_TYPE);
-    component dg15PassportHasher = PassportHash(HASH_BLOCK_SIZE, DG15_SIZE,                 HASH_TYPE);
-    component ecPassportHasher   = PassportHash(HASH_BLOCK_SIZE, ENCAPSULATED_CONTENT_SIZE, HASH_TYPE);
-    component saPassportHasher   = PassportHash(HASH_BLOCK_SIZE, SIGNED_ATTRIBUTES_SIZE,    HASH_TYPE);
-
-    signal dg1Hash                [HASH_TYPE];
-    signal dg15Hash               [HASH_TYPE];
-    signal encapsulatedContentHash[HASH_TYPE];
-    signal signedAttributesHash   [HASH_TYPE];
-
+    signal dg1Hash[DG_HASH_TYPE];
+    component dg1PassportHasher = PassportHash(HASH_BLOCK_SIZE, DG1_SIZE, DG_HASH_TYPE);
     dg1PassportHasher.in   <== dg1;
     dg1PassportHasher.out  ==> dg1Hash;
-    dg15PassportHasher.in  <== dg15;
-    dg15PassportHasher.out ==> dg15Hash;
-    ecPassportHasher.in    <== encapsulatedContent;
-    ecPassportHasher.out   ==> encapsulatedContentHash;
-    saPassportHasher.in    <== signedAttributes;
-    saPassportHasher.out   ==> signedAttributesHash;
 
+    var HASHES_COUNT[3];
 
-    var DG1_SHIFT;
-    var DG15_SHIFT;
-    var ENCAPSULATED_CONTENT_SHIFT;
-
-    signal dg15Verification;
-
-    if (AA_FLOWS_BITMASK == 1){
-        DG1_SHIFT = 248;
-        DG15_SHIFT = 3056;
-        ENCAPSULATED_CONTENT_SHIFT = 576;
-        dg15Verification <== 1;
+    for (var i = 0; i < 3; i++){
+        HASHES_COUNT[i] = 0;
+        for (var j = 0; j < 8; j++){
+            HASHES_COUNT[i] = HASHES_COUNT[i] + HASH_BLOCK_MATRIX[i][j];
+        }
     }
 
-    component passportVerificationFlow = PassportVerificationFlow(
-        ENCAPSULATED_CONTENT_LEN, 
-        HASH_TYPE,
-        SIGNED_ATTRIBUTES_LEN,
-        DG1_SHIFT,
-        DG15_SHIFT,
-        ENCAPSULATED_CONTENT_SHIFT 
-    );
+    assert(HASHES_COUNT[2] == 1);
+
+    signal dg15Hash               [8][DG_HASH_TYPE];
+    signal encapsulatedContentHash[8][HASH_TYPE];
+    signal signedAttributesHash   [HASH_TYPE];
+
+    component dg15PassportHasher[HASHES_COUNT[0]];
+    component ecPassportHasher  [HASHES_COUNT[1]];
+    component saPassportHasher;
+
+    var hashCounter = 0;
     
-    passportVerificationFlow.dg1Hash                 <== dg1Hash;
-    passportVerificationFlow.dg15Hash                <== dg15Hash;
-    passportVerificationFlow.encapsulatedContent     <== encapsulatedContent;
-    passportVerificationFlow.encapsulatedContentHash <== encapsulatedContentHash;
-    passportVerificationFlow.signedAttributes        <== signedAttributes;
-    passportVerificationFlow.dg15Verification        <== dg15Verification;
+    for (var i = 1; i <= 8; i++){
+        if (HASH_BLOCK_MATRIX[0][i-1] == 1){
+            dg15PassportHasher[hashCounter] = PassportHash(HASH_BLOCK_SIZE, i, DG_HASH_TYPE);
+            for (var j = 0; j < HASH_BLOCK_SIZE*i; j++){
+                dg15PassportHasher[hashCounter].in[j] <== dg15[j];
+            }
+            dg15PassportHasher[hashCounter].out ==> dg15Hash[i-1];
+            hashCounter += 1;
+        } else {
+            for (var j = 0; j < DG_HASH_TYPE; j++){
+                dg15Hash[i-1][j] <== 0;
+            }
+        }
+    }
+    
+    hashCounter = 0;
+    
+
+    for (var i = 1; i <= 8; i++){
+        if (HASH_BLOCK_MATRIX[1][i-1] == 1){
+            ecPassportHasher[hashCounter] = PassportHash(HASH_BLOCK_SIZE, i, HASH_TYPE);
+            for (var j = 0; j < HASH_BLOCK_SIZE*i; j++){
+                ecPassportHasher[hashCounter].in[j] <== encapsulatedContent[j];
+            }
+            ecPassportHasher[hashCounter].out ==> encapsulatedContentHash[i-1];
+            hashCounter += 1;
+        } else {
+            for (var j = 0; j < HASH_TYPE; j++){
+                encapsulatedContentHash[i-1][j] <== 0;
+            }
+        }
+    }
+
+    for (var i = 1; i <= 8; i++){
+        if (HASH_BLOCK_MATRIX[2][i-1] == 1){
+            saPassportHasher = PassportHash(HASH_BLOCK_SIZE, i, HASH_TYPE);
+            for (var j = 0; j < HASH_BLOCK_SIZE*i; j++){
+                saPassportHasher.in[j] <== signedAttributes[j];
+            }
+            saPassportHasher.out ==> signedAttributesHash;
+        }
+    }
+
+
+    component passportVerificationFlow[FLOW_MATRIX_HEIGHT];
+
+    for (var i = 0; i < FLOW_MATRIX_HEIGHT; i++){
+        passportVerificationFlow[i] = PassportVerificationFlow(
+            ENCAPSULATED_CONTENT_LEN, 
+            DG_HASH_TYPE,
+            HASH_TYPE,
+            SIGNED_ATTRIBUTES_LEN,
+            FLOW_MATRIX[i][0], //dg1 shift
+            FLOW_MATRIX[i][1], //dg15 shift
+            FLOW_MATRIX[i][2], //encapsulated content shift
+            FLOW_MATRIX[i][5]  //dg15present
+        );
+
+        passportVerificationFlow[i].dg1Hash                 <== dg1Hash;
+        passportVerificationFlow[i].dg15Hash                <== dg15Hash[FLOW_MATRIX[i][3]-1];          //dg15 block num (-1 because of starting from 1 block hash)
+        passportVerificationFlow[i].encapsulatedContent     <== encapsulatedContent;       
+        passportVerificationFlow[i].encapsulatedContentHash <== encapsulatedContentHash[FLOW_MATRIX[i][4]-1];     //ec block num (-1 the same)
+        passportVerificationFlow[i].signedAttributes        <== signedAttributes;
+
+        log("Flow result:", passportVerificationFlow[i].flowResult);
+
+    }
         
     component signatureVerification = VerifySignature(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, SIGNATURE_TYPE);
 
@@ -115,12 +159,21 @@ template PassportVerificationBuilder(
     // Calculating passportHash = Poseidon(HASH_TYPE(signedAttributes)[252bit])
 
     component signedAttributesNum = Bits2Num(252);
-    for (var i = 0; i < 252; i++) {
-        signedAttributesNum.in[i] <== signedAttributesHash[i];
+    if (HASH_TYPE >= 252){
+        for (var i = 0; i < 252; i++) {
+            signedAttributesNum.in[i] <== signedAttributesHash[i];
+        }
+    } else {
+        for (var i = 0 ; i < 252 - HASH_TYPE; i++){
+            signedAttributesNum.in[i] <== 0;
+        }
+        for (var i = 0; i < HASH_TYPE; i++){
+            signedAttributesNum.in[i + 252 - HASH_TYPE] <== signedAttributesHash[i];
+        }
     }
+
     component signedAttributesHashHasher = Poseidon(1);
     signedAttributesHashHasher.inputs[0] <== signedAttributesNum.out;
     passportHash <== signedAttributesHashHasher.out;
 
-    log(passportVerificationFlow.flowResult);  
 }
