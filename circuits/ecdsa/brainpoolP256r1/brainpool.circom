@@ -301,11 +301,16 @@ template BrainpoolPipingerMult(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE){
     signal tmp3[ADDERS_NUMBER][2][2][CHUNK_NUMBER];
     signal tmp4[ADDERS_NUMBER][2][CHUNK_NUMBER];
     signal tmp5[ADDERS_NUMBER][2][2][CHUNK_NUMBER];
+    signal tmp6[ADDERS_NUMBER-1][2][2][CHUNK_NUMBER];
+    signal tmp7[ADDERS_NUMBER-1][2][CHUNK_NUMBER];
     
     component equals[ADDERS_NUMBER][PRECOMPUTE_NUMBER][2][CHUNK_NUMBER];
     component zeroEquals[ADDERS_NUMBER];
     component tmpEquals[ADDERS_NUMBER];
 
+    component g = BrainpoolGetGenerator(CHUNK_SIZE, CHUNK_NUMBER);
+    signal gen[2][CHUNK_NUMBER];
+    gen <== g.gen;
 
     signal scalarBits[256];
     for (var i = 0; i < CHUNK_NUMBER; i++){
@@ -331,12 +336,28 @@ template BrainpoolPipingerMult(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE){
             bits2Num[i\WINDOW_SIZE].in[j] <== scalarBits[i+3-j];
         }
 
+        tmpEquals[i\WINDOW_SIZE] = IsEqual();
+
+        tmpEquals[i\WINDOW_SIZE].in[0] <== 0;
+        tmpEquals[i\WINDOW_SIZE].in[1] <== res[i\WINDOW_SIZE][0][0];
 
         if (i != 0){
             for (var j = 0; j < WINDOW_SIZE; j++){
                 doublers[i+j - WINDOW_SIZE] = BrainpoolDouble(CHUNK_SIZE, CHUNK_NUMBER);
+
+
                 if (j == 0){
-                    doublers[i+j - WINDOW_SIZE].in <==  res[i\WINDOW_SIZE];
+                    for (var axis_idx = 0; axis_idx <2; axis_idx++){
+                        for (var coor_idx = 0; coor_idx < 6; coor_idx ++){
+                            tmp6[i\WINDOW_SIZE-1][0][axis_idx][coor_idx] <== tmpEquals[i\WINDOW_SIZE].out * gen[axis_idx][coor_idx];
+                            tmp6[i\WINDOW_SIZE-1][1][axis_idx][coor_idx] <== (1-tmpEquals[i\WINDOW_SIZE].out) * res[i\WINDOW_SIZE][axis_idx][coor_idx];
+                            tmp7[i\WINDOW_SIZE-1][axis_idx][coor_idx] <== tmp6[i\WINDOW_SIZE-1][0][axis_idx][coor_idx] + tmp6[i\WINDOW_SIZE-1][1][axis_idx][coor_idx];
+                        }
+                    }
+
+                    doublers[i+j - WINDOW_SIZE].in <==  tmp7[i\WINDOW_SIZE-1];
+
+
                 }else{
                     doublers[i+j - WINDOW_SIZE].in <== doublers[i+j-1 - WINDOW_SIZE].out;
                 }
@@ -376,11 +397,7 @@ template BrainpoolPipingerMult(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE){
             }
         }
 
-        tmpEquals[i\WINDOW_SIZE] = IsEqual();
-
-        tmpEquals[i\WINDOW_SIZE].in[0] <== 0;
-        tmpEquals[i\WINDOW_SIZE].in[1] <== res[i\WINDOW_SIZE][0][0];
-
+     
 
 
         if (i == 0){
@@ -398,9 +415,6 @@ template BrainpoolPipingerMult(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE){
                 }
             }
         } else {
-
-
-
 
             adders[i\WINDOW_SIZE].point1 <== doublers[i-1].out;
             adders[i\WINDOW_SIZE].point2 <== tmp2[i\WINDOW_SIZE];
