@@ -26,3 +26,4 @@ typechain-types
 generated-types
 artifacts
 cache
+./tests/tests/inputs
