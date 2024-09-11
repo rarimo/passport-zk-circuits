@@ -26,6 +26,7 @@ async function wasm_tester(circomInput, _options) {
     options.sym = true;
     options.json = options.json || false; // costraints in json format
     options.r1cs = true;
+    options.include = "node_modules";
     options.compile = (typeof options.recompile === 'undefined') ? true : options.recompile; // by default compile
 
     if (typeof options.output === 'undefined') {
