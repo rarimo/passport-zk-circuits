@@ -43,7 +43,7 @@ describe("Point interactions test", function () {
 	const pointScalY = BigInt('0x52f466e48816dabf4ea8519cbbff0068647e69fa291e0ed91c835ff7b6b31faf');
 
 	it("Add unequal test (Brainpool)", async function () {
-		const testJson = path.join(__dirname, './inputs/point/point.json');
+		const testJson = path.join(__dirname, './inputs/point/pointBrainpool.json');
 	
 		try {
 			const data = await fs.promises.readFile(testJson, 'utf8');
@@ -78,7 +78,7 @@ describe("Point interactions test", function () {
 	});
 
 	it("Double test (Brainpool)", async function () {
-		const testJson = path.join(__dirname, './inputs/point/point.json');
+		const testJson = path.join(__dirname, './inputs/point/pointBrainpool.json');
 	
 		try {
 			const data = await fs.promises.readFile(testJson, 'utf8');
@@ -113,7 +113,7 @@ describe("Point interactions test", function () {
 	});
 
 	it("Scalar multiplication test (Add and double method) (Brainpool)", async function () {
-		const testJson = path.join(__dirname, './inputs/point/point.json');
+		const testJson = path.join(__dirname, './inputs/point/pointBrainpool.json');
 	
 		try {
 			const data = await fs.promises.readFile(testJson, 'utf8');
@@ -150,7 +150,7 @@ describe("Point interactions test", function () {
 	});
 
 	it("Scalar multiplication test (Pipenger method) (Brainpool)", async function () {
-		const testJson = path.join(__dirname, './inputs/point/point.json');
+		const testJson = path.join(__dirname, './inputs/point/pointBrainpool.json');
 	
 		try {
 			const data = await fs.promises.readFile(testJson, 'utf8');
@@ -184,5 +184,160 @@ describe("Point interactions test", function () {
 
 	});
 
+	const pointx_2 = BigInt('0x6b17d1f2e12c4247f8bce6e563a440f277037d812deb33a0f4a13945d898c296');
+	const pointy_2 = BigInt('0x4fe342e2fe1a7f9b8ee7eb4a7c0f9e162bce33576b315ececbb6406837bf51f5');
+	const scalar_2 = BigInt('0x4d1301858ce07e3bf445932fa053a6d832cbbc761480db2961f606da978da50c');
+
+	const pointx2_2 = BigInt('0x7cf27b188d034f7e8a52380304b51ac3c08969e277f21b35a60b48fc47669978');
+	const pointy2_2 = BigInt('0x07775510db8ed040293d9ac69f7430dbba7dade63ce982299e04b79d227873d1');
+
+	const pointx3_2 = BigInt('0x5ecbe4d1a6330a44c8f7ef951d4bf165e6c6b721efada985fb41661bc6e7fd6c');
+	const pointy3_2 = BigInt('0x8734640c4998ff7e374b06ce1a64a2ecd82ab036384fb83d9a79b127a27d5032');
+
+	const pointScalX_2 = BigInt('0x5fe7bfc2f00c709933016b8278650118f177d02394fc1073797e7339dd83a756');
+	const pointScalY_2 = BigInt('0xd7ae52a2e80fb02889091774b8bc0b6ce2997c6486e5504795d6902137cd0287');
+
+
+	it("Add unequal test (P256)", async function () {
+		const testJson = path.join(__dirname, './inputs/point/pointP256.json');
 	
+		try {
+			const data = await fs.promises.readFile(testJson, 'utf8');
+			const input = JSON.parse(data);
+	
+			const circuit = await wasm_tester(
+				path.join(__dirname, "../../circuits/ecdsa/secp256r1/pointAdd.circom")
+			);
+			const w = await circuit.calculateWitness({ 
+				scalar: input.scalar,
+				point:  input.point,
+				point2: input.point2
+			});
+			await circuit.checkConstraints(w);
+
+			const sumX = w.slice(1, 1+6);
+			const sumY = w.slice(1+6, 1+12);			
+
+			const realSumX = bigintToArray(43, 6, pointx3_2);
+			const realSumY = bigintToArray(43, 6, pointy3_2);
+
+			for (let i = 0; i < 6; i++){
+				assert.equal(sumX[i], realSumX[i]);
+				assert.equal(sumY[i], realSumY[i]);
+			}
+	
+		} catch (err) {
+			console.error('Error:', err);
+			throw err;  
+		}
+
+	});
+
+	it("Double test (P256)", async function () {
+		const testJson = path.join(__dirname, './inputs/point/pointP256.json');
+	
+		try {
+			const data = await fs.promises.readFile(testJson, 'utf8');
+			const input = JSON.parse(data);
+	
+			const circuit = await wasm_tester(
+				path.join(__dirname, "../../circuits/ecdsa/secp256r1/pointDouble.circom")
+			);
+			const w = await circuit.calculateWitness({ 
+				scalar: input.scalar,
+				point:  input.point,
+				point2: input.point2
+			});
+			await circuit.checkConstraints(w);
+
+			const doubleX = w.slice(1, 1+6);
+			const doubleY = w.slice(1+6, 1+12);			
+
+			const realDoubleX = bigintToArray(43, 6, pointx2_2);
+			const realDoubleY = bigintToArray(43, 6, pointy2_2);
+
+			for (let i = 0; i < 6; i++){
+				assert.equal(doubleX[i], realDoubleX[i]);
+				assert.equal(doubleY[i], realDoubleY[i]);
+			}
+
+		} catch (err) {
+			console.error('Error:', err);
+			throw err;  
+		}
+
+	});
+
+	it("Scalar multiplication test (Add and double method) (P256)", async function () {
+		const testJson = path.join(__dirname, './inputs/point/pointP256.json');
+	
+		try {
+			const data = await fs.promises.readFile(testJson, 'utf8');
+			const input = JSON.parse(data);
+	
+			const circuit = await wasm_tester(
+				path.join(__dirname, "../../circuits/ecdsa/secp256r1/pointMult.circom")
+			);
+			const w = await circuit.calculateWitness({ 
+				scalar: input.scalar,
+				point:  input.point,
+				point2: input.point2
+			});
+			await circuit.checkConstraints(w);
+
+			const multX = w.slice(1, 1+6);
+			const multY = w.slice(1+6, 1+12);			
+
+			const realmultX = bigintToArray(43, 6, pointScalX_2);
+			const realmultY = bigintToArray(43, 6, pointScalY_2);
+
+			for (let i = 0; i < 6; i++){
+				assert.equal(multX[i], realmultX[i]);
+				assert.equal(multY[i], realmultY[i]);
+			}
+
+
+	
+		} catch (err) {
+			console.error('Error:', err);
+			throw err;  
+		}
+
+	});
+
+	it("Scalar multiplication test (Pipenger method) (P256)", async function () {
+		const testJson = path.join(__dirname, './inputs/point/pointP256.json');
+	
+		try {
+			const data = await fs.promises.readFile(testJson, 'utf8');
+			const input = JSON.parse(data);
+	
+			const circuit = await wasm_tester(
+				path.join(__dirname, "../../circuits/ecdsa/secp256r1/pointMultPip.circom")
+			);
+			const w = await circuit.calculateWitness({ 
+				scalar: input.scalar,
+				point:  input.point,
+				point2: input.point2
+			});
+			await circuit.checkConstraints(w);
+
+			const multX = w.slice(1, 1+6);
+			const multY = w.slice(1+6, 1+12);			
+
+			const realmultX = bigintToArray(43, 6, pointScalX_2);
+			const realmultY = bigintToArray(43, 6, pointScalY_2);
+
+			for (let i = 0; i < 6; i++){
+				assert.equal(multX[i], realmultX[i]);
+				assert.equal(multY[i], realmultY[i]);
+			}
+
+		} catch (err) {
+			console.error('Error:', err);
+			throw err;  
+		}
+
+	});
+
 });
