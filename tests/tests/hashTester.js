@@ -21,7 +21,7 @@
 // 	const hexStr = "ffff";
 
 // 	it("SHA-1 160 Hash test", async function () {
-// 		const testJson = path.join(__dirname, './inputs/hasher512.json');
+// 		const testJson = path.join(__dirname, './inputs/hasher/hasher512.json');
 	
 // 		try {
 // 			const data = await fs.promises.readFile(testJson, 'utf8');
@@ -55,7 +55,7 @@
 // 	});
 
 // 	it("SHA-1 224 Hash test", async function () {
-// 		const testJson = path.join(__dirname, './inputs/hasher512.json');
+// 		const testJson = path.join(__dirname, './inputs/hasher/hasher512.json');
 	
 // 		try {
 // 			const data = await fs.promises.readFile(testJson, 'utf8');
@@ -90,7 +90,7 @@
 // 	});
 
 // 	it("SHA-1 256 Hash test", async function () {
-// 		const testJson = path.join(__dirname, './inputs/hasher512.json');
+// 		const testJson = path.join(__dirname, './inputs/hasher/hasher512.json');
 	
 // 		try {
 // 			const data = await fs.promises.readFile(testJson, 'utf8');
@@ -124,7 +124,7 @@
 // 	});
 
 // 	it("SHA-1 384 Hash test", async function () {
-// 		const testJson = path.join(__dirname, './inputs/hasher1024.json');
+// 		const testJson = path.join(__dirname, './inputs/hasher/hasher1024.json');
 	
 // 		try {
 // 			const data = await fs.promises.readFile(testJson, 'utf8');
@@ -158,7 +158,7 @@
 // 	});
 
 // 	it("SHA-1 512 Hash test", async function () {
-// 		const testJson = path.join(__dirname, './inputs/hasher1024.json');
+// 		const testJson = path.join(__dirname, './inputs/hasher/hasher1024.json');
 	
 // 		try {
 // 			const data = await fs.promises.readFile(testJson, 'utf8');
