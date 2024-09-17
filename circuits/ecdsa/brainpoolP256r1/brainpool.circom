@@ -1,4 +1,4 @@
-pragma circom 2.1.8;
+pragma circom 2.1.6;
 
 include "./circomPairing/curve.circom";
 include "./brainpoolFunc.circom";
@@ -6,6 +6,7 @@ include "./brainpoolPows.circom";
 include "circomlib/circuits/multiplexer.circom";
 include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/comparators.circom";
+include "../utils/func.circom";
 
 template BrainpoolScalarMult(CHUNK_SIZE, CHUNK_NUMBER){
     signal input scalar[CHUNK_NUMBER];
@@ -434,14 +435,4 @@ template BrainpoolPipingerMult(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE){
     }
 
     out <== res[ADDERS_NUMBER];
-}
-
-function div_ceil(m, CHUNK_SIZE) {
-    var ret = 0;
-    if (m % CHUNK_SIZE == 0) {
-        ret = m \ CHUNK_SIZE;
-    } else {
-        ret = m \ CHUNK_SIZE + 1;
-    }
-    return ret;
 }

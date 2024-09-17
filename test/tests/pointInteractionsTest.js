@@ -50,7 +50,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/brainpoolP256r1/pointAdd.circom")
+				path.join(__dirname, "./circuits/point/brainpoolP256r1/pointAdd.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -85,7 +85,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/brainpoolP256r1/pointDouble.circom")
+				path.join(__dirname, "./circuits/point/brainpoolP256r1/pointDouble.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -120,7 +120,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/brainpoolP256r1/pointMult.circom")
+				path.join(__dirname, "./circuits/point/brainpoolP256r1/pointMult.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -157,7 +157,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/brainpoolP256r1/pointMultPip.circom")
+				path.join(__dirname, "./circuits/point/brainpoolP256r1/pointMultPip.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -206,7 +206,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/secp256r1/pointAdd.circom")
+				path.join(__dirname, "./circuits/point/P256/pointAdd.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -241,7 +241,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/secp256r1/pointDouble.circom")
+				path.join(__dirname, "./circuits/point/P256/pointDouble.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -276,7 +276,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/secp256r1/pointMult.circom")
+				path.join(__dirname, "./circuits/point/P256/pointMult.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -313,7 +313,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/secp256r1/pointMultPip.circom")
+				path.join(__dirname, "./circuits/point/P256/pointMultPip.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
