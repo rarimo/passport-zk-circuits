@@ -238,7 +238,7 @@ template BrainpoolGeneratorMultiplication(CHUNK_SIZE,CHUNK_NUMBER){
     }
 }
 
-template PrecomputePipinger(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE){
+template BrainpoolPrecomputePipinger(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE){
     signal input in[2][CHUNK_NUMBER];
 
     var PRECOMPUTE_NUMBER = 2 ** WINDOW_SIZE; 
@@ -285,7 +285,7 @@ template BrainpoolPipingerMult(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE){
 
     signal precomputed[PRECOMPUTE_NUMBER][2][CHUNK_NUMBER];
 
-    component precompute = PrecomputePipinger(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE);
+    component precompute = BrainpoolPrecomputePipinger(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE);
     precompute.in  <== point;
     precompute.out ==> precomputed;
 
@@ -434,4 +434,14 @@ template BrainpoolPipingerMult(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE){
     }
 
     out <== res[ADDERS_NUMBER];
+}
+
+function div_ceil(m, CHUNK_SIZE) {
+    var ret = 0;
+    if (m % CHUNK_SIZE == 0) {
+        ret = m \ CHUNK_SIZE;
+    } else {
+        ret = m \ CHUNK_SIZE + 1;
+    }
+    return ret;
 }

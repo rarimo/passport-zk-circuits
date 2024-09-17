@@ -16,7 +16,7 @@ template RegisterIdentity(
     signal output pkIdentityHash;
 
     signal input dg1[DG1_SIZE * HASH_BLOCK_SIZE];                  // 744 || 760 bits + padding
-    signal input dg15[DG15_SIZE * HASH_BLOCK_SIZE];             // 1320 || 2096 || 1832 || 2384 || 2520 bits + padding
+    signal input dg15[DG15_SIZE * HASH_BLOCK_SIZE];                // 1320 || 2096 || 1832 || 2384 || 2520 bits + padding
     signal input skIdentity;
 
     if (SIGNATURE_TYPE <= 5) { // rsa keys stored
