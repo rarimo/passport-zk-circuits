@@ -338,7 +338,7 @@ template BrainpoolPipingerMult(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE){
         adders[i\WINDOW_SIZE] = BrainpoolAddUnequal(CHUNK_SIZE, CHUNK_NUMBER);
         bits2Num[i\WINDOW_SIZE] = Bits2Num(WINDOW_SIZE);
         for (var j = 0; j < WINDOW_SIZE; j++){
-            bits2Num[i\WINDOW_SIZE].in[j] <== scalarBits[i + 3 - j];
+            bits2Num[i\WINDOW_SIZE].in[j] <== scalarBits[i + (WINDOW_SIZE - 1) - j];
         }
 
         tmpEquals[i\WINDOW_SIZE] = IsEqual();
@@ -368,7 +368,7 @@ template BrainpoolPipingerMult(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE){
             }
         }
 
-       for (var point_idx = 0; point_idx < 16; point_idx++){
+       for (var point_idx = 0; point_idx < PRECOMPUTE_NUMBER; point_idx++){
             for (var axis_idx = 0; axis_idx < 2; axis_idx++){
                 for (var coor_idx = 0; coor_idx < CHUNK_NUMBER; coor_idx++){
                     equals[i\WINDOW_SIZE][point_idx][axis_idx][coor_idx]       = IsEqual();
@@ -422,12 +422,12 @@ template BrainpoolPipingerMult(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE){
                 for(var coor_idx = 0; coor_idx < CHUNK_NUMBER; coor_idx++){
 
                     tmp3[i\WINDOW_SIZE][0][axis_idx][coor_idx] <== adders    [i\WINDOW_SIZE].out[axis_idx][coor_idx] * (1 - zeroEquals[i\WINDOW_SIZE].out);
-                    tmp3[i\WINDOW_SIZE][1][axis_idx][coor_idx] <== zeroEquals[i\WINDOW_SIZE].out *                   doublers[i-1].out[axis_idx][coor_idx];
-                    tmp4[i\WINDOW_SIZE]   [axis_idx][coor_idx] <== tmp3[i\WINDOW_SIZE][0][axis_idx][coor_idx] + tmp3[i\WINDOW_SIZE][1][axis_idx][coor_idx]; 
-                    tmp5[i\WINDOW_SIZE][0][axis_idx][coor_idx] <== (1 - tmpEquals[i\WINDOW_SIZE].out) *         tmp4[i\WINDOW_SIZE]   [axis_idx][coor_idx];
-                    tmp5[i\WINDOW_SIZE][1][axis_idx][coor_idx] <== tmpEquals[i\WINDOW_SIZE].out *               tmp2[i\WINDOW_SIZE]   [axis_idx][coor_idx];
+                    tmp3[i\WINDOW_SIZE][1][axis_idx][coor_idx] <== zeroEquals[i\WINDOW_SIZE].out                     * doublers[i-1].out[axis_idx][coor_idx];
+                    tmp4[i\WINDOW_SIZE]   [axis_idx][coor_idx] <== tmp3[i\WINDOW_SIZE][0][axis_idx][coor_idx]        + tmp3[i\WINDOW_SIZE][1][axis_idx][coor_idx]; 
+                    tmp5[i\WINDOW_SIZE][0][axis_idx][coor_idx] <== (1 - tmpEquals[i\WINDOW_SIZE].out)                * tmp4[i\WINDOW_SIZE]   [axis_idx][coor_idx];
+                    tmp5[i\WINDOW_SIZE][1][axis_idx][coor_idx] <== tmpEquals[i\WINDOW_SIZE].out                      * tmp2[i\WINDOW_SIZE]   [axis_idx][coor_idx];
                                     
-                    res[i\WINDOW_SIZE + 1][axis_idx][coor_idx] <== tmp5[i\WINDOW_SIZE][0][axis_idx][coor_idx] + tmp5[i\WINDOW_SIZE][1][axis_idx][coor_idx];                                 
+                    res[i\WINDOW_SIZE + 1][axis_idx][coor_idx] <== tmp5[i\WINDOW_SIZE][0][axis_idx][coor_idx]        + tmp5[i\WINDOW_SIZE][1][axis_idx][coor_idx];                                 
                 }
             }        
         }
