@@ -1,8 +1,9 @@
-pragma circom 2.1.9;
+pragma circom 2.1.6;
 
 include "p256.circom";
 include "p256Func.circom";
 include "circomlib/circuits/bitify.circom";
+include "../utils/func.circom";
 
 template verifyP256(n, k, ALGO){
     signal input pubkey[2 * n * k];
@@ -101,7 +102,7 @@ template verifyP256(n, k, ALGO){
     signal tmpPoint2[2][6];
 
     component scalarMult1 = P256GeneratorMultiplication(43,6);
-    component scalarMult2 = P256ScalarMult(43,6);
+    component scalarMult2 = P256PipingerMult(43,6,4);
     
     scalarMult1.scalar <== sh;
 
@@ -122,4 +123,3 @@ template verifyP256(n, k, ALGO){
 
     verifyX === signatureChunked[0];
 }
-
