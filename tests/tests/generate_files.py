@@ -3,54 +3,28 @@ import base64
 import subprocess
 import re
 import hashlib
-import os
 import python_poseidon
-from smt.tree import SparseMerkleTree
-from smt.utils import DEFAULTVALUE, PLACEHOLDER, digest
-from smt.proof import verify_proof
 import argparse
 
 
+def hash_pk_rsa(k, pk):
+    pk_arr = bigint_to_array(64, k, int(pk, 16))
+    rsa_arr = []
 
-def hash_dg15_rsa(pk):
+    for i in range(0, 5):
+        rsa_arr.append(int(pk_arr[i*3])*2**128 + int(pk_arr[i*3+1])*2**64 + int(pk_arr[i*3+2]))
 
-    
-    rsa_arr = [int(pk[:50], 16), int(pk[50:100], 16), int(pk[100:150], 16), int(pk[150:200], 16), int(pk[200:256], 16)]
-    
     tmp =  python_poseidon.poseidon(rsa_arr)
-    print(tmp)
+    # print(tmp)
+
     return tmp
 
-def hash_dg15_ecdsa(pk):
+def hash_pk_ecdsa(pk):
 
-    ecdsa_arr = [int(pk[8:256], 16), int(pk[256+8:512], 16)]
+    ecdsa_arr = [int(pk[8:256], 2), int(pk[256+8:512], 2)]
     tmp = python_poseidon.poseidon(ecdsa_arr)
-    print(tmp)
+    # print(tmp)
     return tmp
-
-def proof(pk):
-
-    hex_string = hex(pk)[2:]  
-
-    if len(hex_string) % 2 != 0:
-        hex_string = '0' + hex_string
-
-    hex_bytes = bytes.fromhex(hex_string)   
-    tree = SparseMerkleTree()
-    tree.update(b"a", hex_bytes)
-
-    root = tree.root_as_hex()
-
-    path = digest(b"a")
-    side_nodes, old_leafhash, old_leafdata, sibdata = tree._get_sidenodes(
-            path, root, False
-        )
-    
-    print(old_leafhash)
-
-
-
-    return root
 
 def bigint_to_array(n, k, x):
     # Initialize mod to 1 (Python's int can handle arbitrarily large numbers)
@@ -133,18 +107,11 @@ def dg_interactions(passport_file, chunk_size):
     dg15_base64 = passport_data.get('dg15', '')
     dg15_hex = "0"
 
-    dg15_pk_hash = 0
     # Convert base64 to hex
     dg1_hex = base64_to_hex(dg1_base64)
     if dg15_base64:
         dg15_hex = base64_to_hex(dg15_base64)
 
-        if len (dg15_hex) == 630:
-            dg15_pk_hash = hash_dg15_ecdsa(dg15_hex[-512:])
-        else:
-            dg15_pk_hash = hash_dg15_rsa(dg15_hex[64:320])
-
-    
     # Process both dg1 and dg15
     _, dg1_padded, _ = process_and_pad_hex(dg1_hex, chunk_size)
     _, dg15_padded, dg15_blocks = process_and_pad_hex(dg15_hex, chunk_size)
@@ -152,7 +119,7 @@ def dg_interactions(passport_file, chunk_size):
     # Pad dg15 to a length of 4096 after the initial padding
     dg15_padded_to_4096 = pad_array_to_4096([bit for bit in dg15_padded])
     
-    return dg15_blocks, [bit for bit in dg1_padded], dg15_padded_to_4096, dg15_pk_hash
+    return dg15_blocks, [bit for bit in dg1_padded], dg15_padded_to_4096
 
 # Function to parse ASN.1 data using OpenSSL
 def parse_asn1(file_path):
@@ -258,7 +225,7 @@ def decode_base64_and_print(file_path):
         hex_sod = base64.b64decode(sod_base64).hex()
 
         pubkey = ""
-
+        pubkey_bit = ""
 
         sa = "31"
         for [n, l] in sa_locations:
@@ -290,7 +257,11 @@ def decode_base64_and_print(file_path):
             chunk_num = 4
 
             sign = sign[-132:]
-            sig = sign.split("0220")[0] + sign.split("0220")[1]
+    
+            sig = sign[0:64] + sign[68:132]
+            
+            print(sig)
+            
             sig_bit = hex_to_bin(sig)
             signature_arr = format_bit_string(sig_bit) 
 
@@ -305,7 +276,7 @@ def decode_base64_and_print(file_path):
             pubkey_arr = format_bit_string(pubkey_bit)
 
             sign = sign[-132:]
-            sig = sign.split("0220")[0] + sign.split("0220")[1]
+            sig = sign[0:64] + sign[68:132]
             sig_bit = hex_to_bin(sig)
             signature_arr = format_bit_string(sig_bit) 
 
@@ -351,7 +322,7 @@ def decode_base64_and_print(file_path):
 
         chunk_size = 512
 
-        dg15_blocks, dg1_res, dg15_res, dg15_pk_hash = dg_interactions(file_path, chunk_size)
+        dg15_blocks, dg1_res, dg15_res = dg_interactions(file_path, chunk_size)
 
         _, ec_padded, ec_blocks = process_and_pad_hex(ec, chunk_size)
         ec_res = pad_array_to_4096([bit for bit in ec_padded])
@@ -364,7 +335,8 @@ def decode_base64_and_print(file_path):
         dg1 = base64_to_hex(data.get('dg1', ''))
         dg1_256 = str.upper(sha256_hash_from_hex(dg1))
         dg1_160 = str.upper(sha1_hash_from_hex(dg1))
-
+        
+       
         dg1shift = 0
 
         if dg1_256 in ec:
@@ -386,10 +358,27 @@ def decode_base64_and_print(file_path):
         dg15shift = dg_hash_algo
         ec_shift = len(sa)*4 - 256
 
+        root = 0
 
         if dg15:
-            dg15shift = ec_len - dg_hash_algo
+            dg15_256 = str.upper(sha256_hash_from_hex(dg15))
+            dg15_160 = str.upper(sha1_hash_from_hex(dg15))
+
+            if dg1_256 in ec:
+                dg15shift = len(ec.split(dg15_256)[0])*4
+        
+            if dg1_160 in ec:
+                dg15shift = len(ec.split(dg15_160)[0])*4
             isdg15 = 1
+
+        if len(pubkey_bit) == 512:
+            dg15_pk_hash = hash_pk_ecdsa(pubkey_bit)
+        else:
+            dg15_pk_hash = hash_pk_rsa(chunk_num, pubkey)  
+
+        root = python_poseidon.poseidon([dg15_pk_hash, dg15_pk_hash, 1])
+        # print(root)
+
 
         dg15_arr = []
         ec_arr = []
@@ -402,11 +391,13 @@ def decode_base64_and_print(file_path):
             sa_arr.append(0 if i !=2 else 1)
 
         
+        branches = []
+        for i in range(0, 80):
+            branches.append(0)
 
         short_file_path = file_path.split(".json")[0].split("/")[-1]
 
-        print(short_file_path)
-        short_file_path2 = short_file_path+"2"
+        # print(short_file_path)
         padded_output_file = "./tests/tests/inputs/generated/input_{short_file_path}.dev.json".format(short_file_path = short_file_path)
        
         with open(padded_output_file, 'w') as f_out:
@@ -419,34 +410,31 @@ def decode_base64_and_print(file_path):
                 "signature": signature_arr
             }, f_out, indent=4)
 
-        root = proof(dg15_pk_hash)
-        padded_output_file2 = "input_{short_file_path2}.dev.json".format(short_file_path2 = short_file_path2)
+        padded_output_file2 = "./tests/tests/inputs/generated/input_{short_file_path}_2.dev.json".format(short_file_path = short_file_path)
         
         sk_iden = int(sha256_hash_from_hex(ec)[:62], 16)
 
-        # with open(padded_output_file2, 'w') as f_out:
-        #     json.dump({
-        #         "dg1": dg1_res,
-        #         "dg15": dg15_res,
-        #         "signedAttributes": sa_res,
-        #         "encapsulatedContent": ec_res,
-        #         "pubkey": pubkey_arr,
-        #         "signature": signature_arr,
-        #         "skIdentity": sk_iden,
-        #         "slaveMerkleRoot": ,
-        #         "slaveMerkleInclusionBranches": 
-
-        #     }, f_out, indent=4)
+        with open(padded_output_file2, 'w') as f_out:
+            json.dump({
+                "dg1": dg1_res,
+                "dg15": dg15_res,
+                "signedAttributes": sa_res,
+                "encapsulatedContent": ec_res,
+                "pubkey": pubkey_arr,
+                "signature": signature_arr,
+                "skIdentity": str(sk_iden),
+                "slaveMerkleRoot": str(root),
+                "slaveMerkleInclusionBranches": branches
+            }, f_out, indent=4)
 
 
         document_type = 1
         if (len(dg1) == 190):
             document_type = 3
         
-
         circom_code = ""
         circom_code += "pragma circom 2.1.6;\n\n"
-        circom_code += "include  \"./circuits/registerIdentityBuilder.circom\";\n\n"
+        circom_code += "include  \"../../../../circuits/identityManagement/circuits/registerIdentityBuilder.circom\";\n\n"
         circom_code += "component main = RegisterIdentityBuilder(\n\t\t2,\n\t\t8,\n\t\t8,\n\t\t8,\n"
         circom_code += "\t\t{chunk_size},\n".format(chunk_size = chunk_size)
         circom_code += "\t\t256,\t//hash type\n"
@@ -475,11 +463,11 @@ def decode_base64_and_print(file_path):
         circom_code += ");" 
 
 
-        with open('./circuits/identityManagement/main_{short_file_path}.circom'.format(short_file_path = short_file_path), 'w') as file:
+        with open('./tests/tests/circuits/identityManagement/main_{short_file_path}.circom'.format(short_file_path = short_file_path), 'w') as file:
             file.write(circom_code)
 
         circom_code = "pragma circom 2.1.6;\n\n"
-        circom_code += "include \"./passportVerificationBuilder.circom\";"
+        circom_code += "include \"../../../../circuits/passportVerification/passportVerificationBuilder.circom\";\n\n"
         circom_code += "component main = PassportVerificationBuilder(\n\t\t2,\n\t\t8,\n\t\t8,\n\t\t8,\n"
         circom_code += "\t\t{chunk_size},\n".format(chunk_size = chunk_size)
         circom_code += "\t\t256,\t//hash type\n"
@@ -505,7 +493,7 @@ def decode_base64_and_print(file_path):
             sa_arr = sa_arr
         )
         circom_code += ");" 
-        with open('./circuits/passportVerification/main_{short_file_path}.circom'.format(short_file_path = short_file_path), 'w') as file:
+        with open('./tests/tests/circuits/passportVerification/main_{short_file_path}.circom'.format(short_file_path = short_file_path), 'w') as file:
             file.write(circom_code)
 
 
@@ -513,14 +501,9 @@ def decode_base64_and_print(file_path):
         print("Error decoding base64 data:", e)
         
 
-# Main script execution
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Decode a base64 encoded passport file.')
     parser.add_argument('passport_file_path', type=str, help='Path to the passport.json file')
 
-    # Parse the arguments
     args = parser.parse_args()
-    print("Current working directory (./):", os.getcwd())
-
-    # Use the provided file path
     decode_base64_and_print(args.passport_file_path)
