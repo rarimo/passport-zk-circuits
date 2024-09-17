@@ -345,7 +345,7 @@ template P256PipingerMult(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE){
         adders[i\WINDOW_SIZE] = P256AddUnequal(CHUNK_SIZE, CHUNK_NUMBER);
         bits2Num[i\WINDOW_SIZE] = Bits2Num(WINDOW_SIZE);
         for (var j = 0; j < WINDOW_SIZE; j++){
-            bits2Num[i\WINDOW_SIZE].in[j] <== scalarBits[i + 3 - j];
+            bits2Num[i\WINDOW_SIZE].in[j] <== scalarBits[i + (WINDOW_SIZE - 1) - j];
         }
 
         tmpEquals[i\WINDOW_SIZE] = IsEqual();
