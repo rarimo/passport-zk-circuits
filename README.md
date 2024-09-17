@@ -228,6 +228,7 @@ The query circuit allows you to prove arbitrary data from a passport.
   "selector": "39",
   "skIdentity": "59433543291003015964215(hidden)50571872045447542665233394",
   "timestamp": "1713436475",
+  "currentDate": "0x323430383230",
   "identityCounter": "0",
   "timestampLowerbound": "0",
   "timestampUpperbound": "0",
@@ -253,24 +254,26 @@ Public signals (example for selector = 39)
  "52992115355956", // 1 - birthDate
  "55216908480563", // 2 - expirationDate
  "0", // 3 - name
- "0", // 4 - nameResidual
- "0", // 5 - nationality
- "5589842", // 6 - citizenship
- "0", // 7 - sex
- "0", // 8 - documentNumber
- "304358862882731539112827930982999386691702727710421481944329166126417129570", // 9 - eventID
- "1217571210886365587192326979343136122389414675532", // 10 - eventData
- "5904469035765435216409767735512782299719282306270684213646687525744667841608", // 11 - idStateRoot
- "39", // 12 - selector
- "0", // 13 - timestampLowerbound
- "0", // 14 - timestampUpperbound
- "1", // 15 - identityCounterLowerbound
- "0", // 16 - identityCounterUpperbound
- "52983525027888", // 17 - birthDateLowerbound
- "52983525027888", // 18 - birthDateUpperbound
- "52983525027888", // 19 - expirationDateLowerbound
- "5298352502788", // 20 - expirationDateUpperbound
- "0" // 21 - citizenshipMask
+ "0", // 4 - nationality
+ "5589842", // 5 - citizenship
+ "0", // 6 - sex
+ "5043042663037354592343836436038036939368731146786158230339400983994224069606", // 7 - documentNumberHash
+ "19972261796831784405539781531296683580906636796718756159861388172291117077097", // 8 - personalNumberHash
+ "18756", // 9 - documentType
+ "304358862882731539112827930982999386691702727710421481944329166126417129570", // 10 - eventID
+ "1217571210886365587192326979343136122389414675532", // 11 - eventData
+ "5904469035765435216409767735512782299719282306270684213646687525744667841608", // 12 - idStateRoot
+ "39", // 13 - selector
+ "52983525027888", // 14 - currentDate
+ "0", // 15 - timestampLowerbound
+ "0", // 16 - timestampUpperbound
+ "1", // 17 - identityCounterLowerbound
+ "0", // 18 - identityCounterUpperbound
+ "52983525027888", // 19 - birthDateLowerbound
+ "52983525027888", // 20 - birthDateUpperbound
+ "52983525027888", // 21 - expirationDateLowerbound
+ "5298352502788", // 22 - expirationDateUpperbound
+ "0" // 23 - citizenshipMask
 ]
 ```
 
@@ -294,8 +297,8 @@ QUERY SELECTOR:
 11 - identity counter upperbound (+)
 12 - passport expiration lowerbound (+)
 13 - passport expiration upperbound (+)
-14 - birth date upperbound (+)
-15 - birth date lowerbound (+)
+14 - birth date lowerbound (+)
+15 - birth date upperbound (+)
 16 - verify citizenship mask as a whitelist (-) // not implemented currently
 17 - verify citizenship mask as a blacklist (-) // not implemented currently
 ```
