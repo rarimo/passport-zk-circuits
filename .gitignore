@@ -26,3 +26,11 @@ typechain-types
 generated-types
 artifacts
 cache
+tests/tests/inputs/*
+temp_asn1.der
+tests/tests/__pycache__
+!tests/tests/*.py
+!tests/tests/inputs/credValidExceedsPassportInput.json
+!tests/tests/inputs/passportExpiredInput.json
+!tests/tests/inputs/isNotAdultInput.json
+!tests/tests/inputs/validInput.json

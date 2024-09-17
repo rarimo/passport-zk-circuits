@@ -122,8 +122,9 @@ template RegisterIdentityBuilder (
     registerIdentity.dg1Commitment  ==> dg1Commitment;
     registerIdentity.pkIdentityHash ==> pkIdentityHash;
 
-    //RSA || RSAPSS SIG
     signal pubkeyHash;
+    
+    //RSA || RSAPSS SIG
 
     if (SIGNATURE_TYPE <= 5){
         component pubkeyHasherRsa = Poseidon(5);
@@ -137,13 +138,23 @@ template RegisterIdentityBuilder (
     }
     //ECDSA SIG
     else {
-        //change algo for ECDSA after such case will be discovered and algo will be created
-        component pubkeyHasherEcdsa = Poseidon(1);
-        pubkeyHasherEcdsa.inputs[0] <== pubkey[0];
-        pubkeyHash <== pubkeyHasherEcdsa.out;
-    }
-
+        component xToNum = Bits2Num(248);
+        component yToNum = Bits2Num(248);
         
+        var EC_FIELD_SIZE = 256;
+
+        for (var i = 0; i < 248; i++) {
+            xToNum.in[247-i] <== pubkey[i + 8];
+            yToNum.in[247-i] <== pubkey[EC_FIELD_SIZE + i + 8];
+        }
+
+        component pubkeyHasher = Poseidon(2);
+        
+        pubkeyHasher.inputs[0] <== xToNum.out;
+        pubkeyHasher.inputs[1] <== yToNum.out;
+        
+        pubkeyHash <== pubkeyHasher.out;
+    }
     // Verifying that public key inclusion into the Slave Certificates Merkle Tree
     component smtVerifier = SMTVerifier(TREE_DEPTH);
     smtVerifier.root     <== slaveMerkleRoot;

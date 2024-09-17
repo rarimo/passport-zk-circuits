@@ -1,7 +1,7 @@
 
 pragma circom  2.1.6;
 
-include "./circuits/registerIdentityUniversalRSAPss.circom";
+include "./circuits/registerIdentityUniversalPSSSHA384.circom";
 
 // pub signals:
 // [0]  -  dg15PubKeyHash
