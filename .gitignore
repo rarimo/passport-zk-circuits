@@ -26,3 +26,7 @@ typechain-types
 generated-types
 artifacts
 cache
+tests/tests/inputs/*
+temp_asn1.der
+tests/tests/__pycache__
+!tests/tests/*.py

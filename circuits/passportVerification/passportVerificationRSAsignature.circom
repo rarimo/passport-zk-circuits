@@ -1,7 +1,7 @@
 pragma circom 2.1.6;
 
 include "../rsa/rsa.circom";
-include "../sha256/sha256NoPadding.circom";
+include "../hasher/sha2/sha256/sha256HashChunks.circom";
 
 template PassportVerificationRSASignature(w, nb, e_bits, hashLen, SIGNED_ATTRIBUTES_SIZE) {
     

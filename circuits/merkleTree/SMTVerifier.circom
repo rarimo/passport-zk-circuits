@@ -123,6 +123,7 @@ template SMTVerifier(N_LEVELS) {
     hash1New.key <== key;
     hash1New.value <== value;
 
+
     component n2bNew = Num2Bits_strict();
     n2bNew.in <== key;
 
@@ -164,9 +165,19 @@ template SMTVerifier(N_LEVELS) {
         } else {
             levels[i].child <== levels[i + 1].root;
         }
+        // if (i == 0 || i == 40 || i == 20){
+        //     log("st_top", levels[i].st_top);
+        //     log("st_inew", levels[i].st_inew);
+        //     log("sibling", levels[i].sibling);
+        //     log("new1leaf", levels[i].new1leaf);
+        //     log("lrbit", levels[i].lrbit);
+
+        // }
+        // log("root", i, " ", levels[i].root);
     }
 
     component isEqual = IsEqual();
+
     isEqual.in[0] <== levels[0].root;
     isEqual.in[1] <== root;
     isVerified <== isEqual.out;

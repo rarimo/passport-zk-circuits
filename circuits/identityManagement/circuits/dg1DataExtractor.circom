@@ -6,7 +6,7 @@ template DG1DataExtractor() {
     signal output birthDate;
     signal output expirationDate;
 
-    // name has 30 (TD1), 31(TD3) or 39 (TD3) bytes. 
+    // name has 30 (TD1), 31(TD2) or 39 (TD3) bytes. 
     // Max we can fit into one signal is 31 * 8 = 248 bits
     // Name is splitted into name (31 bytes) + nameResidual(8 bytes)
     signal output name;
