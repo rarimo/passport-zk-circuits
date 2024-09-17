@@ -13,19 +13,53 @@ include "./circuits/registerIdentityBuilder.circom";
 //   - 2: RSA 4096 bits + SHA2-256
 
 component main = RegisterIdentityBuilder(
-    2,         // DG1_SIZE
-    6,         // DG15_SIZE
-    6,         // ENCAPSULATED_CONTENT_SIZE
-    2,         // SIGNED_ATTRIBUTES_SIZE
-    512,       // HASH_BLOCK_SIZE
-    256,       // HASH_TYPE
-    1,         // SIGNATURE_TYPE
-    64,        // CHUNK_SIZE
-    32,         // CHUNK_NUMBER
-    1,         // DOCUMENT_TYPE
-    80,        // TREE_DEPTH
-    3,         // AA_FLOWS_NUMBER
-    7,         // AA_FLOWS_BITMASK
-    4,         // NoAA_FLOWS_NUMBER
-    15         // NoAA_FLOWS_BITMASK
+    2,
+    8,
+    8,
+    8,
+    512,
+    256,
+    2,
+    0,
+    17,
+    64,
+    64,
+    256,
+    1,
+    80,
+    [
+        [264, 2448, 336, 6, 6, 1]
+    ],
+    1,
+    [
+     [0,0,0,0,0,1,0,0],
+     [0,0,0,0,0,1,0,0],
+     [0,1,0,0,0,0,0,0]
+    ]
 );
+//ukr
+
+// component main = RegisterIdentityBuilder(
+//     2,
+//     8,
+//     8,
+//     8,
+//     512,
+//     256,
+//     3,
+//     64,
+//     17,
+//     64,
+//     32,
+//     256,
+//     3,
+//     80,
+//     [[232, 256, 336, 5, 3, 0]],
+//     1,
+//     [
+//         [0,0,0,0,1,0,0,0],
+//         [0,0,1,0,0,0,0,0],
+//         [0,1,0,0,0,0,0,0]
+//     ]
+// );
+//denmark

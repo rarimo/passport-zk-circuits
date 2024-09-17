@@ -1,10 +1,10 @@
 pragma circom 2.1.8;
 
 include "./sha1/sha1.circom";
-include "./sha2/sha224/sha224_hash_bits.circom";
-include "./sha2/sha256/sha256_hash_bits.circom";
-include "./sha2/sha384/sha384_hash_bits.circom";
-include "./sha2/sha512/sha512_hash_bits.circom";
+include "./sha2/sha224/sha224HashChunks.circom";
+include "./sha2/sha256/sha256HashChunks.circom";
+include "./sha2/sha384/sha384HashChunks.circom";
+include "./sha2/sha512/sha512HashChunks.circom";
 
 template PassportHash(BLOCK_SIZE, BLOCK_NUM, ALGO){
 
@@ -19,22 +19,22 @@ template PassportHash(BLOCK_SIZE, BLOCK_NUM, ALGO){
         hash160.out ==> out;
     }
     if (ALGO == 224) {
-        component hash224 = Sha224_hash_chunks(BLOCK_NUM);
+        component hash224 = Sha224HashChunks(BLOCK_NUM);
         hash224.in <== in;
         hash224.out ==> out;
     }
     if (ALGO == 256) {
-        component hash256 = Sha256_hash_chunks(BLOCK_NUM);
+        component hash256 = Sha256HashChunks(BLOCK_NUM);
         hash256.in <== in;
         hash256.out ==> out;
     }
     if (ALGO == 384) {
-        component hash384 = Sha384_hash_chunks(BLOCK_NUM);
+        component hash384 = Sha384HashChunks(BLOCK_NUM);
         hash384.in <== in;
         hash384.out ==> out;
     }
     if (ALGO == 512) {
-        component hash512 = Sha512_hash_chunks(BLOCK_NUM);
+        component hash512 = Sha512HashChunks(BLOCK_NUM);
         hash512.in <== in;
         hash512.out ==> out;
     }

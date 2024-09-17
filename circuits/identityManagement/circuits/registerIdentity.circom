@@ -4,7 +4,20 @@ include "circomlib/circuits/bitify.circom";
 include "../../passportVerification/passportVerificationHash.circom";
 include "circomlib/circuits/babyjub.circom";
 
-template RegisterIdentity(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen, slaveSignedAttributesLen, signedAttributesKeyShift) {
+template RegisterIdentity(
+    CHUNK_SIZE,
+    CHUNK_NUMBER, 
+    e_bits, 
+    hashLen, 
+    depth, 
+    encapsulatedContentLen, 
+    dg1Shift, 
+    dg15Shift, 
+    dg15Len,
+    signedAttributesLen, 
+    slaveSignedAttributesLen, 
+    signedAttributesKeyShift
+) {
     signal output dg15PubKeyHash;
     signal output dg1Commitment;
     signal output pkIdentityHash;
@@ -13,19 +26,19 @@ template RegisterIdentity(w, nb, e_bits, hashLen, depth, encapsulatedContentLen,
     signal input dg1[744];                  // 744 bits
     signal input dg15[dg15Len];             // 1320 bits
     signal input signedAttributes[signedAttributesLen];     // 592 bits
-    signal input exp[nb];
-    signal input sign[nb];
-    signal input modulus[nb];
+    signal input exp[CHUNK_NUMBER];
+    signal input sign[CHUNK_NUMBER];
+    signal input modulus[CHUNK_NUMBER];
     signal input icaoMerkleRoot;
     signal input icaoMerkleInclusionBranches[depth];
     signal input icaoMerkleInclusionOrder[depth];
     signal input skIdentity;
     signal input slaveSignedAttributes[slaveSignedAttributesLen];
-    signal input slaveSignature[nb];
-    signal input masterModulus[nb];
+    signal input slaveSignature[CHUNK_NUMBER];
+    signal input masterModulus[CHUNK_NUMBER];
 
     component passportVerifier = 
-        PassportVerificationHash(w, nb, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen, slaveSignedAttributesLen, signedAttributesKeyShift);
+        PassportVerificationHash(CHUNK_SIZE, CHUNK_NUMBER, e_bits, hashLen, depth, encapsulatedContentLen, dg1Shift, dg15Shift, dg15Len, signedAttributesLen, slaveSignedAttributesLen, signedAttributesKeyShift);
 
     passportVerifier.encapsulatedContent <== encapsulatedContent;
     passportVerifier.dg1 <== dg1;
@@ -39,6 +52,8 @@ template RegisterIdentity(w, nb, e_bits, hashLen, depth, encapsulatedContentLen,
     passportVerifier.slaveSignedAttributes <== slaveSignedAttributes;
     passportVerifier.slaveSignature <== slaveSignature;
     passportVerifier.masterModulus <== masterModulus;
+
+    //ukr ecdsa brainpool = 2000 + 8(extend)
 
     if (dg15Len == 1320) { // rsa keys stored
         component dg15Chunking[5];
@@ -102,7 +117,7 @@ template RegisterIdentity(w, nb, e_bits, hashLen, depth, encapsulatedContentLen,
     skIndentityHasher.inputs[0] <== skIdentity;
     dg1Hasher.inputs[4] <== skIndentityHasher.out;
 
-    dg1Commitment <== dg1Hasher.out;
+    dg1Commitment <== dg1Hasher.out
 
 
     // Forming EdDSA BybyJubJub public key point from private key (identity)
