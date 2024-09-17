@@ -6,6 +6,7 @@ include "p256Pows.circom";
 include "circomlib/circuits/multiplexer.circom";
 include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/comparators.circom";
+include "../utils/func.circom";
 
 template P256AddUnequal(CHUNK_SIZE, CHUNK_NUMBER) {
     signal input point1[2][CHUNK_NUMBER];
@@ -149,7 +150,7 @@ template P256GeneratorMultiplication(CHUNK_SIZE,CHUNK_NUMBER){
         n2b[i].in <== scalar[i];
     }
 
-    var NUM_STRIDES = div_ceil2(CHUNK_SIZE * CHUNK_NUMBER, STRIDE);
+    var NUM_STRIDES = div_ceil(CHUNK_SIZE * CHUNK_NUMBER, STRIDE);
     // power[i][j] contains: [j * (1 << STRIDE * i) * G] for 1 <= j < (1 << STRIDE)
     var POWERS[NUM_STRIDES][2 ** STRIDE][2][CHUNK_NUMBER];
     POWERS = get_g_pow_stride8_table_p256(CHUNK_SIZE, CHUNK_NUMBER);

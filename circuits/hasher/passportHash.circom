@@ -1,4 +1,4 @@
-pragma circom 2.1.8;
+pragma circom 2.1.6;
 
 include "./sha1/sha1.circom";
 include "./sha2/sha224/sha224HashChunks.circom";

@@ -28,7 +28,7 @@ describe("Hasher test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/hasher/sha1-1.circom")
+				path.join(__dirname, "./circuits/hasher/sha1-1.circom")
 			);
 			const w = await circuit.calculateWitness({ in: input.in });
 			await circuit.checkConstraints(w);
@@ -62,7 +62,7 @@ describe("Hasher test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/hasher/sha224-1.circom")
+				path.join(__dirname, "./circuits/hasher/sha224-1.circom")
 			);
 			const w = await circuit.calculateWitness({ in: input.in },true);
 			await circuit.checkConstraints(w);
@@ -97,7 +97,7 @@ describe("Hasher test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/hasher/sha256-1.circom")
+				path.join(__dirname, "./circuits/hasher/sha256-1.circom")
 			);
 			const w = await circuit.calculateWitness({ in: input.in });
 			await circuit.checkConstraints(w);
@@ -131,7 +131,7 @@ describe("Hasher test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/hasher/sha384-1.circom")
+				path.join(__dirname, "./circuits/hasher/sha384-1.circom")
 			);
 			const w = await circuit.calculateWitness({ in: input.in });
 			await circuit.checkConstraints(w);
@@ -165,7 +165,7 @@ describe("Hasher test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/hasher/sha512-1.circom")
+				path.join(__dirname, "./circuits/hasher/sha512-1.circom")
 			);
 			const w = await circuit.calculateWitness({ in: input.in });
 			await circuit.checkConstraints(w);
