@@ -3,12 +3,11 @@ pragma circom 2.1.6;
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../rsa/rsa.circom";
-include "../sha256/sha256NoPadding.circom";
 include "../merkleTree/SMTVerifier.circom";
-include "../x509Verification/X509Verifier.circom";
+// include "../x509Verification/X509Verifier.circom";
 include "./passportVerificationFlow.circom";
 include "./passportVerificationRSAsignature.circom";
-include "../sha2/sha384/sha384_hash_bits.circom";
+include "../hasher/sha2/sha384/sha384HashChunks.circom";
 include "../rsaPss/rsaPss.circom";
 
 template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HASH_BLOCKS_NUMBER, TREE_DEPTH) {
@@ -46,35 +45,35 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     // -------
 
     // Hash DG1 -> DG1Hash (SHA256)
-    component dg1Hasher = Sha384_hash_bits(DG1_SIZE);
-    dg1Hasher.inp_bits <== dg1;
+    component dg1Hasher = Sha384HashBits(DG1_SIZE);
+    dg1Hasher.in <== dg1;
     
     // Hash DG15 -> DG15Hash (SHA256). Hashing first 3 blocks (RSA case)
-    component dg15Hasher = Sha384_hash_bits(DG15_SIZE);
-    dg15Hasher.inp_bits <== dg15;
+    component dg15Hasher = Sha384HashBits(DG15_SIZE);
+    dg15Hasher.in <== dg15;
 
     // Hash encupsulated content
-    component encapsulatedContentHasher = Sha384_hash_bits(ENCAPSULATED_CONTENT_SIZE);
-    encapsulatedContentHasher.inp_bits <== encapsulatedContent;
+    component encapsulatedContentHasher = Sha384HashBits(ENCAPSULATED_CONTENT_SIZE);
+    encapsulatedContentHasher.in <== encapsulatedContent;
 
     // Hashing signedAttributes
-    component signedAttributesHasher = Sha384_hash_bits(SIGNED_ATTRIBUTES_SIZE);
-    signedAttributesHasher.inp_bits <== signedAttributes;
+    component signedAttributesHasher = Sha384HashBits(SIGNED_ATTRIBUTES_SIZE);
+    signedAttributesHasher.in <== signedAttributes;
 
     component passportVerificationFlowRsa = PassportVerificationFlow(
         ENCAPSULATED_CONTENT_SIZE,
-        HASH_SIZE,
+        HASH_SIZE, HASH_SIZE,
         SIGNED_ATTRIBUTES_SIZE,
         DG1_DIGEST_POSITION_SHIFT,
         DG15_DIGEST_POSITION_SHIFT,
-        SIGNED_ATTRIBUTES_SHIFT
+        SIGNED_ATTRIBUTES_SHIFT,
+        1
     );
     passportVerificationFlowRsa.dg1Hash  <== dg1Hasher.out;
     passportVerificationFlowRsa.dg15Hash <== dg15Hasher.out;
     passportVerificationFlowRsa.encapsulatedContent <== encapsulatedContent;
     passportVerificationFlowRsa.encapsulatedContentHash <== encapsulatedContentHasher.out;
     passportVerificationFlowRsa.signedAttributes <== signedAttributes;
-    passportVerificationFlowRsa.dg15Verification <== 1;
     
     log("Flow 1: ", passportVerificationFlowRsa.flowResult);
 
@@ -94,10 +93,10 @@ template PassportVerificationHashPadded(BLOCK_SIZE, NUMBER_OF_BLOCKS, E_BITS, HA
     // passportVerificationRSASignature.sign <== sign;
     // passportVerificationRSASignature.modulus <== modulus;
 
-    component passportVericationRSAPssSignature = VerifyRSASig(BLOCK_SIZE, NUMBER_OF_BLOCKS, SIGNED_ATTRIBUTES_SIZE);
+    component passportVericationRSAPssSignature = VerifyRsaSig(BLOCK_SIZE, NUMBER_OF_BLOCKS, 48, 17, 384);
     passportVericationRSAPssSignature.pubkey <== modulus;
     passportVericationRSAPssSignature.signature <== sign;
-    passportVericationRSAPssSignature.message <== signedAttributes;
+    passportVericationRSAPssSignature.hashed <== signedAttributesHasher.out;
     
     // Hashing 5 * (3*64) blocks
     component modulusHasher = Poseidon(5);
