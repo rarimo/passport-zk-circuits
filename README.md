@@ -248,7 +248,7 @@ If date input is **NOT** used, put “0x303030303030” (52983525027888 - decima
 
 #### Query circuit public signals
 
-TD3 (default) query
+TD3 (default, biometric passport) query
 
 ```json
 [
