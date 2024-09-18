@@ -22,4 +22,4 @@ fi
 
 echo -e "\nGenerating witness..."
 
-node ${BUILD_DIR}/${CIRCUIT_NAME}_js/generate_witness.js ${BUILD_DIR}/${CIRCUIT_NAME}.wasm ${INPUT_FILE} ${BUILD_DIR}/witness.wtns
+time node ${BUILD_DIR}/${CIRCUIT_NAME}_js/generate_witness.js ${BUILD_DIR}/${CIRCUIT_NAME}.wasm ${INPUT_FILE} ${BUILD_DIR}/witness.wtns
