@@ -109,7 +109,5 @@ template verifyBrainpool(CHUNK_SIZE,CHUNK_NUMBER, ALGO){
     sumPoints.point2 <== tmpPoint2;
 
     verifyX <== sumPoints.out[0];
-    log(verifyX[0]);
-    log(signatureChunked[0][0]);
     verifyX === signatureChunked[0];   
 }

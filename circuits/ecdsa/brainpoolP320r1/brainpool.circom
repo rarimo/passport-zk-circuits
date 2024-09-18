@@ -341,14 +341,9 @@ template BrainpoolPipingerMult(CHUNK_SIZE, CHUNK_NUMBER, WINDOW_SIZE){
     for (var i = 0; i < CHUNK_NUMBER; i++){
         num2Bits[i] = Num2Bits(CHUNK_SIZE);
         num2Bits[i].in <== scalar[i];
-        if (i != CHUNK_NUMBER - 1){
-            for (var j = 0; j < CHUNK_SIZE; j++){
-                scalarBits[CHUNK_NUMBER*CHUNK_SIZE - CHUNK_SIZE * (i + 1) + j] <== num2Bits[i].out[CHUNK_SIZE - 1 - j];
-            }
-        } else {
-            for (var j = 0; j < CHUNK_SIZE - (CHUNK_SIZE*CHUNK_NUMBER - CHUNK_NUMBER*CHUNK_SIZE); j++){
-                scalarBits[j] <== num2Bits[i].out[CHUNK_SIZE - 1 - (j + (CHUNK_SIZE * CHUNK_NUMBER - CHUNK_NUMBER*CHUNK_SIZE))];
-            }
+       
+        for (var j = 0; j < CHUNK_SIZE; j++){
+            scalarBits[CHUNK_NUMBER*CHUNK_SIZE - CHUNK_SIZE * (i + 1) + j] <== num2Bits[i].out[CHUNK_SIZE - 1 - j];
         }
     }
 
