@@ -435,18 +435,18 @@ def decode_base64_and_print(file_path):
         circom_code = ""
         circom_code += "pragma circom 2.1.6;\n\n"
         circom_code += "include  \"../../../../circuits/identityManagement/circuits/registerIdentityBuilder.circom\";\n\n"
-        circom_code += "component main = RegisterIdentityBuilder(\n\t\t2,\n\t\t8,\n\t\t8,\n\t\t8,\n"
-        circom_code += "\t\t{chunk_size},\n".format(chunk_size = chunk_size)
+        circom_code += "component main = RegisterIdentityBuilder(\n\t\t2,\t//dg1 chunk number\n\t\t8,\t //dg15 chunk number\n\t\t8,\t//encapsulated content chunk number\n\t\t8,\t//signed attributes chunk number\n"
+        circom_code += "\t\t{chunk_size},\t//hash chunk size\n".format(chunk_size = chunk_size)
         circom_code += "\t\t256,\t//hash type\n"
-        circom_code += "\t\t{sig_algo},\n".format(sig_algo = sig_algo)
-        circom_code += "\t\t{salt},\n".format(salt = salt)
-        circom_code += "\t\t{e_bits},\n".format(e_bits = e_bits)
-        circom_code += "\t\t64,\n"
-        circom_code += "\t\t{chunk_num},\n".format(chunk_num = chunk_num)
-        circom_code += "\t\t{dg_hash_algo},\n".format(dg_hash_algo = dg_hash_algo)
-        circom_code += "\t\t{document_type},\n".format(document_type = document_type)
-        circom_code += "\t\t80,\n"
-        circom_code += "\t\t[[{dg1shift}, {dg15shift}, {ec_shift}, {dg15_blocks}, {ec_blocks}, {isdg15}]],\n".format(
+        circom_code += "\t\t{sig_algo},\t//sig_algo\n".format(sig_algo = sig_algo)
+        circom_code += "\t\t{salt},\t//salt\n".format(salt = salt)
+        circom_code += "\t\t{e_bits},\t// e_bits\n".format(e_bits = e_bits)
+        circom_code += "\t\t64,\t//chunk size\n"
+        circom_code += "\t\t{chunk_num},\t//chunk_num\n".format(chunk_num = chunk_num)
+        circom_code += "\t\t{dg_hash_algo},\t//dg hash algo\n".format(dg_hash_algo = dg_hash_algo)
+        circom_code += "\t\t{document_type},\t//document type\n".format(document_type = document_type)
+        circom_code += "\t\t80,\t//merkle tree depth\n"
+        circom_code += "\t\t[[{dg1shift}, {dg15shift}, {ec_shift}, {dg15_blocks}, {ec_blocks}, {isdg15}]],\t//flow matrix\n".format(
             dg1shift = dg1shift,
             dg15shift = dg15shift,
             ec_shift = ec_shift,
@@ -454,8 +454,8 @@ def decode_base64_and_print(file_path):
             ec_blocks = ec_blocks,
             isdg15 = isdg15
         )
-        circom_code += "\t\t1,\n"
-        circom_code += "\t\t[\n\t\t\t{dg15_arr},\n\t\t\t{ec_arr},\n\t\t\t{sa_arr}\n\t\t]\n".format(
+        circom_code += "\t\t1,\t//flow matrix height\n"
+        circom_code += "\t\t[\n\t\t\t{dg15_arr},\n\t\t\t{ec_arr},\n\t\t\t{sa_arr}\n\t\t]\t//hash block matrix\n".format(
             dg15_arr = dg15_arr,
             ec_arr = ec_arr,
             sa_arr = sa_arr
@@ -468,17 +468,17 @@ def decode_base64_and_print(file_path):
 
         circom_code = "pragma circom 2.1.6;\n\n"
         circom_code += "include \"../../../../circuits/passportVerification/passportVerificationBuilder.circom\";\n\n"
-        circom_code += "component main = PassportVerificationBuilder(\n\t\t2,\n\t\t8,\n\t\t8,\n\t\t8,\n"
-        circom_code += "\t\t{chunk_size},\n".format(chunk_size = chunk_size)
+        circom_code += "component main = PassportVerificationBuilder(\n\t\t2,\t//dg1 chunk number\n\t\t8,\t //dg15 chunk number\n\t\t8,\t//encapsulated content chunk number\n\t\t8,\t//signed attributes chunk number\n"
+        circom_code += "\t\t{chunk_size},\t//hash chunk size\n".format(chunk_size = chunk_size)
         circom_code += "\t\t256,\t//hash type\n"
-        circom_code += "\t\t{sig_algo},\n".format(sig_algo = sig_algo)
-        circom_code += "\t\t{salt},\n".format(salt = salt)
-        circom_code += "\t\t{e_bits},\n".format(e_bits = e_bits)
-        circom_code += "\t\t64,\n"
-        circom_code += "\t\t{chunk_num},\n".format(chunk_num = chunk_num)
-        circom_code += "\t\t{dg_hash_algo},\n".format(dg_hash_algo = dg_hash_algo)
-        circom_code += "\t\t80,\n"
-        circom_code += "\t\t[[{dg1shift}, {dg15shift}, {ec_shift}, {dg15_blocks}, {ec_blocks}, {isdg15}]],\n".format(
+        circom_code += "\t\t{sig_algo},\t//sig_algo\n".format(sig_algo = sig_algo)
+        circom_code += "\t\t{salt},\t//salt\n".format(salt = salt)
+        circom_code += "\t\t{e_bits},\t// e_bits\n".format(e_bits = e_bits)
+        circom_code += "\t\t64,\t//chunk size\n"
+        circom_code += "\t\t{chunk_num},\t//chunk_num\n".format(chunk_num = chunk_num)
+        circom_code += "\t\t{dg_hash_algo},\t//dg hash algo\n".format(dg_hash_algo = dg_hash_algo)
+        circom_code += "\t\t80,\t//merkle tree depth\n"
+        circom_code += "\t\t[[{dg1shift}, {dg15shift}, {ec_shift}, {dg15_blocks}, {ec_blocks}, {isdg15}]],\t//flow matrix\n".format(
             dg1shift = dg1shift,
             dg15shift = dg15shift,
             ec_shift = ec_shift,
@@ -486,8 +486,8 @@ def decode_base64_and_print(file_path):
             ec_blocks = ec_blocks,
             isdg15 = isdg15
         )
-        circom_code += "\t\t1,\n"
-        circom_code += "\t\t[\n\t\t\t{dg15_arr},\n\t\t\t{ec_arr},\n\t\t\t{sa_arr}\n\t\t]\n".format(
+        circom_code += "\t\t1,\t//flow matrix height\n"
+        circom_code += "\t\t[\n\t\t\t{dg15_arr},\n\t\t\t{ec_arr},\n\t\t\t{sa_arr}\n\t\t]\t//hash block matrix\n".format(
             dg15_arr = dg15_arr,
             ec_arr = ec_arr,
             sa_arr = sa_arr
