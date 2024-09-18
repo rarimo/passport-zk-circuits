@@ -246,7 +246,39 @@ The query circuit allows you to prove arbitrary data from a passport.
 
 If date input is **NOT** used, put “0x303030303030” (52983525027888 - decimal). This is equal to “000000” in UTF-8 encoding, which is used to encode date in the passport. Otherwise date verification constraints will fail.
 
-Public signals (example for selector = 39)
+#### Query circuit public signals
+
+TD3 (default) query
+
+```json
+[
+ "20925303098627062266630214635967906856225360340756326562498326001746719100911", // 0 - nullifier
+ "52992115355956", // 1 - birthDate
+ "55216908480563", // 2 - expirationDate
+ "0", // 3 - name
+ "0", // 4 - nameResidual
+ "0", // 5 - nationality
+ "5589842", // 6 - citizenship
+ "0", // 7 - sex
+ "0", // 8 - documentNumber
+ "304358862882731539112827930982999386691702727710421481944329166126417129570", // 9 - eventID
+ "1217571210886365587192326979343136122389414675532", // 10 - eventData
+ "5904469035765435216409767735512782299719282306270684213646687525744667841608", // 11 - idStateRoot
+ "39", // 12 - selector
+ "52983525027888", // 13 - currentDate
+ "0", // 14 - timestampLowerbound
+ "0", // 15 - timestampUpperbound
+ "1", // 16 - identityCounterLowerbound
+ "0", // 17 - identityCounterUpperbound
+ "52983525027888", // 18 - birthDateLowerbound
+ "52983525027888", // 19 - birthDateUpperbound
+ "52983525027888", // 20 - expirationDateLowerbound
+ "5298352502788", // 21 - expirationDateUpperbound
+ "0" // 22 - citizenshipMask
+]
+```
+
+TD1 query (example for selector = 39)
 
 ```json
 [
