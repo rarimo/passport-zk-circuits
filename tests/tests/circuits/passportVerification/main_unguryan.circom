@@ -3,24 +3,24 @@ pragma circom 2.1.6;
 include "../../../../circuits/passportVerification/passportVerificationBuilder.circom";
 
 component main = PassportVerificationBuilder(
-		2,
-		8,
-		8,
-		8,
-		512,
+		2,	//dg1 chunk number
+		8,	 //dg15 chunk number
+		8,	//encapsulated content chunk number
+		8,	//signed attributes chunk number
+		512,	//hash chunk size
 		256,	//hash type
-		7,
-		0,
-		0,
-		64,
-		4,
-		256,
-		80,
-		[[248, 3056, 576, 6, 7, 1]],
-		1,
+		7,	//sig_algo
+		0,	//salt
+		0,	// e_bits
+		64,	//chunk size
+		4,	//chunk_num
+		256,	//dg hash algo
+		80,	//merkle tree depth
+		[[248, 3056, 576, 6, 7, 1]],	//flow matrix
+		1,	//flow matrix height
 		[
 			[0, 0, 0, 0, 0, 1, 0, 0],
 			[0, 0, 0, 0, 0, 0, 1, 0],
 			[0, 1, 0, 0, 0, 0, 0, 0]
-		]
+		]	//hash block matrix
 );
