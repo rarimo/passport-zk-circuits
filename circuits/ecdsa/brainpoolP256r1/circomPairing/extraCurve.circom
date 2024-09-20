@@ -468,7 +468,7 @@ template MillerLoop1(CHUNK_SIZE, CHUNK_NUMBER, b, r, q){
     assert( 4*CHUNK_SIZE + LOGK3 < 251 );
 
 
-    var BITS[500]; // length is CHUNK_NUMBER * CHUNK_SIZE
+    var BITS[513]; // length is CHUNK_NUMBER * CHUNK_SIZE
     var BIT_LENGTH;
     var SIG_BITS=0;
     for (var i = 0; i < CHUNK_NUMBER; i++) {
@@ -639,7 +639,7 @@ template MillerLoop2(CHUNK_SIZE, CHUNK_NUMBER, b, r, Q){
     signal input Q[2][6][2][CHUNK_NUMBER];
     signal output out[6][2][CHUNK_NUMBER];
 
-    var rBits[500]; // length is CHUNK_NUMBER * CHUNK_SIZE
+    var rBits[513]; // length is CHUNK_NUMBER * CHUNK_SIZE
     var rBitLength;
     var rSigBits=0;
     for (var i = 0; i < CHUNK_NUMBER; i++) {

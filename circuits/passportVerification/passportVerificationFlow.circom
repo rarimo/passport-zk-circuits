@@ -7,7 +7,7 @@ template PassportVerificationFlow(
     ENCAPSULATED_CONTENT_SIZE,
     HASH_SIZE,
     ENCAPSULATED_CONTENT_HASH_TYPE,
-    SIGNED_ATTRIBUTES_SIZE,
+    // SIGNED_ATTRIBUTES_SIZE,
     DG1_DIGEST_POSITION_SHIFT,
     DG15_DIGEST_POSITION_SHIFT,
     SIGNED_ATTRIBUTES_SHIFT,    
@@ -19,7 +19,7 @@ template PassportVerificationFlow(
     signal input dg15Hash[HASH_SIZE];
     signal input encapsulatedContent[ENCAPSULATED_CONTENT_SIZE];
     signal input encapsulatedContentHash[ENCAPSULATED_CONTENT_HASH_TYPE];
-    signal input signedAttributes[SIGNED_ATTRIBUTES_SIZE];
+    signal input signedAttributes[1024];
 
     // 1) Checking DG1 hash inclusion into encapsulatedContent
     component dg1HashEqualsEncapsulated[HASH_SIZE];

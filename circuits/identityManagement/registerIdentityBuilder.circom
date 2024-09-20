@@ -13,10 +13,10 @@ include "./circuits/registerIdentityBuilder.circom";
 //   - 2: RSA 4096 bits + SHA2-256
 
 component main = RegisterIdentityBuilder(
-    2,
+    // 2,
     8,
     8,
-    8,
+    // 8,
     512,
     256,
     2,
