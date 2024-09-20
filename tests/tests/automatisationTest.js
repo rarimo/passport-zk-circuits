@@ -62,7 +62,9 @@ describe("File generation test", function () {
         //             encapsulatedContent: input.encapsulatedContent,
         //             signedAttributes: input.signedAttributes,
         //             signature: input.signature,
-        //             pubkey: input.pubkey
+        //             pubkey: input.pubkey,
+        //             slaveMerkleInclusionBranches: input.slaveMerkleInclusionBranches,
+        //             slaveMerkleRoot: input.slaveMerkleRoot
         //         });
         //         await circuit.checkConstraints(w);
         

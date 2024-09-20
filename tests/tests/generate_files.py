@@ -48,6 +48,15 @@ def format_bit_string(bit_string):
 
     return bit_array
 
+def sha384_hash_from_hex(hex_str):
+    # Step 1: Convert hex string to bytes
+    byte_data = bytes.fromhex(hex_str)
+    
+    # Step 2: Compute SHA-256 hash
+    sha384_hash = hashlib.sha384(byte_data).hexdigest()
+    
+    return sha384_hash
+
 def sha256_hash_from_hex(hex_str):
     # Step 1: Convert hex string to bytes
     byte_data = bytes.fromhex(hex_str)
@@ -98,6 +107,13 @@ def pad_array_to_4096(array):
     
     return array + [0] * (4096 - len(array))
 
+def pad_array_to_8192(array):
+    if len(array) > 8192:
+        raise ValueError("Input array length exceeds 4096 elements.")
+    
+    return array + [0] * (8192 - len(array))
+
+
 # Main function to process passport data
 def dg_interactions(passport_file, chunk_size):
     with open(passport_file, 'r') as f:
@@ -117,9 +133,12 @@ def dg_interactions(passport_file, chunk_size):
     _, dg15_padded, dg15_blocks = process_and_pad_hex(dg15_hex, chunk_size)
 
     # Pad dg15 to a length of 4096 after the initial padding
-    dg15_padded_to_4096 = pad_array_to_4096([bit for bit in dg15_padded])
-    
-    return dg15_blocks, [bit for bit in dg1_padded], dg15_padded_to_4096
+    dg15_padded_to_many = 0
+    if chunk_size == 512:
+        dg15_padded_to_many = pad_array_to_4096([bit for bit in dg15_padded])
+    else:
+        dg15_padded_to_many = pad_array_to_8192([bit for bit in dg15_padded])
+    return dg15_blocks, [bit for bit in dg1_padded], dg15_padded_to_many
 
 # Function to parse ASN.1 data using OpenSSL
 def parse_asn1(file_path):
@@ -168,6 +187,13 @@ def extract_asn1_components(asn1_data):
 
     rsa_pubkey_location = int([s for s in rsa_pubkey_locations[0].split(":")[0].split(" ") if s][0])
 
+    hash_locations = [line for line in lines if 'sha' in str.lower(line)]
+
+    hash_type = int(str.lower(hash_locations[-1]).split("sha")[1][:3])
+
+    chunk_size = 512 if hash_type <= 256 else 1024
+
+    # print(hash_type)
 
     # print(pubkey_ecdsa_lines)
 
@@ -192,7 +218,7 @@ def extract_asn1_components(asn1_data):
         sign = str(octet_strings[-1]).split(":")[1]#sig
 
 
-    return (sa_locations, ec, sign, pubkey_ecdsa_location, salt, rsa_pubkey_location, rsa_pubkey_len)
+    return (sa_locations, ec, sign, pubkey_ecdsa_location, salt, rsa_pubkey_location, rsa_pubkey_len, hash_type, chunk_size)
 
 
 # Function to decode base64 and print decoded data
@@ -217,8 +243,8 @@ def decode_base64_and_print(file_path):
         asn1_data = parse_asn1('temp_asn1.der')
         
         # Extract ASN.1 components from the parsed data
-        (sa_locations, ec, sign, pubkey_ecdsa_location, salt, rsa_pubkey_location, rsa_pubkey_len) = extract_asn1_components(asn1_data)
-
+        (sa_locations, ec, sign, pubkey_ecdsa_location, salt, rsa_pubkey_location, rsa_pubkey_len, hash_algo, chunk_size) = extract_asn1_components(asn1_data)
+        print(hash_algo)
 
         ec_len = len(ec)*4
 
@@ -227,12 +253,16 @@ def decode_base64_and_print(file_path):
         pubkey = ""
         pubkey_bit = ""
 
-        sa = "31"
+        sa = ""
         for [n, l] in sa_locations:
-            # print(hex_sod[n*2:n*2+3])
-            if (hex_sod[n*2] == "a" and hex_sod[n*2+1] == "0" and (hex_sod[n*2 + 2] == "6" or hex_sod[n*2 + 2] == "4")):
-                sa += hex_sod[n*2+2:n*2+l*2]
-        # print(sa)
+            print(hex_sod[n*2:n*2+3])
+            if (hex_sod[n*2] == "a" and hex_sod[n*2+1] == "0" and (hex_sod[n*2 + 2] == "6" or hex_sod[n*2 + 2] == "4" or hex_sod[n*2 + 2] == "5")):
+                sa = "31" + hex_sod[n*2+2:n*2+l*2]
+        if (sa == ""):
+            n = sa_locations[-3][0]
+            l = sa_locations[-3][1]
+            sa = "31" + hex_sod[n*2+2:n*2+l*2]
+        print(sa)
         sig_algo = 0
         e_bits = 0
         sod_hex = base64.b64decode(sod_base64).hex()
@@ -260,7 +290,7 @@ def decode_base64_and_print(file_path):
     
             sig = sign[0:64] + sign[68:132]
             
-            print(sig)
+            # print(sig)
             
             sig_bit = hex_to_bin(sig)
             signature_arr = format_bit_string(sig_bit) 
@@ -286,7 +316,7 @@ def decode_base64_and_print(file_path):
             # print(len(sign))
             #RsaPss 2048
             if len(sign) == 512:
-                sig_algo = 3
+                sig_algo = 3 if hash_algo == 256 else 5
                 signature_arr = bigint_to_array(64, 32, int(sign, 16))
 
                 chunk_num = 32
@@ -296,6 +326,8 @@ def decode_base64_and_print(file_path):
                 pubkey_arr = bigint_to_array(64, chunk_num, int(pubkey, 16))
 
                 e_bits =  2 if (rsa_pubkey_len == 269) else 17
+
+            
 
         if (salt == 0 and tmp == 0):
             #Rsa
@@ -320,23 +352,36 @@ def decode_base64_and_print(file_path):
                 pubkey_arr = bigint_to_array(64, chunk_num, int(pubkey, 16))
                 e_bits =  17 if (rsa_pubkey_len == 527) else 2
 
-        chunk_size = 512
-
         dg15_blocks, dg1_res, dg15_res = dg_interactions(file_path, chunk_size)
 
+        # print(ec)
         _, ec_padded, ec_blocks = process_and_pad_hex(ec, chunk_size)
-        ec_res = pad_array_to_4096([bit for bit in ec_padded])
+
+        # print(ec_padded)
+        if chunk_size == 512:
+            ec_res = pad_array_to_4096([bit for bit in ec_padded])
+        else: 
+            ec_res = pad_array_to_8192([bit for bit in ec_padded])
+
 
 
         _, sa_padded, _ = process_and_pad_hex(sa, chunk_size)
-        sa_res = pad_array_to_4096([bit for bit in sa_padded])
+
+        sa_res = format_bit_string(sa_padded)
+        # if chunk_size == 512:
+        #     sa_res = pad_array_to_4096([bit for bit in sa_padded])
+        # else: 
+        #     sa_res = pad_array_to_8192([bit for bit in sa_padded])
 
 
         dg1 = base64_to_hex(data.get('dg1', ''))
         dg1_256 = str.upper(sha256_hash_from_hex(dg1))
         dg1_160 = str.upper(sha1_hash_from_hex(dg1))
-        
-       
+        dg1_384 = str.upper(sha384_hash_from_hex(dg1))
+
+
+
+        dg_hash_algo = 256
         dg1shift = 0
 
         if dg1_256 in ec:
@@ -344,31 +389,50 @@ def decode_base64_and_print(file_path):
         
         if dg1_160 in ec:
             dg1shift = len(ec.split(dg1_160)[0])*4
+            dg_hash_algo = 160
+        
+        if dg1_384 in ec:
+            dg1shift = len(ec.split(dg1_384)[0])*4
+            dg_hash_algo = 384
 
        
         dg15 = base64_to_hex(data.get('dg15', ''))
         
 
-        dg_hash_algo = 256
-        if dg1_160 in ec:
-            dg_hash_algo = 160
 
         isdg15 = 0
-
+        ec_shift = 0
         dg15shift = dg_hash_algo
-        ec_shift = len(sa)*4 - 256
+        ec_256 = str.upper(sha256_hash_from_hex(ec))
+        ec_160 = str.upper(sha1_hash_from_hex(ec))
+        ec_384 = str.upper(sha384_hash_from_hex(ec))
+
+        print(sa)
+        print(ec_256)
+
+        if ec_256 in str.upper(sa):
+            ec_shift = len(str.upper(sa).split(ec_256)[0])*4
+        if ec_160 in str.upper(sa):
+            ec_shift = len(str.upper(sa).split(ec_160)[0])*4
+        if ec_384 in str.upper(sa):
+            ec_shift = len(str.upper(sa).split(ec_384)[0])*4
+
 
         root = 0
 
         if dg15:
             dg15_256 = str.upper(sha256_hash_from_hex(dg15))
             dg15_160 = str.upper(sha1_hash_from_hex(dg15))
+            dg15_384 = str.upper(sha384_hash_from_hex(dg15))
 
             if dg1_256 in ec:
                 dg15shift = len(ec.split(dg15_256)[0])*4
         
             if dg1_160 in ec:
                 dg15shift = len(ec.split(dg15_160)[0])*4
+
+            if dg1_384 in ec:
+                dg15shift = len(ec.split(dg15_384)[0])*4
             isdg15 = 1
 
         if len(pubkey_bit) == 512:
@@ -382,13 +446,13 @@ def decode_base64_and_print(file_path):
 
         dg15_arr = []
         ec_arr = []
-        sa_arr = []
+        # sa_arr = []
 
 
         for i in range(1, 9):
             dg15_arr.append(0 if i != dg15_blocks else 1)
             ec_arr.append(0 if i != ec_blocks else 1)
-            sa_arr.append(0 if i !=2 else 1)
+            # sa_arr.append(0 if i !=2 else 1)
 
         
         branches = []
@@ -407,7 +471,9 @@ def decode_base64_and_print(file_path):
                 "signedAttributes": sa_res,
                 "encapsulatedContent": ec_res,
                 "pubkey": pubkey_arr,
-                "signature": signature_arr
+                "signature": signature_arr,
+                "slaveMerkleRoot": str(root),
+                "slaveMerkleInclusionBranches": branches
             }, f_out, indent=4)
 
         padded_output_file2 = "./tests/tests/inputs/generated/input_{short_file_path}_2.dev.json".format(short_file_path = short_file_path)
@@ -435,14 +501,15 @@ def decode_base64_and_print(file_path):
         circom_code = ""
         circom_code += "pragma circom 2.1.6;\n\n"
         circom_code += "include  \"../../../../circuits/identityManagement/circuits/registerIdentityBuilder.circom\";\n\n"
-        circom_code += "component main = RegisterIdentityBuilder(\n\t\t2,\t//dg1 chunk number\n\t\t8,\t //dg15 chunk number\n\t\t8,\t//encapsulated content chunk number\n\t\t8,\t//signed attributes chunk number\n"
+        circom_code += "component main = RegisterIdentityBuilder(\n\t\t8,\t //dg15 chunk number\n\t\t8,\t//encapsulated content chunk number\n"
         circom_code += "\t\t{chunk_size},\t//hash chunk size\n".format(chunk_size = chunk_size)
-        circom_code += "\t\t256,\t//hash type\n"
+        circom_code += "\t\t{hash_algo},\t//hash type\n".format(hash_algo = hash_algo)
         circom_code += "\t\t{sig_algo},\t//sig_algo\n".format(sig_algo = sig_algo)
         circom_code += "\t\t{salt},\t//salt\n".format(salt = salt)
         circom_code += "\t\t{e_bits},\t// e_bits\n".format(e_bits = e_bits)
         circom_code += "\t\t64,\t//chunk size\n"
         circom_code += "\t\t{chunk_num},\t//chunk_num\n".format(chunk_num = chunk_num)
+        circom_code += "\t\t{},\t//dg hash size chunk size\n".format(512 if dg_hash_algo <= 256 else 1024)
         circom_code += "\t\t{dg_hash_algo},\t//dg hash algo\n".format(dg_hash_algo = dg_hash_algo)
         circom_code += "\t\t{document_type},\t//document type\n".format(document_type = document_type)
         circom_code += "\t\t80,\t//merkle tree depth\n"
@@ -455,10 +522,9 @@ def decode_base64_and_print(file_path):
             isdg15 = isdg15
         )
         circom_code += "\t\t1,\t//flow matrix height\n"
-        circom_code += "\t\t[\n\t\t\t{dg15_arr},\n\t\t\t{ec_arr},\n\t\t\t{sa_arr}\n\t\t]\t//hash block matrix\n".format(
+        circom_code += "\t\t[\n\t\t\t{dg15_arr},\n\t\t\t{ec_arr}\n\t\t]\t//hash block matrix\n".format(
             dg15_arr = dg15_arr,
             ec_arr = ec_arr,
-            sa_arr = sa_arr
         )
         circom_code += ");" 
 
@@ -468,14 +534,15 @@ def decode_base64_and_print(file_path):
 
         circom_code = "pragma circom 2.1.6;\n\n"
         circom_code += "include \"../../../../circuits/passportVerification/passportVerificationBuilder.circom\";\n\n"
-        circom_code += "component main = PassportVerificationBuilder(\n\t\t2,\t//dg1 chunk number\n\t\t8,\t //dg15 chunk number\n\t\t8,\t//encapsulated content chunk number\n\t\t8,\t//signed attributes chunk number\n"
+        circom_code += "component main = PassportVerificationBuilder(\n\t\t8,\t //dg15 chunk number\n\t\t8,\t//encapsulated content chunk number\n"
         circom_code += "\t\t{chunk_size},\t//hash chunk size\n".format(chunk_size = chunk_size)
-        circom_code += "\t\t256,\t//hash type\n"
+        circom_code += "\t\t{hash_algo},\t//hash type\n".format(hash_algo = hash_algo)
         circom_code += "\t\t{sig_algo},\t//sig_algo\n".format(sig_algo = sig_algo)
         circom_code += "\t\t{salt},\t//salt\n".format(salt = salt)
         circom_code += "\t\t{e_bits},\t// e_bits\n".format(e_bits = e_bits)
         circom_code += "\t\t64,\t//chunk size\n"
         circom_code += "\t\t{chunk_num},\t//chunk_num\n".format(chunk_num = chunk_num)
+        circom_code += "\t\t{},\t//dg hash size chunk size\n".format(512 if dg_hash_algo <= 256 else 1024)
         circom_code += "\t\t{dg_hash_algo},\t//dg hash algo\n".format(dg_hash_algo = dg_hash_algo)
         circom_code += "\t\t80,\t//merkle tree depth\n"
         circom_code += "\t\t[[{dg1shift}, {dg15shift}, {ec_shift}, {dg15_blocks}, {ec_blocks}, {isdg15}]],\t//flow matrix\n".format(
@@ -487,10 +554,9 @@ def decode_base64_and_print(file_path):
             isdg15 = isdg15
         )
         circom_code += "\t\t1,\t//flow matrix height\n"
-        circom_code += "\t\t[\n\t\t\t{dg15_arr},\n\t\t\t{ec_arr},\n\t\t\t{sa_arr}\n\t\t]\t//hash block matrix\n".format(
+        circom_code += "\t\t[\n\t\t\t{dg15_arr},\n\t\t\t{ec_arr}\n\t\t]\t//hash block matrix\n".format(
             dg15_arr = dg15_arr,
             ec_arr = ec_arr,
-            sa_arr = sa_arr
         )
         circom_code += ");" 
         with open('./tests/tests/circuits/passportVerification/main_{short_file_path}.circom'.format(short_file_path = short_file_path), 'w') as file:
