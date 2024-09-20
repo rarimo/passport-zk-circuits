@@ -52,6 +52,9 @@ template RegisterIdentityBuilder (
     // Poseidon2(PubKey.X, PubKey.Y)
     signal output pkIdentityHash;
 
+    var DG1_LEN = 1024;
+    var SIGNED_ATTRIBUTES_LEN = 1024;
+
     var PUBKEY_LEN;
     var SIGNATURE_LEN;
 
@@ -69,9 +72,9 @@ template RegisterIdentityBuilder (
 
     // INPUT SIGNALS:
     signal input encapsulatedContent[ENCAPSULATED_CONTENT_SIZE * HASH_BLOCK_SIZE];
-    signal input dg1[1024];
+    signal input dg1[DG1_LEN];
     signal input dg15[DG15_SIZE * HASH_BLOCK_SIZE];
-    signal input signedAttributes[1024];
+    signal input signedAttributes[SIGNED_ATTRIBUTES_LEN];
     signal input signature[SIGNATURE_LEN];
     signal input pubkey[PUBKEY_LEN];
     signal input slaveMerkleRoot;
