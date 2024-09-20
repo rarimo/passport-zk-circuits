@@ -5,6 +5,7 @@ include "./passportVerificationFlow.circom";
 include "../hasher/passportHash.circom";
 include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/poseidon.circom";
+include "circomlib/circuits/comparators.circom";
 include "../merkleTree/SMTVerifier.circom";
 
 template PassportVerificationBuilder(
@@ -27,6 +28,10 @@ template PassportVerificationBuilder(
     HASH_BLOCK_MATRIX //[3][8]
 ) {
 
+
+    var DG1_LEN = 1024;
+    var SIGNED_ATTRIBUTES_LEN = 1024;
+
     // var DG1_LEN                  = DG1_SIZE                  * HASH_BLOCK_SIZE;
     var DG15_LEN                 = DG15_SIZE                 * HASH_BLOCK_SIZE;
     var ENCAPSULATED_CONTENT_LEN = ENCAPSULATED_CONTENT_SIZE * HASH_BLOCK_SIZE;
@@ -48,9 +53,9 @@ template PassportVerificationBuilder(
 
 
     signal input encapsulatedContent         [ENCAPSULATED_CONTENT_LEN];
-    signal input dg1                         [1024];
+    signal input dg1                         [DG1_LEN];
     signal input dg15                        [DG15_LEN];
-    signal input signedAttributes            [1024];
+    signal input signedAttributes            [SIGNED_ATTRIBUTES_LEN];
     signal input signature                   [SIGNATURE_LEN];
     signal input pubkey                      [PUBKEY_LEN];
     signal input slaveMerkleInclusionBranches[TREE_DEPTH];
@@ -59,7 +64,7 @@ template PassportVerificationBuilder(
     signal output passportHash;
     
     signal dg1Hash[DG_HASH_TYPE];
-    component dg1PassportHasher = PassportHash(HASH_BLOCK_SIZE, 1024\DG_HASH_BLOCK_SIZE, DG_HASH_TYPE);
+    component dg1PassportHasher = PassportHash(HASH_BLOCK_SIZE, DG1_LEN\DG_HASH_BLOCK_SIZE, DG_HASH_TYPE);
     dg1PassportHasher.in   <== dg1;
     dg1PassportHasher.out  ==> dg1Hash;
 
@@ -115,7 +120,7 @@ template PassportVerificationBuilder(
         }
     }
 
-    saPassportHasher = PassportHash(HASH_BLOCK_SIZE, 1024\HASH_BLOCK_SIZE, HASH_TYPE);
+    saPassportHasher = PassportHash(HASH_BLOCK_SIZE, SIGNED_ATTRIBUTES_LEN\HASH_BLOCK_SIZE, HASH_TYPE);
     saPassportHasher.in <== signedAttributes;
     saPassportHasher.out ==> signedAttributesHash;
    
@@ -127,7 +132,6 @@ template PassportVerificationBuilder(
             ENCAPSULATED_CONTENT_LEN, 
             DG_HASH_TYPE,
             HASH_TYPE,
-            // 1024,
             FLOW_MATRIX[i][0], //dg1 shift
             FLOW_MATRIX[i][1], //dg15 shift
             FLOW_MATRIX[i][2], //encapsulated content shift
@@ -140,15 +144,16 @@ template PassportVerificationBuilder(
         passportVerificationFlow[i].encapsulatedContentHash <== encapsulatedContentHash[FLOW_MATRIX[i][4]-1];     //ec block num (-1 the same)
         passportVerificationFlow[i].signedAttributes        <== signedAttributes;
 
-        // log("Flow result:", passportVerificationFlow[i].flowResult);
         if (i == 0) {
             flowResultArray[i] <== passportVerificationFlow[i].flowResult;
         } else {
             flowResultArray[i] <== passportVerificationFlow[i].flowResult + flowResultArray[i-1];
         }
     }
-
-    assert(flowResultArray[FLOW_MATRIX_HEIGHT-1] >= 1);
+    component checkIsGreater = GreaterEqThan(3);
+    checkIsGreater.in[0] <== flowResultArray[FLOW_MATRIX_HEIGHT-1];
+    checkIsGreater.in[1] <== 1;
+    checkIsGreater.out === 1;
         
     component signatureVerification = VerifySignature(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, SIGNATURE_TYPE);
 

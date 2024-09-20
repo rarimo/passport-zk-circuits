@@ -15,11 +15,13 @@ template PassportVerificationFlow(
 {
     signal output flowResult;
 
+    var SIGNED_ATTRIBUTES_LEN = 1024;
+
     signal input dg1Hash[HASH_SIZE];
     signal input dg15Hash[HASH_SIZE];
     signal input encapsulatedContent[ENCAPSULATED_CONTENT_SIZE];
     signal input encapsulatedContentHash[ENCAPSULATED_CONTENT_HASH_TYPE];
-    signal input signedAttributes[1024];
+    signal input signedAttributes[SIGNED_ATTRIBUTES_LEN];
 
     // 1) Checking DG1 hash inclusion into encapsulatedContent
     component dg1HashEqualsEncapsulated[HASH_SIZE];
