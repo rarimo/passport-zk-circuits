@@ -1,9 +1,11 @@
 from poseidon_constants import *
+from utils import *
+import hashlib
+
 modul = 21888242871839275222246405745257275088548364400416034343698204186575808495617
 
 def Sigma(input) :
     return pow(input, 5, modul)
-
 
 def Ark(t, C, r, input) :
     out = [0 for i in range(t)]
@@ -11,7 +13,6 @@ def Ark(t, C, r, input) :
         out[i] = (input[i] + C[i + r]) % modul
     return out
     
-
 def Mix(t, M, input) :
     out = [0 for i in range(t)]
     for i in range(t) :
@@ -124,8 +125,53 @@ def PoseidonEx(nOuts, inputs, initialState) :
     
     return mixLast
  
-
 def poseidon(inputs) :
     
     pEx = PoseidonEx(1, inputs, 0)
     return pEx[0]
+
+def hash_pk_rsa(k, pk):
+    pk_arr = bigint_to_array(64, k, int(pk, 16))
+    rsa_arr = []
+
+    for i in range(0, 5):
+        rsa_arr.append(int(pk_arr[i*3])*2**128 + int(pk_arr[i*3+1])*2**64 + int(pk_arr[i*3+2]))
+
+    tmp =  poseidon(rsa_arr)
+    # print(tmp)
+
+    return tmp
+
+def hash_pk_ecdsa(pk):
+
+    ecdsa_arr = [int(pk[8:256], 2), int(pk[256+8:512], 2)]
+    tmp = poseidon(ecdsa_arr)
+    # print(tmp)
+    return tmp
+
+def sha384_hash_from_hex(hex_str):
+    # Step 1: Convert hex string to bytes
+    byte_data = bytes.fromhex(hex_str)
+    
+    # Step 2: Compute SHA-256 hash
+    sha384_hash = hashlib.sha384(byte_data).hexdigest()
+    
+    return sha384_hash
+
+def sha256_hash_from_hex(hex_str):
+    # Step 1: Convert hex string to bytes
+    byte_data = bytes.fromhex(hex_str)
+    
+    # Step 2: Compute SHA-256 hash
+    sha256_hash = hashlib.sha256(byte_data).hexdigest()
+    
+    return sha256_hash
+
+def sha1_hash_from_hex(hex_str):
+    # Step 1: Convert hex string to bytes
+    byte_data = bytes.fromhex(hex_str)
+    
+    # Step 2: Compute SHA-1 hash
+    sha1_hash = hashlib.sha1(byte_data).hexdigest()
+    
+    return sha1_hash
