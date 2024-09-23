@@ -4,7 +4,6 @@ include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/babyjub.circom";
 
 template RegisterIdentity(
-        DG1_SIZE,                       // size in hash blocks
         DG15_SIZE,                      // size in hash blocks
         HASH_BLOCK_SIZE,                // size in bits
         SIGNATURE_TYPE,                 // 1, 2..  (list above) ^^^
@@ -15,7 +14,10 @@ template RegisterIdentity(
     signal output dg1Commitment;
     signal output pkIdentityHash;
 
-    signal input dg1[DG1_SIZE * HASH_BLOCK_SIZE];                  // 744 || 760 bits + padding
+    var DG1_LEN = 1024;
+
+
+    signal input dg1[DG1_LEN];                  // 744 || 760 bits + padding
     signal input dg15[DG15_SIZE * HASH_BLOCK_SIZE];                // 1320 || 2096 || 1832 || 2384 || 2520 bits + padding
     signal input skIdentity;
 

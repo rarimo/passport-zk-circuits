@@ -430,11 +430,11 @@ function prod_mod(CHUNK_SIZE, CHUNK_NUMBER, A, B, P) {
 // A has CHUNK_NUMBER registers
 // P has CHUNK_NUMBER registers
 // EXP has CHUNK_NUMBER registers
-// CHUNK_NUMBER * CHUNK_SIZE <= 500
+// CHUNK_NUMBER * CHUNK_SIZE <= 513
 // P is A prime
 // computes A^EXP mod P
 function mod_exp(CHUNK_SIZE, CHUNK_NUMBER, A, P, EXP) {
-    var eBits[500]; // length is CHUNK_NUMBER * CHUNK_SIZE
+    var eBits[513]; // length is CHUNK_NUMBER * CHUNK_SIZE
     var BIT_LENGTH; 
     for (var i = 0; i < CHUNK_NUMBER; i++) {
         for (var j = 0; j < CHUNK_SIZE; j++) {
@@ -477,7 +477,7 @@ function mod_exp(CHUNK_SIZE, CHUNK_NUMBER, A, P, EXP) {
 // CHUNK_SIZE bits per register
 // A has CHUNK_NUMBER registers
 // P has CHUNK_NUMBER registers
-// CHUNK_NUMBER * CHUNK_SIZE <= 500
+// CHUNK_NUMBER * CHUNK_SIZE <= 513
 // P is A prime
 // if A == 0 mod P, returns 0
 // else computes inv = A^(P-2) mod P

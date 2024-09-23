@@ -7,7 +7,7 @@ function get_fp_sgn0(a){
 // CHUNK_SIZE bits per register
 // num has CHUNK_NMBER registers
 // p has CHUNK_NMBER registers
-// CHUNK_NMBER * CHUNK_SIZE <= 500
+// CHUNK_NMBER * CHUNK_SIZE <= 513
 // p is a prime
 // if num == 0 mod p, returns 0
 // else computes inv = num^{-1} mod p using extended euclidean algorithm

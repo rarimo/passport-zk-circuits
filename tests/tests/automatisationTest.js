@@ -16,7 +16,7 @@ function generateFilesForAll(filenames, done) {
     let pending = filenames.length;
     filenames.forEach((filename) => {
         console.log("executing for", filename);
-        exec(`python3 tests/tests/generate_files.py ${filename}`, (error, stdout, stderr) => {
+        exec(`python3 tests/tests/process_passport.py ${filename}`, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Error executing script: ${error.message}`);
                 return done(error);
@@ -62,7 +62,9 @@ describe("File generation test", function () {
         //             encapsulatedContent: input.encapsulatedContent,
         //             signedAttributes: input.signedAttributes,
         //             signature: input.signature,
-        //             pubkey: input.pubkey
+        //             pubkey: input.pubkey,
+        //             slaveMerkleInclusionBranches: input.slaveMerkleInclusionBranches,
+        //             slaveMerkleRoot: input.slaveMerkleRoot
         //         });
         //         await circuit.checkConstraints(w);
         
