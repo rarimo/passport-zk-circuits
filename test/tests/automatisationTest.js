@@ -16,7 +16,7 @@ function generateFilesForAll(filenames, done) {
     let pending = filenames.length;
     filenames.forEach((filename) => {
         console.log("executing for", filename);
-        exec(`python3 test/tests/generate_files.py ${filename}`, (error, stdout, stderr) => {
+        exec(`python3 tests/tests/generate_files.py ${filename}`, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Error executing script: ${error.message}`);
                 return done(error);

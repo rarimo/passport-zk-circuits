@@ -3,7 +3,7 @@
     "version": "0.1.0",
     "description": "Verifying biometric passports with zero knowledge proofs (SNARKs)",
     "scripts": {
-        "test": "./node_modules/.bin/mocha -p 'tests/tests/pointInteractionsTest.js'",
+        "test": "./node_modules/.bin/mocha -p 'tests/tests/autocurveTest.js'",
         "compile": "npm run zkit-make && npm run zkit-verifiers && npm run solidity-compile",
         "solidity-compile": "npx hardhat compile --force",
         "zkit-make": "npx hardhat zkit make",
