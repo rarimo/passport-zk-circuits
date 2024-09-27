@@ -2,8 +2,8 @@ pragma circom 2.1.6;
 
 include "secp192r1.circom";
 include "Secp192r1Func.circom";
-include "../../../../node_modules/circomlib/circuits/bitify.circom";
-include "../../../../circuits/ecdsa/utils/func.circom";
+include "circomlib/circuits/bitify.circom";
+include "../utils/func.circom";
 
 template verifySecp192r1(CHUNK_SIZE, CHUNK_NUMBER, ALGO)
 {
@@ -41,11 +41,13 @@ template verifySecp192r1(CHUNK_SIZE, CHUNK_NUMBER, ALGO)
     }
 
 
-    signal hashedMessageBits[CHUNK_SIZE * CHUNK_NUMBER];
-    hashedMessageBits[0] <== 0;
-    hashedMessageBits[1] <== 0;
+    signal hashedMessageBits[CHUNK_SIZE*CHUNK_NUMBER];
+    var SHIFT = CHUNK_SIZE*CHUNK_NUMBER - ALGO;
+    for (var i = 0; i < SHIFT; i++){
+        hashedMessageBits[i] <== 0;
+    }
     for (var i = 0; i < ALGO; i++){
-        hashedMessageBits[i+0] <== hashed[i];
+        hashedMessageBits[i+SHIFT] <== hashed[i];
     }
 
 
