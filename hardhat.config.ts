@@ -24,7 +24,6 @@ const config: HardhatUserConfig = {
   },
   zkit: {
     circuitsDir: "circuits",
-    nativeCompiler: true,
     compilationSettings: {
       c: true,
       onlyFiles: ["participationProof.circom"],
