@@ -3,6 +3,7 @@ import "@nomicfoundation/hardhat-toolbox";
 import "tsconfig-paths/register";
 
 import "@solarity/hardhat-zkit";
+import "@solarity/chai-zkit";
 
 import { HardhatUserConfig } from "hardhat/config";
 

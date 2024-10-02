@@ -398,7 +398,7 @@ def decode_base64_and_print(file_path):
         short_file_path = file_path.split(".json")[0].split("/")[-1]
 
         # print(short_file_path)
-        padded_output_file = "./tests/tests/inputs/generated/input_{short_file_path}.dev.json".format(short_file_path = short_file_path)
+        padded_output_file = "./test/tests/inputs/generated/input_{short_file_path}.dev.json".format(short_file_path = short_file_path)
        
         with open(padded_output_file, 'w') as f_out:
             json.dump({
@@ -410,7 +410,7 @@ def decode_base64_and_print(file_path):
                 "signature": signature_arr
             }, f_out, indent=4)
 
-        padded_output_file2 = "./tests/tests/inputs/generated/input_{short_file_path}_2.dev.json".format(short_file_path = short_file_path)
+        padded_output_file2 = "./test/tests/inputs/generated/input_{short_file_path}_2.dev.json".format(short_file_path = short_file_path)
         
         sk_iden = int(sha256_hash_from_hex(ec)[:62], 16)
 
@@ -463,7 +463,7 @@ def decode_base64_and_print(file_path):
         circom_code += ");" 
 
 
-        with open('./tests/tests/circuits/identityManagement/main_{short_file_path}.circom'.format(short_file_path = short_file_path), 'w') as file:
+        with open('./test/tests/circuits/identityManagement/main_{short_file_path}.circom'.format(short_file_path = short_file_path), 'w') as file:
             file.write(circom_code)
 
         circom_code = "pragma circom 2.1.6;\n\n"
@@ -493,7 +493,7 @@ def decode_base64_and_print(file_path):
             sa_arr = sa_arr
         )
         circom_code += ");" 
-        with open('./tests/tests/circuits/passportVerification/main_{short_file_path}.circom'.format(short_file_path = short_file_path), 'w') as file:
+        with open('./test/tests/circuits/passportVerification/main_{short_file_path}.circom'.format(short_file_path = short_file_path), 'w') as file:
             file.write(circom_code)
 
 
