@@ -3,6 +3,7 @@ import "@nomicfoundation/hardhat-toolbox";
 import "tsconfig-paths/register";
 
 import "@solarity/hardhat-zkit";
+import "@solarity/chai-zkit";
 
 import { HardhatUserConfig } from "hardhat/config";
 
@@ -24,7 +25,6 @@ const config: HardhatUserConfig = {
   },
   zkit: {
     circuitsDir: "circuits",
-    nativeCompiler: true,
     compilationSettings: {
       c: true,
       onlyFiles: ["participationProof.circom"],

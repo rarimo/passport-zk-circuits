@@ -1,26 +1,19 @@
-# passport-zk-circuits
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Circuits for a voting system based on the passport scanning
+# Passport ZK Circuits
 
-Install the `circomlib` package before running the circuits.
+**Circuits for a voting system based on biometric passports scanning.**
 
-```console
-npm install circomlib
-```
+## Usage
 
-**scripts** directory contains scripts to simplify interaction with circuits.
+The repository leverages `hardhat-zkit` environment to carry out the management of circuits. There are several scripts available:
 
-- ***compile-circuit*** - compiles circom circuit (receive *R1CS*, *WASM* & *CPP* for witness generation);  Usage: ```compile-circuit <circuit_name>```
-  
-- ***trusted-setup*** - *Powers-of-Tau* ceremony for trusted setup generation. Usage: ```trusted-setup <power>```
-  
-- ***export-keys*** - generates proving and verification keys. Do not forget to perform a trusted setup first. Usage: ```export-keys <circuit_name> <power>```
+- `npm run zkit-make`, to compile and set up the keys for the circuits.
+- `npm run zkit-compile`, to compile just compile the circuits (witness testing).
+- `npm run zkit-verifiers`, to generate Solidity (or Vyper) smart contract verifiers.
 
-- ***gen-witness*** - generates witness. Can be done without a trusted setup. Do not forget to compile circuit first. Usage: ```gen-witness <circuit_name> <inputs>```
-
-- ***prove*** - generates witness and proof. Do not forget to compile the circuit and export keys first. Usage: ```prove <circuit_name> <inputs>```
-
-- ***verify*** - verifies the proof. Usage: ```verify <circuit_name>```
+> [!NOTE]
+> Install the necessary packages via `npm install` before proceeding with the circuits.
 
 ##
 
@@ -28,7 +21,7 @@ npm install circomlib
 
 ## Biometric Passport Authentication
 
-Data in a passport is separated into data groups. Not all of them are required to be present in the passport. Document Security Object (SOD) has **encapculated content** field that contains hashes of all datagroups. During passive authentication verification party hashes data from the datagroups and compare it with hashes stored in the **encapculated content** with *ASN1* encoding. The hash of the **encapculated content** itself is stored in the **signed attributes** field, which is also *ASN1* encoded.
+Data in a passport is separated into data groups. Not all of them are required to be present in the passport. Document Security Object (SOD) has **encapsulated content** field that contains hashes of all datagroups. During passive authentication verification party hashes data from the datagroups and compare it with hashes stored in the **encapsulated content** with *ASN1* encoding. The hash of the **encapsulated content** itself is stored in the **signed attributes** field, which is also *ASN1* encoded.
 To verify **signed attributes**, verification party uses the passport signature, which is also stored in the **SOD**. To confirm that the passport is authenticated by a legitimate authority (ensuring the signer's public key is genuinely owned by a passport-issuing entity), the corresponding **PKI x509** certificate is stored in the **SOD**. Utilizing a Public Key Infrastructure (PKI) allows for the establishment of a verification path to a trusted anchor. This trusted anchor should be a publicly recognized list of master certificates. Specifically, a *Master List* comprises *Country Signing Certification Authority (CSCA)* certificates that have been issued and digitally signed by the respective issuing State, providing a robust framework for ensuring the authenticity and integrity of passport data.
 
 ## Circuits
@@ -43,73 +36,48 @@ The Merkle Tree is built upon participants registration. After proving that the 
 
 By using the knowledge of the commitment preimage and generating the corresponding proof, users can express their votes.
 
-#### Circuit parameter
+#### Circuit parameters
 
-**depth** - depth of a Merkle Tree used to prove leaf inclusion.
+- **depth** - depth of a Merkle Tree used to prove leaf inclusion.
 
-#### Inputs
+#### Circuit public inputs
 
-- ***root***: *public*; Poseidon Hash is used for tree hashing;
+- [0] **root** - Poseidon Hash is used for tree hashing;
+- [1] **nullifierHash** - Poseidon Hash is used for the *nullifier* hashing;
+- [2] **vote** - not taking part in any computations; binds the vote to the proof
 
-- ***nullifierHash***: *public*; Poseidon Hash is used for the *nullifier* hashing;
+#### Circuit private inputs
 
-- ***vote***: *public*; not taking part in any computations; binds the vote to the proof
-
-- ***nullifier***: *private*
-
-- ***secret***: *private*
-
-- ***pathElements[levels]***: *private*; Merkle Branch
-
-- ***pathIndices[levels]***: *private*; `0` - left, `1` - right
+- **nullifier**
+- **secret**
+- **pathElements[levels]** - Merkle Branch
+- **pathIndices[levels]** - `0` - left, `1` - right
 
 ### Passport Verification circuits
 
 Passport Verification circuits are used to prove that user is eligible to vote. Currently following checks are made:
 
 - Date of passport expiracy is less than the current date;
-
 - Current date is after date of birth + **18** years; (for now **18** years is a constant);
-
 - Passport issuer code is used as an output signal;
 
-### Circuit public inputs
+#### Circuit public inputs
 
-- **currentDateYear**
+- [0] **currentDateYear**
+- [1] **currentDateMonth**
+- [2] **currentDateDay**
+- [3] **credValidYear**
+- [4] **credValidMonth**
+- [5] **credValidDay**
+- [6] **ageLowerbound** - age limit for voting rights. The circuit verifies that the passport owner is older than *ageLowerbound* years at the *currentDate*.
 
-- **currentDateMonth**
-
-- **currentDateDay**
-
-- **credValidYear**
-
-- **credValidMonth**
-
-- **credValidDay**
-
-- **ageLowerbound** - age limit for voting rights. The circuit verifies that the passport owner is older than *ageLowerbound* years at the *currentDate*.
-
-### Circuits private inputs
+#### Circuits private inputs
 
 - **in** - passport **DG1** serialized in binary.
 
 The current date is needed to timestamp the date of proof generation. The circuit proves that at this date, the user is eligible to vote (and will be eligible by the protocol rules at least until the credValid date).
 
 Passport data is separated into *DataGroups*. The hashes of these datagroups are stored in **SOD** *(Security Object of the Document)*. All neccesary data is stored in *Data Group 1 (DG1)*. Currently, **SHA1** and **SHA256** hashes are supported (```passportDG1VerificationSHA256``` and ```passportDG1VerificationSHA256```).
-
-### Testing
-
-To run tests enter ***tests*** directory and run:
-
-```mocha -p -r ts-node/register 'passportTests.js'```
-
-Inputs are not provided, as they contain personal data. May be mocked later.
-
-To test query circuits:
-```mocha -p -r ts-node/register 'queryIdentityTests.js'```
-
-To test identity registration circuits:
-```mocha -p -r ts-node/register 'registerIdentityTests'.js'```
 
 ### Identity platform
 
@@ -202,7 +170,7 @@ Poseidon(SHA256(signed_attributes\[:252bits])), while `dg15PubKeyHash` will be s
 - [1] **output** passportHash;
 - [2] **output** dg1Commitment;
 - [3] **output** pkIdentityHash;
-- [4] **input** slaveMerkleRoot;   // public
+- [4] **input** slaveMerkleRoot;
 
 #### Query circuit
 
@@ -242,9 +210,8 @@ The query circuit allows you to prove arbitrary data from a passport.
 }
 ```
 
-***IMPORTANT!***
-
-If date input is **NOT** used, put “0x303030303030” (52983525027888 - decimal). This is equal to “000000” in UTF-8 encoding, which is used to encode date in the passport. Otherwise date verification constraints will fail.
+> [!IMPORTANT]
+> If date input is **NOT** used, put “0x303030303030” (52983525027888 - decimal). This is equal to “000000” in UTF-8 encoding, which is used to encode date in the passport. Otherwise date verification constraints will fail.
 
 #### Query circuit public signals
 
@@ -315,6 +282,7 @@ By applying the selector, we can use the same circuit for any set of revealed an
 
 ```markdown
 QUERY SELECTOR:
+
 0 - nullifier   (+)
 1 - birth date  (+)
 2 - expiration date (+)

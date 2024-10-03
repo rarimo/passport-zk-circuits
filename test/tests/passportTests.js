@@ -1,6 +1,6 @@
 const chai = require("chai");
 const path = require("path");
-const wasm_tester = require("./tester");
+const wasm_tester = require("../index").wasm;
 
 const F1Field = require("ffjavascript").F1Field;
 const Scalar = require("ffjavascript").Scalar;
