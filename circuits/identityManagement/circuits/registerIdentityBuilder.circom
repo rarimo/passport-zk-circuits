@@ -39,7 +39,9 @@ template RegisterIdentityBuilder (
     TREE_DEPTH,
     FLOW_MATRIX,
     FLOW_MATRIX_HEIGHT,
-    HASH_BLOCK_MATRIX
+    HASH_BLOCK_MATRIX,
+    IS_AA,
+    AA_SHIFT
 ) {
     // OUTPUT SIGNALS:
     signal output dg15PubKeyHash;
@@ -119,7 +121,9 @@ template RegisterIdentityBuilder (
         DG15_SIZE,                      
         DG_HASH_BLOCK_SIZE,                
         SIGNATURE_TYPE,                 
-        DOCUMENT_TYPE
+        DOCUMENT_TYPE,
+        IS_AA,
+        AA_SHIFT
     );
 
     registerIdentity.dg1            <== dg1;

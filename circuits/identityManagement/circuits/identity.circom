@@ -7,7 +7,9 @@ template RegisterIdentity(
         DG15_SIZE,                      // size in hash blocks
         HASH_BLOCK_SIZE,                // size in bits
         SIGNATURE_TYPE,                 // 1, 2..  (list above) ^^^
-        DOCUMENT_TYPE                   // 1: TD1; 3: TD3
+        DOCUMENT_TYPE,                  // 1: TD1; 3: TD3
+        IS_AA,                          // 0, 1
+        AA_SHIFT                        // shift in bits
     ) {
 
     signal output dg15PubKeyHash;
@@ -16,14 +18,12 @@ template RegisterIdentity(
 
     var DG1_LEN = 1024;
 
-
     signal input dg1[DG1_LEN];                  // 744 || 760 bits + padding
     signal input dg15[DG15_SIZE * HASH_BLOCK_SIZE];                // 1320 || 2096 || 1832 || 2384 || 2520 bits + padding
     signal input skIdentity;
 
     if (SIGNATURE_TYPE <= 5) { // rsa keys stored
         component dg15Chunking[5];
-        var DG15_RSA_SHIFT = 256; // shift in ASN1 encoded content to pk value
 
         // 1024 bit RSA key is splitted into | 200 bit | 200 bit | 200 bit | 200 bit | 224 bit |
         var DG15_CHUNK_SIZE = 200;
@@ -31,13 +31,13 @@ template RegisterIdentity(
         for (var j = 0; j < 4; j++) {
             dg15Chunking[j] = Bits2Num(DG15_CHUNK_SIZE);
             for (var i = 0; i < DG15_CHUNK_SIZE; i++) {
-                dg15Chunking[j].in[DG15_CHUNK_SIZE - 1 - i] <== dg15[DG15_RSA_SHIFT + j * DG15_CHUNK_SIZE + i];
+                dg15Chunking[j].in[DG15_CHUNK_SIZE - 1 - i] <== dg15[AA_SHIFT + j * DG15_CHUNK_SIZE + i];
             }
         }
 
         dg15Chunking[4] = Bits2Num(LAST_CHUNK_SIZE);
         for (var i = 0; i < LAST_CHUNK_SIZE; i++) {
-            dg15Chunking[4].in[LAST_CHUNK_SIZE - 1 - i] <== dg15[DG15_RSA_SHIFT + 4 * DG15_CHUNK_SIZE + i];
+            dg15Chunking[4].in[LAST_CHUNK_SIZE - 1 - i] <== dg15[AA_SHIFT + 4 * DG15_CHUNK_SIZE + i];
         }
 
         // Poseidon5 is applied on chunksEC_FIELD_SIZE
@@ -46,18 +46,20 @@ template RegisterIdentity(
             dg15Hasher.inputs[i] <== dg15Chunking[i].out;
         }
 
-        dg15PubKeyHash <== dg15Hasher.out;
+        component isAACheckRSA = IsZero();
+        isAACheckRSA.in <== IS_AA;
+
+        dg15PubKeyHash <== dg15Hasher.out * (1 - isAACheckRSA.out);
 
     } else { // Elliptic Curve Active Auth key extraction
         component xToNum = Bits2Num(248);
         component yToNum = Bits2Num(248);
         
         var EC_FIELD_SIZE = 256;
-        var DG15_ECDSA_SHIFT = 2008;
 
         for (var i = 0; i < 248; i++) {
-            xToNum.in[247-i] <== dg15[DG15_ECDSA_SHIFT + i + 8];
-            yToNum.in[247-i] <== dg15[DG15_ECDSA_SHIFT + EC_FIELD_SIZE + i + 8];
+            xToNum.in[247-i] <== dg15[AA_SHIFT + i + 8];
+            yToNum.in[247-i] <== dg15[AA_SHIFT + EC_FIELD_SIZE + i + 8];
         }
 
         component dg15Hasher = Poseidon(2);
@@ -65,10 +67,15 @@ template RegisterIdentity(
         dg15Hasher.inputs[0] <== xToNum.out;
         dg15Hasher.inputs[1] <== yToNum.out;
         
-        dg15PubKeyHash <== dg15Hasher.out;
+        component isAACheckECDSA = IsZero();
+        isAACheckECDSA.in <== IS_AA;
+
+        dg15PubKeyHash <== dg15Hasher.out * (1 - isAACheckECDSA.out);
+
+
     }
 
-    
+    log(dg15PubKeyHash);
     // DG1 hash 744 bits => 4 * 186 || 760 bits = 190 * 4
     component dg1Chunking[4];
     component dg1Hasher = Poseidon(5);
