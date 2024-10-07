@@ -22,7 +22,7 @@ template RegisterIdentity(
     signal input dg15[DG15_SIZE * HASH_BLOCK_SIZE];                // 1320 || 2096 || 1832 || 2384 || 2520 bits + padding
     signal input skIdentity;
 
-    if (SIGNATURE_TYPE <= 5) { // rsa keys stored
+    if (SIGNATURE_TYPE <= 19) { // rsa keys stored
         component dg15Chunking[5];
 
         // 1024 bit RSA key is splitted into | 200 bit | 200 bit | 200 bit | 200 bit | 224 bit |

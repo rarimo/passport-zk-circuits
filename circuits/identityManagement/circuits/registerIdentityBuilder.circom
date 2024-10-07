@@ -13,36 +13,82 @@ include "circomlib/circuits/poseidon.circom";
 //   - 512: SHA2-512 (512 bits)
 
 // SIGNATURE_TYPE:
-//   - 1: RSA 2048 bits + SHA2-256
-//   - 2: RSA 4096 bits + SHA2-256
-//   - 3: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256
-//   - 4: RSASSA-PSS 4096 bits MGF1 (SHA2-256) + SHA2-256
-//   - 5: RSASSA-PSS 2048 bits MGF1 (SHA2-384) +Ку SHA2-384
-//   - 6: ECDSA secp256r1 + SHA256
-//   - 7: ECDSA brainpoolP256r1 + SHA256
+//   - 1: RSA 2048 bits + SHA2-256 + e = 65537
+//   - 2: RSA 4096 bits + SHA2-256 + e = 65537
+
+//   - 10: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256 + e = 3 + salt = 32
+//   - 11: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256 + e = 65537 + salt = 32
+//   - 12: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256 + e = 65537 + salt = 64
+//   - 13: RSASSA-PSS 2048 bits MGF1 (SHA2-384) + SHA2-384 + e = 65537 + salt = 48
+
+//   - 20: ECDSA brainpoolP256r1 + SHA256
+//   - 21: ECDSA secp256r1 + SHA256
+//   - 22: ECDSA brainpoolP320r1 + SHA256
+//   - 23: ECDSA secp192r1 + SHA1
+
 
 template RegisterIdentityBuilder (
-    // DG1_SIZE,                       // size in hash blocks
-    DG15_SIZE,                      // size in hash blocks
-    ENCAPSULATED_CONTENT_SIZE,      // size in hash blocks
-    // SIGNED_ATTRIBUTES_SIZE,         // size in hash blocks
-    HASH_BLOCK_SIZE,                // size in bits
-    HASH_TYPE,                      // 160, 224, 256, 384, 512 (list above)^^^
     SIGNATURE_TYPE,                 // 1, 2..  (list above) ^^^
-    SALT_LEN,
-    E_BITS,                         // 2, 17 
-    CHUNK_SIZE,
-    CHUNK_NUMBER,
-    DG_HASH_BLOCK_SIZE,
     DG_HASH_TYPE,                   // 160, 224, 256, 384, 512 (list above)^^^
     DOCUMENT_TYPE,                  // 1: TD1; 3: TD3
-    TREE_DEPTH,
-    FLOW_MATRIX,
-    FLOW_MATRIX_HEIGHT,
-    HASH_BLOCK_MATRIX,
+    EC_BLOCK_NUMBER,
+    EC_SHIFT,
+    DG1_SHIFT,
     IS_AA,
+    DG15_SHIFT,
+    DG15_BLOCK_NUMBER,
     AA_SHIFT
 ) {
+
+    var DG15_SIZE = 8;                      // size in hash blocks
+    var ENCAPSULATED_CONTENT_SIZE = 8;      // size in hash blocks
+    var TREE_DEPTH = 80;
+    var CHUNK_SIZE = 64;
+    var CHUNK_NUMBER = 32;
+    var SALT_LEN = 32;
+    var E_BITS = 17;
+    var HASH_TYPE = 256;
+
+    if (SIGNATURE_TYPE == 2){
+        CHUNK_NUMBER = 64;
+    }
+
+    if (SIGNATURE_TYPE == 10){
+        E_BITS = 2;
+    }
+
+    if (SIGNATURE_TYPE == 12){
+        SALT_LEN = 64;
+    }
+
+    if (SIGNATURE_TYPE == 13){
+        SALT_LEN = 48;
+        HASH_TYPE = 384;
+    }
+
+    if (SIGNATURE_TYPE >= 20){
+        CHUNK_NUMBER = 4;
+    }
+
+    if (SIGNATURE_TYPE == 22){
+        CHUNK_NUMBER = 5;
+    }
+
+    if (SIGNATURE_TYPE == 23){
+        CHUNK_NUMBER = 3;
+        HASH_TYPE = 160;
+    }
+
+
+    var DG_HASH_BLOCK_SIZE = 1024;
+    if (DG_HASH_TYPE <= 256){
+        DG_HASH_BLOCK_SIZE = 512;
+    }
+    var HASH_BLOCK_SIZE = 1024;
+    if (HASH_TYPE <= 256){
+        HASH_BLOCK_SIZE = 512;
+    }
+
     // OUTPUT SIGNALS:
     signal output dg15PubKeyHash;
     
@@ -61,12 +107,12 @@ template RegisterIdentityBuilder (
     var SIGNATURE_LEN;
 
     //ECDSA
-    if (SIGNATURE_TYPE > 5){
+    if (SIGNATURE_TYPE >= 20){
         PUBKEY_LEN    = 2 * CHUNK_NUMBER * CHUNK_SIZE;
         SIGNATURE_LEN = 2 * CHUNK_NUMBER * CHUNK_SIZE;   
     }
     //RSA
-    if (SIGNATURE_TYPE <= 5){
+    if (SIGNATURE_TYPE < 20){
         PUBKEY_LEN    = CHUNK_NUMBER;
         SIGNATURE_LEN = CHUNK_NUMBER;
     }
@@ -87,23 +133,15 @@ template RegisterIdentityBuilder (
     // PASSPORT VERIFICATION
     // -------
     component passportVerifier = PassportVerificationBuilder(
-        // DG1_SIZE,
-        DG15_SIZE,
-        ENCAPSULATED_CONTENT_SIZE,
-        // SIGNED_ATTRIBUTES_SIZE,
-        HASH_BLOCK_SIZE,
-        HASH_TYPE,
-        SIGNATURE_TYPE,
-        SALT_LEN,
-        E_BITS,
-        CHUNK_SIZE,
-        CHUNK_NUMBER,
-        DG_HASH_BLOCK_SIZE,
-        DG_HASH_TYPE,
-        TREE_DEPTH,
-        FLOW_MATRIX,
-        FLOW_MATRIX_HEIGHT,
-        HASH_BLOCK_MATRIX
+        SIGNATURE_TYPE,                 // 1, 2..  (list above) ^^^
+        DG_HASH_TYPE,                   // 160, 224, 256, 384, 512 (list above)^^^
+        EC_BLOCK_NUMBER,
+        EC_SHIFT,
+        DG1_SHIFT,
+        IS_AA,
+        DG15_SHIFT,
+        DG15_BLOCK_NUMBER,
+        AA_SHIFT
     );
 
     passportVerifier.encapsulatedContent          <== encapsulatedContent;

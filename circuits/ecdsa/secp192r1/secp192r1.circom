@@ -164,7 +164,7 @@ template Secp192r1GeneratorMultiplication(CHUNK_SIZE,CHUNK_NUMBER){
     var NUM_STRIDES = div_ceil(CHUNK_SIZE * CHUNK_NUMBER, STRIDE);
     // power[i][j] contains: [j * (1 << STRIDE * i) * G] for 1 <= j < (1 << STRIDE)
     var POWERS[NUM_STRIDES][2 ** STRIDE][2][CHUNK_NUMBER];
-    POWERS = get_g_pow_stride8_table(CHUNK_SIZE, CHUNK_NUMBER);
+    POWERS = get_g_pow_stride8_table_secp192(CHUNK_SIZE, CHUNK_NUMBER);
 
 
     var dummyHolder[2][CHUNK_NUMBER] = get_secp192r1_dummy_point(CHUNK_SIZE, CHUNK_NUMBER);
