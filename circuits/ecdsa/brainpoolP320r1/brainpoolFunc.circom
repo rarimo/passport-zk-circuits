@@ -1,6 +1,6 @@
 pragma circom 2.1.6;
 
-function get_order(CHUNK_SIZE,CHUNK_NUMBER){
+function get_320_order(CHUNK_SIZE,CHUNK_NUMBER){
 
     assert((CHUNK_SIZE == 32 && CHUNK_NUMBER == 10) || (CHUNK_SIZE == 40 && CHUNK_NUMBER == 8) || (CHUNK_SIZE == 16 && CHUNK_NUMBER == 20));
 
@@ -68,7 +68,7 @@ function get_order(CHUNK_SIZE,CHUNK_NUMBER){
     return 0;
 }
 
-function get_params(CHUNK_SIZE,CHUNK_NUMBER){
+function get_320_params(CHUNK_SIZE,CHUNK_NUMBER){
     
     assert((CHUNK_SIZE == 32 && CHUNK_NUMBER == 10) || (CHUNK_SIZE == 40 && CHUNK_NUMBER == 8) || (CHUNK_SIZE == 16 && CHUNK_NUMBER == 20));
 
@@ -233,7 +233,7 @@ function get_params(CHUNK_SIZE,CHUNK_NUMBER){
 
 }
 
-function get_dummy_point(CHUNK_SIZE,CHUNK_NUMBER){
+function get_320_dummy_point(CHUNK_SIZE,CHUNK_NUMBER){
 
     assert((CHUNK_SIZE == 32 && CHUNK_NUMBER == 10) || (CHUNK_SIZE == 40 && CHUNK_NUMBER == 8) || (CHUNK_SIZE == 16 && CHUNK_NUMBER == 20));
 

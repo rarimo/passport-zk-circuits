@@ -8,7 +8,7 @@ include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/comparators.circom";
 include "../utils/func.circom";
 
-template BrainpoolScalarMult(CHUNK_SIZE, CHUNK_NUMBER){
+template BrainpoolScalarMult320(CHUNK_SIZE, CHUNK_NUMBER){
     signal input scalar[CHUNK_NUMBER];
     signal input point[2][CHUNK_NUMBER];
 
@@ -181,7 +181,7 @@ template BrainpoolGeneratorMultiplication(CHUNK_SIZE, CHUNK_NUMBER){
     var NUM_STRIDES = div_ceil(CHUNK_SIZE * CHUNK_NUMBER, STRIDE);
     // power[i][j] contains: [j * (1 << STRIDE * i) * G] for 1 <= j < (1 << STRIDE)
     var POWERS[NUM_STRIDES][2 ** STRIDE][2][CHUNK_NUMBER];
-    POWERS = get_g_pow_stride8_table(CHUNK_SIZE, CHUNK_NUMBER);
+    POWERS = get_g_pow_stride8_table_brainpool512(CHUNK_SIZE, CHUNK_NUMBER);
 
     var DUMMY_HOLDER[2][CHUNK_NUMBER] = get_dummy_point(CHUNK_SIZE, CHUNK_NUMBER);
     var DUMMY[2][CHUNK_NUMBER];
