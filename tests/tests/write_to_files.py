@@ -20,7 +20,7 @@ def write_results_to_register_identity(sig_algo, dg_hash_algo, document_type, dg
     circom_code += ");" 
 
 
-    with open('./tests/tests/circuits/identityManagement/main_{short_file_path}.circom'.format(short_file_path = short_file_path), 'w') as file:
+    with open('./tests/tests/circuits/identityManagement/{short_file_path}.circom'.format(short_file_path = short_file_path), 'w') as file:
         file.write(circom_code)
 
 def write_results_to_passport_verification(sig_algo, dg_hash_algo, dg1shift, dg15shift, ec_shift, dg15_blocks, ec_blocks, isdg15, AA_shift, short_file_path):
@@ -38,7 +38,7 @@ def write_results_to_passport_verification(sig_algo, dg_hash_algo, dg1shift, dg1
     circom_code += "\t\t{AA_shift}\t//AA shift in bits\n".format(AA_shift = AA_shift) 
     circom_code += ");" 
 
-    with open('./tests/tests/circuits/passportVerification/main_{short_file_path}.circom'.format(short_file_path = short_file_path), 'w') as file:
+    with open('./tests/tests/circuits/passportVerification/{short_file_path}.circom'.format(short_file_path = "passportVerification" + short_file_path.split("registerIdentity")[1]), 'w') as file:
         file.write(circom_code)
 
 def write_to_json(dg1_res, dg15_res, sa_res, ec_res, pubkey_arr, signature_arr, sk_iden, root, branches, short_file_path):
