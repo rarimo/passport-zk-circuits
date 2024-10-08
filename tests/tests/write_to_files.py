@@ -13,7 +13,7 @@ def write_results_to_register_identity(sig_algo, dg_hash_algo, document_type, dg
     circom_code += "\t\t{ec_blocks},\t//encapsulated content len in blocks\n".format(ec_blocks = ec_blocks) 
     circom_code += "\t\t{ec_shift},\t///encapsulated content  shift in bits\n".format(ec_shift = ec_shift) 
     circom_code += "\t\t{dg1shift},\t//dg1 shift in bits\n".format(dg1shift = dg1shift) 
-    circom_code += "\t\t{isdg15},\t//is dg15 present\n".format(isdg15 = isdg15) 
+    circom_code += "\t\t{isdg15},\t//dg15 sig algo (0 if not present)\n".format(isdg15 = isdg15) 
     circom_code += "\t\t{dg15shift},\t//dg15 shift in bits\n".format(dg15shift = dg15shift) 
     circom_code += "\t\t{dg15_blocks},\t//dg15 blocks\n".format(dg15_blocks = dg15_blocks)     
     circom_code += "\t\t{AA_shift}\t//AA shift in bits\n".format(AA_shift = AA_shift) 
@@ -32,7 +32,7 @@ def write_results_to_passport_verification(sig_algo, dg_hash_algo, dg1shift, dg1
     circom_code += "\t\t{ec_blocks},\t//encapsulated content len in blocks\n".format(ec_blocks = ec_blocks) 
     circom_code += "\t\t{ec_shift},\t///encapsulated content  shift in bits\n".format(ec_shift = ec_shift) 
     circom_code += "\t\t{dg1shift},\t//dg1 shift in bits\n".format(dg1shift = dg1shift) 
-    circom_code += "\t\t{isdg15},\t//is dg15 present\n".format(isdg15 = isdg15) 
+    circom_code += "\t\t{isdg15},\t//dg15 sig algo (0 if not present)\n".format(isdg15 = isdg15) 
     circom_code += "\t\t{dg15shift},\t//dg15 shift in bits\n".format(dg15shift = dg15shift) 
     circom_code += "\t\t{dg15_blocks},\t//dg15 blocks\n".format(dg15_blocks = dg15_blocks)     
     circom_code += "\t\t{AA_shift}\t//AA shift in bits\n".format(AA_shift = AA_shift) 
@@ -71,3 +71,7 @@ def write_to_json(dg1_res, dg15_res, sa_res, ec_res, pubkey_arr, signature_arr, 
             "slaveMerkleRoot": str(root),
             "slaveMerkleInclusionBranches": branches
         }, f_out, indent=4)
+
+def write_tmp_to_file(real_name):
+    with open('./tests/tests/inputs/tmp.txt', 'w') as file:
+        file.write(real_name)

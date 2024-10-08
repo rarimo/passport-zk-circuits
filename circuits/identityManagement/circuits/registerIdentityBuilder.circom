@@ -26,6 +26,15 @@ include "circomlib/circuits/poseidon.circom";
 //   - 22: ECDSA brainpoolP320r1 + SHA256
 //   - 23: ECDSA secp192r1 + SHA1
 
+// AA_SIGNATURE_TYPE:
+//   - 0: NO AA
+//   - 1: RSA 1024 bits + SHA2-256 + e = 65537
+
+//   - 20: ECDSA brainpoolP256r1 + SHA256
+//   - 21: ECDSA secp256r1 + SHA256
+//   - 22: ECDSA brainpoolP320r1 + SHA256
+//   - 23: ECDSA secp192r1 + SHA1
+
 
 template RegisterIdentityBuilder (
     SIGNATURE_TYPE,                 // 1, 2..  (list above) ^^^
@@ -34,7 +43,7 @@ template RegisterIdentityBuilder (
     EC_BLOCK_NUMBER,
     EC_SHIFT,
     DG1_SHIFT,
-    IS_AA,
+    AA_SIGNATURE_ALGO,
     DG15_SHIFT,
     DG15_BLOCK_NUMBER,
     AA_SHIFT
@@ -125,7 +134,7 @@ template RegisterIdentityBuilder (
         EC_BLOCK_NUMBER,
         EC_SHIFT,
         DG1_SHIFT,
-        IS_AA,
+        AA_SIGNATURE_ALGO,
         DG15_SHIFT,
         DG15_BLOCK_NUMBER,
         AA_SHIFT
@@ -146,7 +155,7 @@ template RegisterIdentityBuilder (
         DG_HASH_BLOCK_SIZE,                
         SIGNATURE_TYPE,                 
         DOCUMENT_TYPE,
-        IS_AA,
+        AA_SIGNATURE_ALGO,
         AA_SHIFT
     );
 

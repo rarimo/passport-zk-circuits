@@ -8,7 +8,7 @@ include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/comparators.circom";
 include "../utils/func.circom";
 
-template BrainpoolScalarMult320(CHUNK_SIZE, CHUNK_NUMBER){
+template BrainpoolScalarMult(CHUNK_SIZE, CHUNK_NUMBER){
     signal input scalar[CHUNK_NUMBER];
     signal input point[2][CHUNK_NUMBER];
 
