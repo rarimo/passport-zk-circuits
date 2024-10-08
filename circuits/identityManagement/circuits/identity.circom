@@ -53,6 +53,7 @@ template RegisterIdentity(
             
             var HASH_SIZE = 248;
 
+
             var EC_FIELD_SIZE = 256;
             if (AA_SIGNATURE_ALGO == 22){
                 EC_FIELD_SIZE = 320;
@@ -62,13 +63,15 @@ template RegisterIdentity(
                 HASH_SIZE = 192;
             }
 
+            var X_Y_SHIFT = EC_FIELD_SIZE - HASH_SIZE;
+
             component xToNum = Bits2Num(HASH_SIZE);
             component yToNum = Bits2Num(HASH_SIZE);
 
 
             for (var i = 0; i < HASH_SIZE; i++) {
-                xToNum.in[HASH_SIZE-1-i] <== dg15[AA_SHIFT + i + 8];
-                yToNum.in[HASH_SIZE-1-i] <== dg15[AA_SHIFT + EC_FIELD_SIZE + i + 8];
+                xToNum.in[HASH_SIZE-1-i] <== dg15[AA_SHIFT + i + X_Y_SHIFT];
+                yToNum.in[HASH_SIZE-1-i] <== dg15[AA_SHIFT + EC_FIELD_SIZE + i + X_Y_SHIFT];
             }
 
             component dg15Hasher = Poseidon(2);
