@@ -40,29 +40,16 @@ template RegisterIdentityBuilder (
     AA_SHIFT
 ) {
 
-    var DG15_SIZE = 8;                      // size in hash blocks
-    var ENCAPSULATED_CONTENT_SIZE = 8;      // size in hash blocks
     var TREE_DEPTH = 80;
     var CHUNK_SIZE = 64;
     var CHUNK_NUMBER = 32;
-    var SALT_LEN = 32;
-    var E_BITS = 17;
     var HASH_TYPE = 256;
 
     if (SIGNATURE_TYPE == 2){
         CHUNK_NUMBER = 64;
     }
 
-    if (SIGNATURE_TYPE == 10){
-        E_BITS = 2;
-    }
-
-    if (SIGNATURE_TYPE == 12){
-        SALT_LEN = 64;
-    }
-
     if (SIGNATURE_TYPE == 13){
-        SALT_LEN = 48;
         HASH_TYPE = 384;
     }
 
@@ -111,7 +98,7 @@ template RegisterIdentityBuilder (
         PUBKEY_LEN    = 2 * CHUNK_NUMBER * CHUNK_SIZE;
         SIGNATURE_LEN = 2 * CHUNK_NUMBER * CHUNK_SIZE;   
     }
-    //RSA
+    //RSA||RSAPSS
     if (SIGNATURE_TYPE < 20){
         PUBKEY_LEN    = CHUNK_NUMBER;
         SIGNATURE_LEN = CHUNK_NUMBER;
@@ -119,9 +106,9 @@ template RegisterIdentityBuilder (
 
 
     // INPUT SIGNALS:
-    signal input encapsulatedContent[ENCAPSULATED_CONTENT_SIZE * HASH_BLOCK_SIZE];
+    signal input encapsulatedContent[EC_BLOCK_NUMBER * HASH_BLOCK_SIZE];
     signal input dg1[DG1_LEN];
-    signal input dg15[DG15_SIZE * HASH_BLOCK_SIZE];
+    signal input dg15[DG15_BLOCK_NUMBER * HASH_BLOCK_SIZE];
     signal input signedAttributes[SIGNED_ATTRIBUTES_LEN];
     signal input signature[SIGNATURE_LEN];
     signal input pubkey[PUBKEY_LEN];
@@ -155,8 +142,7 @@ template RegisterIdentityBuilder (
     passportVerifier.passportHash                 ==> passportHash; 
 
     component registerIdentity = RegisterIdentity(
-        // DG1_SIZE,                       
-        DG15_SIZE,                      
+        DG15_BLOCK_NUMBER,                      
         DG_HASH_BLOCK_SIZE,                
         SIGNATURE_TYPE,                 
         DOCUMENT_TYPE,
