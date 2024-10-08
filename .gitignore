@@ -29,6 +29,7 @@ cache
 tests/tests/inputs/*
 temp_asn1.der
 tests/tests/__pycache__
+circuits/ecdsa/tmp/*
 !tests/tests/*.py
 !tests/tests/inputs/credValidExceedsPassportInput.json
 !tests/tests/inputs/passportExpiredInput.json

@@ -9,6 +9,31 @@ from padding import *
 from hasher import *
 from utils import *
 
+def get_new_sig_type(sig_type, salt, e_bits):
+    if sig_type == 7:
+        sig_type = 21
+    if sig_type == 6: 
+        sig_type = 20
+    if sig_type == 3 and e_bits == 2:
+        sig_type = 10
+    if sig_type == 3 and e_bits == 17 and salt == 32:
+        sig_type = 11
+    if sig_type == 3 and e_bits == 17 and salt == 64:
+        sig_type = 12
+    if sig_type == 5:
+        sig_type = 13
+    return sig_type
+
+def get_AA_shift(dg15_hex, dg15_sig_algo):
+    if dg15_sig_algo == 20 or dg15_sig_algo == 21:
+        return 2008
+    if dg15_sig_algo == 22:
+        return 2008 #update when found one
+    if dg15_sig_algo == 23:
+        return 2008 #update when found one
+    return len(dg15_hex.split("100")[0]) * 4+12
+
+
 def padd_dg1(dg1_hex, dg_chunk_size):
     _, dg1_padded, _ = process_and_pad_hex(dg1_hex, dg_chunk_size)
     return format_bit_string(dg1_padded)
@@ -169,6 +194,17 @@ def get_dg_chunk_size(dg1_hex, ec_hex):
         return 384, 1024
     return 0, 0
 
+def get_aa_sig_algo(dg15_hex):
+    if "7d5a0975fc2c3057eef67530417affe7fb8055c126dc5c6ce94a4b44f330b5d9" in dg15_hex:
+        return 21
+    if "ffffffff00000001000000000000000000000000fffffffffffffffffffffff" in dg15_hex:
+        return 20
+    if "3ee30b568fbab0f883ccebd46d3f3bb8a2a73513f5eb79da66190eb085ffa9f492f375a97d860eb4" in dg15_hex:
+        return 22
+    if "fffffffffffffffffffffffffffffffefffffffffffffffc" in dg15_hex:
+        return 23
+    return 1
+
 def get_sig_algo(sod_hex, salt, signature, hash_algo):
     if "7d5a0975fc2c3057eef67530417affe7fb8055c126dc5c6ce94a4b44f330b5d9" in sod_hex:
         return 7
@@ -308,10 +344,18 @@ def process_passport(file_path):
 
     ec_hex, ec_res, ec_blocks =  process_ec(asn1_data, chunk_size)
 
+    tmp = 512 if hash_algo <= 256 else 1024
+    ec_res = ec_res[0:ec_blocks*tmp]
+
     dg_hash_algo, dg_chunk_size = get_dg_chunk_size(dg1_hex, ec_hex)
 
     dg1_res = padd_dg1(dg1_hex, dg_chunk_size)
     dg15_blocks, dg15_res = padd_dg15(dg15_hex, dg_chunk_size)
+
+    if dg15_blocks == 1:
+        dg15_blocks = 0
+
+    dg15_res = dg15_res[0:dg15_blocks*tmp]
 
     sa_locations = process_sa(asn1_data)
     sa_hex, sa_res = get_sa(sod_hex, sa_locations, chunk_size)
@@ -351,9 +395,23 @@ def process_passport(file_path):
 
     short_file_path = get_short_file_path(file_path)
 
-    write_results_to_register_identity(chunk_size, hash_algo, sig_algo, salt, e_bits, chunk_number, dg_hash_algo, document_type, dg1_shift, dg15_shift, ec_shift, dg15_blocks, ec_blocks, isdg15, dg15_arr, ec_arr, short_file_path)
+    sig_algo = get_new_sig_type(sig_algo, salt, e_bits)
 
-    write_results_to_passport_verification(chunk_size, hash_algo, sig_algo, salt, e_bits, chunk_number, dg_hash_algo, dg1_shift, dg15_shift, ec_shift, dg15_blocks, ec_blocks, isdg15, dg15_arr, ec_arr, short_file_path)
+    if isdg15 == 0:
+        dg15_shift = 0
+
+    if isdg15 !=0:
+        isdg15 = get_aa_sig_algo(dg15_hex)
+
+    AA_shift = 0 if isdg15 == 0 else get_AA_shift(dg15_hex, isdg15)
+
+    real_circuit_name = "registerIdentity_"+ str(sig_algo) + "_" + str(dg_hash_algo) + "_" + str(document_type) + "_" + str(ec_blocks) + "_" + str(ec_shift) + "_" + str(dg1_shift) + "_" + str(isdg15) + "_" + str(dg15_shift) + "_" + str(dg15_blocks) + "_" + str(AA_shift)
+
+    write_tmp_to_file(real_circuit_name)
+
+    write_results_to_register_identity(sig_algo, dg_hash_algo, document_type, dg1_shift, dg15_shift, ec_shift, dg15_blocks, ec_blocks, isdg15, AA_shift, short_file_path)
+
+    write_results_to_passport_verification(sig_algo, dg_hash_algo, dg1_shift, dg15_shift, ec_shift, dg15_blocks, ec_blocks, isdg15, AA_shift, short_file_path)
 
     write_to_json(dg1_res, dg15_res, sa_res, ec_res, pubkey_arr, signature_arr, sk_iden, root, branches, short_file_path)
 
