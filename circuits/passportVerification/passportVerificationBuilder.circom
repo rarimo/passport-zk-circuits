@@ -116,7 +116,7 @@ template PassportVerificationBuilder(
     }
 
     ecPassportHasher = PassportHash(HASH_BLOCK_SIZE, EC_BLOCK_NUMBER, HASH_TYPE);
-    for (var j = 0; j < HASH_BLOCK_SIZE*EC_BLOCK_NUMBER; j++){
+    for (var j = 0; j < HASH_BLOCK_SIZE * EC_BLOCK_NUMBER; j++){
         ecPassportHasher.in[j] <== encapsulatedContent[j];
     }
     encapsulatedContentHash <== ecPassportHasher.out;
