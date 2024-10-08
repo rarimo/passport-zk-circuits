@@ -405,15 +405,22 @@ def process_passport(file_path):
 
     AA_shift = 0 if isdg15 == 0 else get_AA_shift(dg15_hex, isdg15)
 
-    real_circuit_name = "registerIdentity_"+ str(sig_algo) + "_" + str(dg_hash_algo) + "_" + str(document_type) + "_" + str(ec_blocks) + "_" + str(ec_shift) + "_" + str(dg1_shift) + "_" + str(isdg15) + "_" + str(dg15_shift) + "_" + str(dg15_blocks) + "_" + str(AA_shift)
+    real_circuit_name = ""
+    if isdg15 == 0:
+        real_circuit_name = "registerIdentity_"+ str(sig_algo) + "_" + str(dg_hash_algo) + "_" + str(document_type) + "_" + str(ec_blocks) + "_" + str(ec_shift) + "_" + str(dg1_shift) + "_" + "NA"
+    else:
+        real_circuit_name = "registerIdentity_"+ str(sig_algo) + "_" + str(dg_hash_algo) + "_" + str(document_type) + "_" + str(ec_blocks) + "_" + str(ec_shift) + "_" + str(dg1_shift) + "_" + str(isdg15) + "_" + str(dg15_shift) + "_" + str(dg15_blocks) + "_" + str(AA_shift)
+
+
+
 
     write_tmp_to_file(real_circuit_name)
 
-    write_results_to_register_identity(sig_algo, dg_hash_algo, document_type, dg1_shift, dg15_shift, ec_shift, dg15_blocks, ec_blocks, isdg15, AA_shift, short_file_path)
+    write_results_to_register_identity(sig_algo, dg_hash_algo, document_type, dg1_shift, dg15_shift, ec_shift, dg15_blocks, ec_blocks, isdg15, AA_shift, real_circuit_name)
 
-    write_results_to_passport_verification(sig_algo, dg_hash_algo, dg1_shift, dg15_shift, ec_shift, dg15_blocks, ec_blocks, isdg15, AA_shift, short_file_path)
+    write_results_to_passport_verification(sig_algo, dg_hash_algo, dg1_shift, dg15_shift, ec_shift, dg15_blocks, ec_blocks, isdg15, AA_shift, real_circuit_name)
 
-    write_to_json(dg1_res, dg15_res, sa_res, ec_res, pubkey_arr, signature_arr, sk_iden, root, branches, short_file_path)
+    write_to_json(dg1_res, dg15_res, sa_res, ec_res, pubkey_arr, signature_arr, sk_iden, root, branches, real_circuit_name)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Decode a base64 encoded passport file.')
