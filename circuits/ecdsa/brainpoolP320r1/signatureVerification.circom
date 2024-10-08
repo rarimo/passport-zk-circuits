@@ -52,7 +52,7 @@ template verifyBrainpool320(CHUNK_SIZE,CHUNK_NUMBER, ALGO){
         hashedMessageChunked[CHUNK_NUMBER-1-i] <== bits2Num[i].out;
     }
 
-    component getOrder = GetBrainpool320320Order(CHUNK_SIZE,CHUNK_NUMBER);
+    component getOrder = GetBrainpool320Order(CHUNK_SIZE,CHUNK_NUMBER);
     signal order[CHUNK_NUMBER];
     order <== getOrder.order;
 
@@ -87,8 +87,8 @@ template verifyBrainpool320(CHUNK_SIZE,CHUNK_NUMBER, ALGO){
     signal tmpPoint1[2][CHUNK_NUMBER];
     signal tmpPoint2[2][CHUNK_NUMBER];
 
-    component scalarMult1 = Brainpool320320GeneratorMultiplication(CHUNK_SIZE,CHUNK_NUMBER);
-    component scalarMult2 = Brainpool320PipingerMult320(CHUNK_SIZE,CHUNK_NUMBER, 4);
+    component scalarMult1 = Brainpool320GeneratorMultiplication(CHUNK_SIZE,CHUNK_NUMBER);
+    component scalarMult2 = Brainpool320PipingerMult(CHUNK_SIZE,CHUNK_NUMBER, 4);
     
     scalarMult1.scalar <== sh;
 
@@ -103,7 +103,7 @@ template verifyBrainpool320(CHUNK_SIZE,CHUNK_NUMBER, ALGO){
 
     signal verifyX[CHUNK_NUMBER];
 
-    component sumPoints = Brainpool320AddUnequal320(CHUNK_SIZE,CHUNK_NUMBER);
+    component sumPoints = Brainpool320AddUnequal(CHUNK_SIZE,CHUNK_NUMBER);
     
     sumPoints.point1 <== tmpPoint1;
     sumPoints.point2 <== tmpPoint2;

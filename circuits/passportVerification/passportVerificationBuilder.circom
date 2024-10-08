@@ -14,7 +14,7 @@ template PassportVerificationBuilder(
     EC_BLOCK_NUMBER,
     EC_SHIFT,
     DG1_SHIFT,
-    IS_AA,
+    AA_SIGNATURE_ALGO,
     DG15_SHIFT,
     DG15_BLOCK_NUMBER,
     AA_SHIFT
@@ -99,7 +99,7 @@ template PassportVerificationBuilder(
     component ecPassportHasher;
     component saPassportHasher;
 
-    if (IS_AA){
+    if (AA_SIGNATURE_ALGO != 0){
 
         component dg15PassportHasher;
         dg15PassportHasher = PassportHash(DG_HASH_BLOCK_SIZE, DG15_BLOCK_NUMBER, DG_HASH_TYPE);
@@ -129,7 +129,7 @@ template PassportVerificationBuilder(
     component passportVerificationFlow;
 
     var DG15_ACTUAL_SHIFT = DG_HASH_TYPE;
-    if (IS_AA == 1){
+    if (AA_SIGNATURE_ALGO != 0){
         DG15_ACTUAL_SHIFT = DG15_SHIFT;
     }
 
@@ -140,7 +140,7 @@ template PassportVerificationBuilder(
         DG1_SHIFT, 
         DG15_ACTUAL_SHIFT, 
         EC_SHIFT, //encapsulated content shift
-        IS_AA  //dg15present
+        AA_SIGNATURE_ALGO  //dg15present
     );
 
     passportVerificationFlow.dg1Hash                 <== dg1Hash;

@@ -8,7 +8,7 @@ template RegisterIdentity(
         HASH_BLOCK_SIZE,                // size in bits
         SIGNATURE_TYPE,                 // 1, 2..  (list above) ^^^
         DOCUMENT_TYPE,                  // 1: TD1; 3: TD3
-        IS_AA,                          // 0, 1
+        AA_SIGNATURE_ALGO,                          // 0, 1
         AA_SHIFT                        // shift in bits
     ) {
 
@@ -21,8 +21,8 @@ template RegisterIdentity(
     signal input dg1[DG1_LEN];                  // 744 || 760 bits + padding
     signal input dg15[DG15_SIZE * HASH_BLOCK_SIZE];                // 1320 || 2096 || 1832 || 2384 || 2520 bits + padding
     signal input skIdentity;
-    if (IS_AA == 1) {
-        if (SIGNATURE_TYPE <= 19) { // rsa keys stored
+    if (AA_SIGNATURE_ALGO != 0) {
+        if (AA_SIGNATURE_ALGO < 20) { // rsa keys stored
             component dg15Chunking[5];
 
             // 1024 bit RSA key is splitted into | 200 bit | 200 bit | 200 bit | 200 bit | 224 bit |
@@ -49,14 +49,26 @@ template RegisterIdentity(
             dg15PubKeyHash <== dg15Hasher.out;
 
         } else { // Elliptic Curve Active Auth key extraction
-            component xToNum = Bits2Num(248);
-            component yToNum = Bits2Num(248);
-            
-            var EC_FIELD_SIZE = 256;
 
-            for (var i = 0; i < 248; i++) {
-                xToNum.in[247-i] <== dg15[AA_SHIFT + i + 8];
-                yToNum.in[247-i] <== dg15[AA_SHIFT + EC_FIELD_SIZE + i + 8];
+            
+            var HASH_SIZE = 248;
+
+            var EC_FIELD_SIZE = 256;
+            if (AA_SIGNATURE_ALGO == 22){
+                EC_FIELD_SIZE = 320;
+            }
+            if (AA_SIGNATURE_ALGO == 23){
+                EC_FIELD_SIZE = 192;
+                HASH_SIZE = 192;
+            }
+
+            component xToNum = Bits2Num(HASH_SIZE);
+            component yToNum = Bits2Num(HASH_SIZE);
+
+
+            for (var i = 0; i < HASH_SIZE; i++) {
+                xToNum.in[HASH_SIZE-1-i] <== dg15[AA_SHIFT + i + 8];
+                yToNum.in[HASH_SIZE-1-i] <== dg15[AA_SHIFT + EC_FIELD_SIZE + i + 8];
             }
 
             component dg15Hasher = Poseidon(2);

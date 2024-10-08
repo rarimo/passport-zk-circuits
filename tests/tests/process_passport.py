@@ -24,9 +24,14 @@ def get_new_sig_type(sig_type, salt, e_bits):
         sig_type = 13
     return sig_type
 
-def get_AA_shift(dg15_hex):
+def get_AA_shift(dg15_hex, dg15_sig_algo):
+    if dg15_sig_algo == 20 or dg15_sig_algo == 21:
+        return 2008
+    if dg15_sig_algo == 22:
+        return 2008 #update when found one
+    if dg15_sig_algo == 23:
+        return 2008 #update when found one
     return len(dg15_hex.split("100")[0]) * 4+12
-
 
 
 def padd_dg1(dg1_hex, dg_chunk_size):
@@ -188,6 +193,17 @@ def get_dg_chunk_size(dg1_hex, ec_hex):
     if dg1_384 in ec_hex:
         return 384, 1024
     return 0, 0
+
+def get_aa_sig_algo(dg15_hex):
+    if "7d5a0975fc2c3057eef67530417affe7fb8055c126dc5c6ce94a4b44f330b5d9" in dg15_hex:
+        return 21
+    if "ffffffff00000001000000000000000000000000fffffffffffffffffffffff" in dg15_hex:
+        return 20
+    if "3ee30b568fbab0f883ccebd46d3f3bb8a2a73513f5eb79da66190eb085ffa9f492f375a97d860eb4" in dg15_hex:
+        return 22
+    if "fffffffffffffffffffffffffffffffefffffffffffffffc" in dg15_hex:
+        return 23
+    return 1
 
 def get_sig_algo(sod_hex, salt, signature, hash_algo):
     if "7d5a0975fc2c3057eef67530417affe7fb8055c126dc5c6ce94a4b44f330b5d9" in sod_hex:
@@ -381,10 +397,17 @@ def process_passport(file_path):
 
     sig_algo = get_new_sig_type(sig_algo, salt, e_bits)
 
-    AA_shift = 0 if isdg15 == 0 else get_AA_shift(dg15_hex)
-
     if isdg15 == 0:
         dg15_shift = 0
+
+    if isdg15 !=0:
+        isdg15 = get_aa_sig_algo(dg15_hex)
+
+    AA_shift = 0 if isdg15 == 0 else get_AA_shift(dg15_hex, isdg15)
+
+    real_circuit_name = "registerIdentity_"+ str(sig_algo) + "_" + str(dg_hash_algo) + "_" + str(document_type) + "_" + str(ec_blocks) + "_" + str(ec_shift) + "_" + str(dg1_shift) + "_" + str(isdg15) + "_" + str(dg15_shift) + "_" + str(dg15_blocks) + "_" + str(AA_shift)
+
+    write_tmp_to_file(real_circuit_name)
 
     write_results_to_register_identity(sig_algo, dg_hash_algo, document_type, dg1_shift, dg15_shift, ec_shift, dg15_blocks, ec_blocks, isdg15, AA_shift, short_file_path)
 
