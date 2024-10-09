@@ -7,6 +7,7 @@ include "identityStateVerifier.circom";
 include "../../dateUtilities/dateComparisonEncoded.circom";
 include "circomlib/circuits/comparators.circom";
 include "../../dateUtilities/dateComparisonEncodedNormalized.circom";
+include "./sitizenshipCheck.circom";
 
 // QUERY SELECTOR:
 // 0 - nullifier   (+)
@@ -217,4 +218,12 @@ template QueryIdentity(idTreeDepth) {
 
     identityStateVerifier.idStateRoot <== idStateRoot;
     identityStateVerifier.idStateSiblings <== idStateSiblings;
+
+    //---------------------------------
+    //Citizenship Blacklist check
+
+    component citizenshipCheck = CitizenshipCheck();
+    citizenshipCheck.citizenship <== citizenship;
+    citizenshipCheck.blacklist <== citizenshipMask;
+    
 }

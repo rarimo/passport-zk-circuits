@@ -35,3 +35,4 @@ circuits/ecdsa/tmp/*
 !tests/tests/inputs/passportExpiredInput.json
 !tests/tests/inputs/isNotAdultInput.json
 !tests/tests/inputs/validInput.json
+helpers/blacklist_generation/__pycache__
