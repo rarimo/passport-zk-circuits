@@ -50,7 +50,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/brainpoolP256r1/pointAdd.circom")
+				path.join(__dirname, "./circuits/point/brainpoolP256r1/pointAdd.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -85,7 +85,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/brainpoolP256r1/pointDouble.circom")
+				path.join(__dirname, "./circuits/point/brainpoolP256r1/pointDouble.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -120,7 +120,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/brainpoolP256r1/pointMult.circom")
+				path.join(__dirname, "./circuits/point/brainpoolP256r1/pointMult.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -157,7 +157,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/brainpoolP256r1/pointMultPip.circom")
+				path.join(__dirname, "./circuits/point/brainpoolP256r1/pointMultPip.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -206,7 +206,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/secp256r1/pointAdd.circom")
+				path.join(__dirname, "./circuits/point/P256/pointAdd.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -241,7 +241,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/secp256r1/pointDouble.circom")
+				path.join(__dirname, "./circuits/point/P256/pointDouble.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -276,7 +276,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/secp256r1/pointMult.circom")
+				path.join(__dirname, "./circuits/point/P256/pointMult.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -313,7 +313,7 @@ describe("Point interactions test", function () {
 			const input = JSON.parse(data);
 	
 			const circuit = await wasm_tester(
-				path.join(__dirname, "../../circuits/ecdsa/secp256r1/pointMultPip.circom")
+				path.join(__dirname, "./circuits/point/P256/pointMultPip.circom")
 			);
 			const w = await circuit.calculateWitness({ 
 				scalar: input.scalar,
@@ -339,5 +339,161 @@ describe("Point interactions test", function () {
 		}
 
 	});
+
+	const pointx_3 = BigInt('0x43bd7e9afb53d8b85289bcc48ee5bfe6f20137d10a087eb6e7871e2a10a599c710af8d0d39e20611');
+	const pointy_3 = BigInt('0x14fdd05545ec1cc8ab4093247f77275e0743ffed117182eaa9c77877aaac6ac7d35245d1692e8ee1');
+	const scalar_3 = BigInt('0x4d1301858ce07e3bf445932fa053a6d832cbbc761480db2961f606da978da50c');
+
+	const pointx2_3 = BigInt('0x2fb412f03e6debdfbfa3a3092f21c4619e04279be0931694ab99c6503e5a894def8377ed059a6de8');
+	const pointy2_3 = BigInt('0x25f1b50333824782a5461fd801d6e2315a621bceeb5ccd00f274771059bb655337c93d327f64c18c');
+
+	const pointx3_3 = BigInt('0xc1e31fd7f03708ce169cfd15be47890edb83acdef8aef8ba0957fc7ac717c6efbce18f0bcf5e73c9');
+	const pointy3_3 = BigInt('0xcdb9aece49778b79f7a6ef2ffa840297f67e4d269ad8a58e8a5f27ce8c5ada7d9303a9404c589400');
+
+	const pointScalX_3 = BigInt('0xa99d85adab5efc805b2a20e3f689a2a120ab3b219098c42e6896c19d3a0481906ce1b2b88599193c');
+	const pointScalY_3 = BigInt('0x67cc727aa659eee1579ffaaa135d9e7a3f750a9cd10b4bf3085f680eaf2011ee8bdabec8603facf8');
+
+	it("Add unequal test (BrainpoolP320r1)", async function () {
+		const testJson = path.join(__dirname, './inputs/point/pointBrainpoolP320r1.json');
+	
+		try {
+			const data = await fs.promises.readFile(testJson, 'utf8');
+			const input = JSON.parse(data);
+	
+			const circuit = await wasm_tester(
+				path.join(__dirname, "./circuits/point/BrainpoolP320r1/pointAdd.circom")
+			);
+			const w = await circuit.calculateWitness({ 
+				scalar: input.scalar,
+				point:  input.point,
+				point2: input.point2
+			});
+			await circuit.checkConstraints(w);
+
+			const sumX = w.slice(1, 1+10);
+			const sumY = w.slice(1+10, 1+20);			
+
+			const realSumX = bigintToArray(32, 10, pointx3_3);
+			const realSumY = bigintToArray(32, 10, pointy3_3);
+
+			for (let i = 0; i < 6; i++){
+				assert.equal(sumX[i], realSumX[i]);
+				assert.equal(sumY[i], realSumY[i]);
+			}
+	
+		} catch (err) {
+			console.error('Error:', err);
+			throw err;  
+		}
+
+	});
+
+	it("Double test (BrainpoolP320r1)", async function () {
+		const testJson = path.join(__dirname, './inputs/point/pointBrainpoolP320r1.json');
+	
+		try {
+			const data = await fs.promises.readFile(testJson, 'utf8');
+			const input = JSON.parse(data);
+	
+			const circuit = await wasm_tester(
+				path.join(__dirname, "./circuits/point/BrainpoolP320r1/pointDouble.circom")
+			);
+			const w = await circuit.calculateWitness({ 
+				scalar: input.scalar,
+				point:  input.point,
+				point2: input.point2
+			});
+			await circuit.checkConstraints(w);
+
+			const doubleX = w.slice(1, 1+10);
+			const doubleY = w.slice(1+10, 1+20);			
+
+			const realDoubleX = bigintToArray(32, 10, pointx2_3);
+			const realDoubleY = bigintToArray(32, 10, pointy2_3);
+
+			for (let i = 0; i < 6; i++){
+				assert.equal(doubleX[i], realDoubleX[i]);
+				assert.equal(doubleY[i], realDoubleY[i]);
+			}
+
+		} catch (err) {
+			console.error('Error:', err);
+			throw err;  
+		}
+
+	});
+
+	it("Scalar multiplication test (Add and double method) (BrainpoolP320r1)", async function () {
+		const testJson = path.join(__dirname, './inputs/point/pointBrainpoolP320r1.json');
+	
+		try {
+			const data = await fs.promises.readFile(testJson, 'utf8');
+			const input = JSON.parse(data);
+	
+			const circuit = await wasm_tester(
+				path.join(__dirname, "./circuits/point/BrainpoolP320r1/pointMult.circom")
+			);
+			const w = await circuit.calculateWitness({ 
+				scalar: input.scalar,
+				point:  input.point,
+				point2: input.point2
+			});
+			await circuit.checkConstraints(w);
+
+			const multX = w.slice(1, 1+10);
+			const multY = w.slice(1+10, 1+20);			
+
+			const realmultX = bigintToArray(32, 10, pointScalX_3);
+			const realmultY = bigintToArray(32, 10, pointScalY_3);
+
+			for (let i = 0; i < 6; i++){
+				assert.equal(multX[i], realmultX[i]);
+				assert.equal(multY[i], realmultY[i]);
+			}
+
+
+	
+		} catch (err) {
+			console.error('Error:', err);
+			throw err;  
+		}
+
+	});
+
+	it("Scalar multiplication test (Pipenger method) (BrainpoolP320r1)", async function () {
+		const testJson = path.join(__dirname, './inputs/point/pointBrainpoolP320r1.json');
+	
+		try {
+			const data = await fs.promises.readFile(testJson, 'utf8');
+			const input = JSON.parse(data);
+	
+			const circuit = await wasm_tester(
+				path.join(__dirname, "./circuits/point/BrainpoolP320r1/pointMultPip.circom")
+			);
+			const w = await circuit.calculateWitness({ 
+				scalar: input.scalar,
+				point:  input.point,
+				point2: input.point2
+			});
+			await circuit.checkConstraints(w);
+
+			const multX = w.slice(1, 1+10);
+			const multY = w.slice(1+10, 1+20);			
+
+			const realmultX = bigintToArray(32, 10, pointScalX_3);
+			const realmultY = bigintToArray(32, 10, pointScalY_3);
+
+			for (let i = 0; i < 6; i++){
+				assert.equal(multX[i], realmultX[i]);
+				assert.equal(multY[i], realmultY[i]);
+			}
+
+		} catch (err) {
+			console.error('Error:', err);
+			throw err;  
+		}
+
+	});
+
 
 });

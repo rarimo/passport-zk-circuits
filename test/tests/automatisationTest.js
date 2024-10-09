@@ -16,7 +16,7 @@ function generateFilesForAll(filenames, done) {
     let pending = filenames.length;
     filenames.forEach((filename) => {
         console.log("executing for", filename);
-        exec(`python3 test/tests/generate_files.py ${filename}`, (error, stdout, stderr) => {
+        exec(`python3 tests/tests/process_passport.py ${filename}`, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Error executing script: ${error.message}`);
                 return done(error);
@@ -45,7 +45,8 @@ describe("File generation test", function () {
     filenames.forEach(filename => {
         // it("Verification passport test", async function () {
 
-        //     let short_fileneme = filename.split("/")[filename.split("/").length - 1].split(".json")[0];
+        //     const tmp_txt = path.join(__dirname, `./inputs/tmp.txt`);
+        //     const short_fileneme = await fs.promises.readFile(tmp_txt, 'utf8');
 
         //     const testJson = path.join(__dirname, `./inputs/generated/input_${short_fileneme}.dev.json`);
         
@@ -54,7 +55,7 @@ describe("File generation test", function () {
         //         const input = JSON.parse(data);
         
         //         const circuit = await wasm_tester(
-        //             path.join(__dirname, `./circuits/passportVerification/main_${short_fileneme}.circom`)
+        //             path.join(__dirname, `./circuits/passportVerification/main_${"passportVerification"+short_fileneme.split("registerIdentity"[1])}.circom`)
         //         );
         //         const w = await circuit.calculateWitness({ 
         //             dg1: input.dg1,
@@ -62,7 +63,9 @@ describe("File generation test", function () {
         //             encapsulatedContent: input.encapsulatedContent,
         //             signedAttributes: input.signedAttributes,
         //             signature: input.signature,
-        //             pubkey: input.pubkey
+        //             pubkey: input.pubkey,
+        //             slaveMerkleInclusionBranches: input.slaveMerkleInclusionBranches,
+        //             slaveMerkleRoot: input.slaveMerkleRoot
         //         });
         //         await circuit.checkConstraints(w);
         
@@ -74,7 +77,9 @@ describe("File generation test", function () {
 
         it("Register identity test", async function () {
 
-            let short_fileneme = filename.split("/")[filename.split("/").length - 1].split(".json")[0];
+            const tmp_txt = path.join(__dirname, `./inputs/tmp.txt`);
+            const short_fileneme = await fs.promises.readFile(tmp_txt, 'utf8');
+
 
             const testJson = path.join(__dirname, `./inputs/generated/input_${short_fileneme}_2.dev.json`);
         
@@ -83,7 +88,7 @@ describe("File generation test", function () {
                 const input = JSON.parse(data);
         
                 const circuit = await wasm_tester(
-                    path.join(__dirname, `./circuits/identityManagement/main_${short_fileneme}.circom`)
+                    path.join(__dirname, `./circuits/identityManagement/${short_fileneme}.circom`)
                 );
                 const w = await circuit.calculateWitness({ 
                     dg1: input.dg1,

@@ -28,9 +28,11 @@ artifacts
 cache
 test/tests/inputs/*
 temp_asn1.der
-test/tests/__pycache__
-!test/tests/*.py
-!test/tests/inputs/credValidExceedsPassportInput.json
-!test/tests/inputs/passportExpiredInput.json
-!test/tests/inputs/isNotAdultInput.json
-!test/tests/inputs/validInput.json
+tests/tests/__pycache__
+circuits/ecdsa/tmp/*
+!tests/tests/*.py
+!tests/tests/inputs/credValidExceedsPassportInput.json
+!tests/tests/inputs/passportExpiredInput.json
+!tests/tests/inputs/isNotAdultInput.json
+!tests/tests/inputs/validInput.json
+helpers/blacklist_generation/__pycache__

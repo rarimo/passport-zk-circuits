@@ -3,7 +3,7 @@ pragma circom  2.1.6;
 include "../../passportVerification/passportVerificationBuilder.circom";
 include "./identity.circom";
 include "circomlib/circuits/poseidon.circom";
-include "../../merkleTree/SMTVerifier.circom";
+
 
 // HASH_TYPE: 
 //   - 160: SHA1 (160 bits)
@@ -13,33 +13,78 @@ include "../../merkleTree/SMTVerifier.circom";
 //   - 512: SHA2-512 (512 bits)
 
 // SIGNATURE_TYPE:
-//   - 1: RSA 2048 bits + SHA2-256
-//   - 2: RSA 4096 bits + SHA2-256
-//   - 3: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256
-//   - 4: RSASSA-PSS 4096 bits MGF1 (SHA2-256) + SHA2-256
-//   - 5: RSASSA-PSS 2048 bits MGF1 (SHA2-384) +Ку SHA2-384
-//   - 6: ECDSA secp256r1 + SHA256
-//   - 7: ECDSA brainpoolP256r1 + SHA256
+//   - 1: RSA 2048 bits + SHA2-256 + e = 65537
+//   - 2: RSA 4096 bits + SHA2-256 + e = 65537
+
+//   - 10: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256 + e = 3 + salt = 32
+//   - 11: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256 + e = 65537 + salt = 32
+//   - 12: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256 + e = 65537 + salt = 64
+//   - 13: RSASSA-PSS 2048 bits MGF1 (SHA2-384) + SHA2-384 + e = 65537 + salt = 48
+
+//   - 20: ECDSA brainpoolP256r1 + SHA256
+//   - 21: ECDSA secp256r1 + SHA256
+//   - 22: ECDSA brainpoolP320r1 + SHA256
+//   - 23: ECDSA secp192r1 + SHA1
+
+// AA_SIGNATURE_TYPE:
+//   - 0: NO AA
+//   - 1: RSA 1024 bits + SHA2-256 + e = 65537
+
+//   - 20: ECDSA brainpoolP256r1 + SHA256
+//   - 21: ECDSA secp256r1 + SHA256
+//   - 22: ECDSA brainpoolP320r1 + SHA256
+//   - 23: ECDSA secp192r1 + SHA1
+
 
 template RegisterIdentityBuilder (
-    DG1_SIZE,                       // size in hash blocks
-    DG15_SIZE,                      // size in hash blocks
-    ENCAPSULATED_CONTENT_SIZE,      // size in hash blocks
-    SIGNED_ATTRIBUTES_SIZE,         // size in hash blocks
-    HASH_BLOCK_SIZE,                // size in bits
-    HASH_TYPE,                      // 160, 224, 256, 384, 512 (list above)^^^
     SIGNATURE_TYPE,                 // 1, 2..  (list above) ^^^
-    SALT_LEN,
-    E_BITS,                         // 2, 17 
-    CHUNK_SIZE,
-    CHUNK_NUMBER,
     DG_HASH_TYPE,                   // 160, 224, 256, 384, 512 (list above)^^^
     DOCUMENT_TYPE,                  // 1: TD1; 3: TD3
-    TREE_DEPTH,
-    FLOW_MATRIX,
-    FLOW_MATRIX_HEIGHT,
-    HASH_BLOCK_MATRIX
+    EC_BLOCK_NUMBER,
+    EC_SHIFT,
+    DG1_SHIFT,
+    AA_SIGNATURE_ALGO,
+    DG15_SHIFT,
+    DG15_BLOCK_NUMBER,
+    AA_SHIFT
 ) {
+
+    var TREE_DEPTH = 80;
+    var CHUNK_SIZE = 64;
+    var CHUNK_NUMBER = 32;
+    var HASH_TYPE = 256;
+
+    if (SIGNATURE_TYPE == 2){
+        CHUNK_NUMBER = 64;
+    }
+
+    if (SIGNATURE_TYPE == 13){
+        HASH_TYPE = 384;
+    }
+
+    if (SIGNATURE_TYPE >= 20){
+        CHUNK_NUMBER = 4;
+    }
+
+    if (SIGNATURE_TYPE == 22){
+        CHUNK_NUMBER = 5;
+    }
+
+    if (SIGNATURE_TYPE == 23){
+        CHUNK_NUMBER = 3;
+        HASH_TYPE = 160;
+    }
+
+
+    var DG_HASH_BLOCK_SIZE = 1024;
+    if (DG_HASH_TYPE <= 256){
+        DG_HASH_BLOCK_SIZE = 512;
+    }
+    var HASH_BLOCK_SIZE = 1024;
+    if (HASH_TYPE <= 256){
+        HASH_BLOCK_SIZE = 512;
+    }
+
     // OUTPUT SIGNALS:
     signal output dg15PubKeyHash;
     
@@ -51,26 +96,29 @@ template RegisterIdentityBuilder (
     // Poseidon2(PubKey.X, PubKey.Y)
     signal output pkIdentityHash;
 
+    var DG1_LEN = 1024;
+    var SIGNED_ATTRIBUTES_LEN = 1024;
+
     var PUBKEY_LEN;
     var SIGNATURE_LEN;
 
     //ECDSA
-    if (SIGNATURE_TYPE > 5){
+    if (SIGNATURE_TYPE >= 20){
         PUBKEY_LEN    = 2 * CHUNK_NUMBER * CHUNK_SIZE;
         SIGNATURE_LEN = 2 * CHUNK_NUMBER * CHUNK_SIZE;   
     }
-    //RSA
-    if (SIGNATURE_TYPE <= 5){
+    //RSA||RSAPSS
+    if (SIGNATURE_TYPE < 20){
         PUBKEY_LEN    = CHUNK_NUMBER;
         SIGNATURE_LEN = CHUNK_NUMBER;
     }
 
 
     // INPUT SIGNALS:
-    signal input encapsulatedContent[ENCAPSULATED_CONTENT_SIZE * HASH_BLOCK_SIZE];
-    signal input dg1[DG1_SIZE * HASH_BLOCK_SIZE];
-    signal input dg15[DG15_SIZE * HASH_BLOCK_SIZE];
-    signal input signedAttributes[SIGNED_ATTRIBUTES_SIZE * HASH_BLOCK_SIZE];
+    signal input encapsulatedContent[EC_BLOCK_NUMBER * HASH_BLOCK_SIZE];
+    signal input dg1[DG1_LEN];
+    signal input dg15[DG15_BLOCK_NUMBER * HASH_BLOCK_SIZE];
+    signal input signedAttributes[SIGNED_ATTRIBUTES_LEN];
     signal input signature[SIGNATURE_LEN];
     signal input pubkey[PUBKEY_LEN];
     signal input slaveMerkleRoot;
@@ -81,38 +129,34 @@ template RegisterIdentityBuilder (
     // PASSPORT VERIFICATION
     // -------
     component passportVerifier = PassportVerificationBuilder(
-        DG1_SIZE,
-        DG15_SIZE,
-        ENCAPSULATED_CONTENT_SIZE,
-        SIGNED_ATTRIBUTES_SIZE,
-        HASH_BLOCK_SIZE,
-        HASH_TYPE,
-        SIGNATURE_TYPE,
-        SALT_LEN,
-        E_BITS,
-        CHUNK_SIZE,
-        CHUNK_NUMBER,
-        DG_HASH_TYPE,
-        TREE_DEPTH,
-        FLOW_MATRIX,
-        FLOW_MATRIX_HEIGHT,
-        HASH_BLOCK_MATRIX
+        SIGNATURE_TYPE,                 // 1, 2..  (list above) ^^^
+        DG_HASH_TYPE,                   // 160, 224, 256, 384, 512 (list above)^^^
+        EC_BLOCK_NUMBER,
+        EC_SHIFT,
+        DG1_SHIFT,
+        AA_SIGNATURE_ALGO,
+        DG15_SHIFT,
+        DG15_BLOCK_NUMBER,
+        AA_SHIFT
     );
 
-    passportVerifier.encapsulatedContent <== encapsulatedContent;
-    passportVerifier.dg1                 <== dg1;
-    passportVerifier.dg15                <== dg15;
-    passportVerifier.signedAttributes    <== signedAttributes;
-    passportVerifier.signature           <== signature;
-    passportVerifier.pubkey              <== pubkey;
-    passportVerifier.passportHash        ==> passportHash; 
+    passportVerifier.encapsulatedContent          <== encapsulatedContent;
+    passportVerifier.dg1                          <== dg1;
+    passportVerifier.dg15                         <== dg15;
+    passportVerifier.signedAttributes             <== signedAttributes;
+    passportVerifier.signature                    <== signature;
+    passportVerifier.pubkey                       <== pubkey;
+    passportVerifier.slaveMerkleInclusionBranches <== slaveMerkleInclusionBranches;
+    passportVerifier.slaveMerkleRoot              <== slaveMerkleRoot;
+    passportVerifier.passportHash                 ==> passportHash; 
 
     component registerIdentity = RegisterIdentity(
-        DG1_SIZE,                       
-        DG15_SIZE,                      
-        HASH_BLOCK_SIZE,                
+        DG15_BLOCK_NUMBER,                      
+        DG_HASH_BLOCK_SIZE,                
         SIGNATURE_TYPE,                 
-        DOCUMENT_TYPE
+        DOCUMENT_TYPE,
+        AA_SIGNATURE_ALGO,
+        AA_SHIFT
     );
 
     registerIdentity.dg1            <== dg1;
@@ -121,49 +165,6 @@ template RegisterIdentityBuilder (
     registerIdentity.dg15PubKeyHash ==> dg15PubKeyHash;
     registerIdentity.dg1Commitment  ==> dg1Commitment;
     registerIdentity.pkIdentityHash ==> pkIdentityHash;
-
-    signal pubkeyHash;
-    
-    //RSA || RSAPSS SIG
-
-    if (SIGNATURE_TYPE <= 5){
-        component pubkeyHasherRsa = Poseidon(5);
-        signal tempModulus[5];
-        for (var i = 0; i < 5; i++) {
-            var currIndex = i * 3;
-            tempModulus[i] <== pubkey[currIndex] * 2**128 + pubkey[currIndex + 1] * 2**64;
-            pubkeyHasherRsa.inputs[i] <== tempModulus[i] + pubkey[currIndex + 2];
-        }
-        pubkeyHash <== pubkeyHasherRsa.out;
-    }
-    //ECDSA SIG
-    else {
-        component xToNum = Bits2Num(248);
-        component yToNum = Bits2Num(248);
-        
-        var EC_FIELD_SIZE = 256;
-
-        for (var i = 0; i < 248; i++) {
-            xToNum.in[247-i] <== pubkey[i + 8];
-            yToNum.in[247-i] <== pubkey[EC_FIELD_SIZE + i + 8];
-        }
-
-        component pubkeyHasher = Poseidon(2);
-        
-        pubkeyHasher.inputs[0] <== xToNum.out;
-        pubkeyHasher.inputs[1] <== yToNum.out;
-        
-        pubkeyHash <== pubkeyHasher.out;
-    }
-    // Verifying that public key inclusion into the Slave Certificates Merkle Tree
-    component smtVerifier = SMTVerifier(TREE_DEPTH);
-    smtVerifier.root     <== slaveMerkleRoot;
-    smtVerifier.leaf     <== pubkeyHash;
-    smtVerifier.key      <== pubkeyHash;
-    smtVerifier.siblings <== slaveMerkleInclusionBranches;
-
-    smtVerifier.isVerified === 1; 
-    // log("SMT: ", smtVerifier.isVerified);
 
 }
 

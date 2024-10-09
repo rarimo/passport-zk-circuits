@@ -1,4 +1,4 @@
-pragma circom 2.1.8;
+pragma circom 2.1.6;
 
 include "./circomPairing/curve.circom";
 include "circomlib/circuits/bitify.circom";
@@ -104,7 +104,7 @@ template verifyBrainpool(CHUNK_SIZE,CHUNK_NUMBER, ALGO){
     signal tmpPoint2[2][6];
 
     component scalarMult1 = BrainpoolGeneratorMultiplication(43,6);
-    component scalarMult2 = BrainpoolScalarMult(43,6);
+    component scalarMult2 = BrainpoolPipingerMult(43,6,4);
     
     scalarMult1.scalar <== sh;
 

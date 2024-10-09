@@ -1,0 +1,100 @@
+pragma circom 2.1.6;
+
+function get_p256_order(CHUNK_SIZE, CHUNK_NUMBER){
+	assert((CHUNK_SIZE == 32) && (CHUNK_NUMBER == 10));
+	var ORDER[10];
+
+	ORDER[0] = 4234356049;
+	ORDER[1] = 4089039554;
+	ORDER[2] = 2803342980;
+	ORDER[3] = 3169254061;
+	ORDER[4] = 4294967295;
+	ORDER[5] = 4294967295;
+	ORDER[6] = 0;
+	ORDER[7] = 4294967295;
+	ORDER[8] = 0;
+	ORDER[9] = 0;
+
+	return ORDER;
+}
+
+function get_p256_params(CHUNK_SIZE, CHUNK_NUMBER){
+	assert((CHUNK_SIZE == 32) && (CHUNK_NUMBER == 10));
+	var PARAMS[3][10];
+
+	var A[10];
+	var B[10];
+	var P[10];
+
+	A[0] = 4294967292;
+	A[1] = 4294967295;
+	A[2] = 4294967295;
+	A[3] = 0;
+	A[4] = 0;
+	A[5] = 0;
+	A[6] = 1;
+	A[7] = 4294967295;
+	A[8] = 0;
+	A[9] = 0;
+
+	B[0] = 668098635;
+	B[1] = 1003371582;
+	B[2] = 3428036854;
+	B[3] = 1696401072;
+	B[4] = 1989707452;
+	B[5] = 3018571093;
+	B[6] = 2855965671;
+	B[7] = 1522939352;
+	B[8] = 0;
+	B[9] = 0;
+
+	P[0] = 4294967295;
+	P[1] = 4294967295;
+	P[2] = 4294967295;
+	P[3] = 0;
+	P[4] = 0;
+	P[5] = 0;
+	P[6] = 1;
+	P[7] = 4294967295;
+	P[8] = 0;
+	P[9] = 0;
+
+
+
+	PARAMS[0] = A;
+	PARAMS[1] = B;
+	PARAMS[2] = P;
+
+	return PARAMS;
+}
+
+function get_p256_dummy_point(CHUNK_SIZE, CHUNK_NUMBER){
+	assert((CHUNK_SIZE == 32) && (CHUNK_NUMBER == 10));
+	var DUMMY[2][10];
+
+	DUMMY[0][0] = 928983892;
+	DUMMY[0][1] = 3039685775;
+	DUMMY[0][2] = 3823706960;
+	DUMMY[0][3] = 1325282656;
+	DUMMY[0][4] = 2299864252;
+	DUMMY[0][5] = 1348921617;
+	DUMMY[0][6] = 778773267;
+	DUMMY[0][7] = 2008156817;
+	DUMMY[0][8] = 0;
+	DUMMY[0][9] = 0;
+	DUMMY[1][0] = 3603720191;
+	DUMMY[1][1] = 3400008188;
+	DUMMY[1][2] = 3897614577;
+	DUMMY[1][3] = 3747757473;
+	DUMMY[1][4] = 3707996786;
+	DUMMY[1][5] = 4155575292;
+	DUMMY[1][6] = 634299383;
+	DUMMY[1][7] = 2749114648;
+	DUMMY[1][8] = 0;
+	DUMMY[1][9] = 0;
+
+
+	return DUMMY;
+}
+
+

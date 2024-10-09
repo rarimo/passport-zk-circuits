@@ -1,4 +1,4 @@
-pragma circom 2.1.8;
+pragma circom 2.1.6;
 
 function get_order(CHUNK_SIZE,CHUNK_NUMBER){
 

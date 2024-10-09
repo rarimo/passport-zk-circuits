@@ -1,0 +1,76 @@
+pragma circom 2.1.6;
+
+function get_secp192r1_order(CHUNK_SIZE, CHUNK_NUMBER){
+	assert((CHUNK_SIZE == 32) && (CHUNK_NUMBER == 6));
+	var ORDER[6];
+
+	ORDER[0] = 3033671729;
+	ORDER[1] = 342608305;
+	ORDER[2] = 2581526582;
+	ORDER[3] = 4294967295;
+	ORDER[4] = 4294967295;
+	ORDER[5] = 4294967295;
+
+	return ORDER;
+}
+
+function get_secp192r1_params(CHUNK_SIZE, CHUNK_NUMBER){
+	assert((CHUNK_SIZE == 32) && (CHUNK_NUMBER == 6));
+	var PARAMS[3][6];
+
+	var A[6];
+	var B[6];
+	var P[6];
+
+	A[0] = 4294967292;
+	A[1] = 4294967295;
+	A[2] = 4294967294;
+	A[3] = 4294967295;
+	A[4] = 4294967295;
+	A[5] = 4294967295;
+
+	B[0] = 3242637745;
+	B[1] = 4273528556;
+	B[2] = 1914974281;
+	B[3] = 262662571;
+	B[4] = 3852239079;
+	B[5] = 1679885593;
+
+	P[0] = 4294967295;
+	P[1] = 4294967295;
+	P[2] = 4294967294;
+	P[3] = 4294967295;
+	P[4] = 4294967295;
+	P[5] = 4294967295;
+
+
+
+	PARAMS[0] = A;
+	PARAMS[1] = B;
+	PARAMS[2] = P;
+
+	return PARAMS;
+}
+
+function get_secp192r1_dummy_point(CHUNK_SIZE, CHUNK_NUMBER){
+	assert((CHUNK_SIZE == 32) && (CHUNK_NUMBER == 6));
+	var DUMMY[2][6];
+
+	DUMMY[0][0] = 1029216373;
+	DUMMY[0][1] = 3277204852;
+	DUMMY[0][2] = 2778032362;
+	DUMMY[0][3] = 4024965703;
+	DUMMY[0][4] = 3610292157;
+	DUMMY[0][5] = 3880624303;
+	DUMMY[1][0] = 1505746202;
+	DUMMY[1][1] = 775044038;
+	DUMMY[1][2] = 3487353388;
+	DUMMY[1][3] = 2235044100;
+	DUMMY[1][4] = 788278910;
+	DUMMY[1][5] = 1303919739;
+
+
+	return DUMMY;
+}
+
+
