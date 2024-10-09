@@ -7,7 +7,7 @@ include "identityStateVerifier.circom";
 include "../../dateUtilities/dateComparisonEncoded.circom";
 include "circomlib/circuits/comparators.circom";
 include "../../dateUtilities/dateComparisonEncodedNormalized.circom";
-include "./sitizenshipCheck.circom";
+include "./citizenshipCheck.circom";
 
 // QUERY SELECTOR:
 // 0 - nullifier   (+)
