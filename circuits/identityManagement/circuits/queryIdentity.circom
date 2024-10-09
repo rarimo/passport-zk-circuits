@@ -223,7 +223,7 @@ template QueryIdentity(idTreeDepth) {
     //Citizenship Blacklist check
 
     component citizenshipCheck = CitizenshipCheck();
-    citizenshipCheck.citizenship <== citizenship;
+    citizenshipCheck.citizenship <== dg1DataExtractor.citizenship;
     citizenshipCheck.blacklist <== citizenshipMask;
-    
+
 }
