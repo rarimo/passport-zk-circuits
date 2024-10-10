@@ -24,14 +24,35 @@ def get_new_sig_type(sig_type, salt, e_bits):
         sig_type = 13
     return sig_type
 
-def get_AA_shift(dg15_hex, dg15_sig_algo):
+def get_AA_shift_and_pubkey(dg15_hex, dg15_sig_algo, dg15_base64):
     if dg15_sig_algo == 20 or dg15_sig_algo == 21:
-        return 2008
+        
+        return (len(dg15_hex) - 128)*4, [dg15_hex[-128:-64], dg15_hex[-64:]]
     if dg15_sig_algo == 22:
-        return 2008 #update when found one
+        return (len(dg15_hex) - 160)*4, [dg15_hex[-160:-80], dg15_hex[-80:]]
     if dg15_sig_algo == 23:
-        return 2008 #update when found one
-    return len(dg15_hex.split("100")[0]) * 4+12
+        return (len(dg15_hex) - 96)*4, [dg15_hex[-96:-48], dg15_hex[-48:]]
+    
+
+    dg15_bytes = base64.b64decode(dg15_base64)
+    
+    with open('temp_asn1.der', 'wb') as file:
+        file.write(dg15_bytes)
+
+    decoded = parse_asn1("temp_asn1.der")
+    print(decoded)
+    pos = 0 
+    hl= 0
+    for line in decoded.split('\n'):
+        if 'BIT STRING' in line:
+            pos = int(line.split('l=')[2].split(" ")[1])
+            hl = int(line.split('hl=')[1][0])
+
+    e_bits = dg15_hex.split("02")[-1][2::1]
+    pub_len = pos - (len(e_bits) + 4) - hl
+    pub_len_bits = 8 * (pub_len-pub_len%2)
+    pubkey = dg15_hex[-(len(e_bits) + 4 + (pub_len-pub_len%2)*2):-(len(e_bits) + 4)]
+    return len(dg15_hex)*4 - pub_len_bits - (len(e_bits)+4)*4, pubkey
 
 
 def padd_dg1(dg1_hex, dg_chunk_size):
@@ -70,7 +91,7 @@ def process_dg15(passport_file):
 
     if dg15_base64:
         dg15_hex = base64_to_hex(dg15_base64)
-    return dg15_hex
+    return dg15_hex, dg15_base64
 
 def process_ec(asn1_data, chunk_size):
     octet_strings_pattern = re.compile(r'OCTET STRING.*')
@@ -336,10 +357,8 @@ def process_passport(file_path):
     hash_algo, chunk_size = process_algo(asn1_data)
 
     dg1_hex = process_dg1(file_path)
-    dg15_hex = process_dg15(file_path)
-
-    print(dg15_hex)
-
+    dg15_hex, dg15_base64 = process_dg15(file_path)
+    
     isdg15 = 0 if dg15_hex == "0" else 1
 
     ec_hex, ec_res, ec_blocks =  process_ec(asn1_data, chunk_size)
@@ -389,7 +408,7 @@ def process_passport(file_path):
 
     root, branches = get_root_and_branches(pk_hash)
 
-    document_type = 3 if len(dg1_hex) == 190 else 1
+    document_type = 3 if len(dg1_hex) == 186 else 1
 
     sk_iden = get_sk_iden(ec_hex)
 
@@ -403,7 +422,12 @@ def process_passport(file_path):
     if isdg15 !=0:
         isdg15 = get_aa_sig_algo(dg15_hex)
 
-    AA_shift = 0 if isdg15 == 0 else get_AA_shift(dg15_hex, isdg15)
+    AA_shift = 0 
+    AA_pubkey = ""
+    if isdg15!=0:
+        (AA_shift, AA_pubkey) = get_AA_shift_and_pubkey(dg15_hex, isdg15, dg15_base64)
+    print(AA_shift)
+    print(AA_pubkey)
 
     real_circuit_name = ""
     if isdg15 == 0:
