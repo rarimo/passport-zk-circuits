@@ -13,9 +13,16 @@ const Fr = new F1Field(exports.p);
 const assert = chai.assert;
 
 function generateFilesForAll(filenames, done) {
-    let pending = filenames.length;
-    filenames.forEach((filename) => {
-        console.log("executing for", filename);
+    let index = 0;
+
+    function executeNext() {
+        if (index >= filenames.length) {
+            return done(); // All files have been processed
+        }
+
+        const filename = filenames[index];
+        console.log("Executing for", filename);
+
         exec(`python3 tests/tests/process_passport.py ${filename}`, (error, stdout, stderr) => {
             if (error) {
                 console.error(`Error executing script: ${error.message}`);
@@ -25,9 +32,13 @@ function generateFilesForAll(filenames, done) {
                 console.error(`Script stderr: ${stderr}`);
                 return done(new Error(stderr));
             }
-            if (--pending === 0) done(); // Call done only after all files are processed
+
+            index++;
+            setTimeout(executeNext, 2000); // 2-second delay before processing the next file
         });
-    });
+    }
+
+    executeNext(); // Start the execution chain
 }
 
 describe("File generation test", function () {
