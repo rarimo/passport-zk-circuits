@@ -11,7 +11,7 @@ def write_results_to_register_identity(sig_algo, dg_hash_algo, document_type, dg
     circom_code += "\t\t{dg_hash_algo},\t//dg hash algo\n".format(dg_hash_algo = dg_hash_algo)
     circom_code += "\t\t{document_type},\t//document type\n".format(document_type = document_type)
     circom_code += "\t\t{ec_blocks},\t//encapsulated content len in blocks\n".format(ec_blocks = ec_blocks) 
-    circom_code += "\t\t{ec_shift},\t///encapsulated content  shift in bits\n".format(ec_shift = ec_shift) 
+    circom_code += "\t\t{ec_shift},\t//encapsulated content  shift in bits\n".format(ec_shift = ec_shift) 
     circom_code += "\t\t{dg1shift},\t//dg1 shift in bits\n".format(dg1shift = dg1shift) 
     circom_code += "\t\t{isdg15},\t//dg15 sig algo (0 if not present)\n".format(isdg15 = isdg15) 
     circom_code += "\t\t{dg15shift},\t//dg15 shift in bits\n".format(dg15shift = dg15shift) 
