@@ -1,10 +1,10 @@
 const path = require("path");
-const wasm_tester = require("../index").wasm;
+const wasm_tester = require("./tester");
 const Scalar = require("ffjavascript").Scalar;
 exports.p =
 Scalar.fromString("21888242871839275222246405745257275088548364400416034343698204186575808495617"
 );
-describe("POC test", function () {
+describe("POC tests", function () {
 this.timeout(100000);
 it("POC for invalid days and months", async function () {
 const circuit = await wasm_tester(

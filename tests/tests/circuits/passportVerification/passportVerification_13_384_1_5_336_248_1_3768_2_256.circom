@@ -2,7 +2,7 @@ pragma circom 2.1.6;
 
 include "../../../../circuits/passportVerification/passportVerificationBuilder.circom";
 
-component main = PassportVerificationBuilder(
+component main { public [slaveMerkleRoot] } = PassportVerificationBuilder(
 		8,	 //dg15 chunk number
 		8,	//encapsulated content chunk number
 		13,	//sig_algo

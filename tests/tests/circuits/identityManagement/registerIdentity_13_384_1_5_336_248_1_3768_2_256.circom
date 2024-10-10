@@ -2,10 +2,10 @@ pragma circom 2.1.6;
 
 include  "../../../../circuits/identityManagement/circuits/registerIdentityBuilder.circom";
 
-component main = RegisterIdentityBuilder(
+component main { public [slaveMerkleRoot] } = RegisterIdentityBuilder(
 		13,	//sig_algo
 		384,	//dg hash algo
-		3,	//document type
+		1,	//document type
 		5,	//encapsulated content len in blocks
 		336,	///encapsulated content  shift in bits
 		248,	//dg1 shift in bits

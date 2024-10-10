@@ -6,7 +6,7 @@ def write_results_to_register_identity(sig_algo, dg_hash_algo, document_type, dg
     circom_code = ""
     circom_code += "pragma circom 2.1.6;\n\n"
     circom_code += "include  \"../../../../circuits/identityManagement/circuits/registerIdentityBuilder.circom\";\n\n"
-    circom_code += "component main = RegisterIdentityBuilder(\n"
+    circom_code += "component main { public [slaveMerkleRoot] } = RegisterIdentityBuilder(\n"
     circom_code += "\t\t{sig_algo},\t//sig_algo\n".format(sig_algo = sig_algo)
     circom_code += "\t\t{dg_hash_algo},\t//dg hash algo\n".format(dg_hash_algo = dg_hash_algo)
     circom_code += "\t\t{document_type},\t//document type\n".format(document_type = document_type)
@@ -26,7 +26,7 @@ def write_results_to_register_identity(sig_algo, dg_hash_algo, document_type, dg
 def write_results_to_passport_verification(sig_algo, dg_hash_algo, dg1shift, dg15shift, ec_shift, dg15_blocks, ec_blocks, isdg15, AA_shift, short_file_path):
     circom_code = "pragma circom 2.1.6;\n\n"
     circom_code += "include \"../../../../circuits/passportVerification/passportVerificationBuilder.circom\";\n\n"
-    circom_code += "component main = PassportVerificationBuilder(\n\t\t8,\t //dg15 chunk number\n\t\t8,\t//encapsulated content chunk number\n"
+    circom_code += "component main { public [slaveMerkleRoot] } = PassportVerificationBuilder(\n\t\t8,\t //dg15 chunk number\n\t\t8,\t//encapsulated content chunk number\n"
     circom_code += "\t\t{sig_algo},\t//sig_algo\n".format(sig_algo = sig_algo)
     circom_code += "\t\t{dg_hash_algo},\t//dg hash algo\n".format(dg_hash_algo = dg_hash_algo)
     circom_code += "\t\t{ec_blocks},\t//encapsulated content len in blocks\n".format(ec_blocks = ec_blocks) 
