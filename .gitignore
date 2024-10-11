@@ -26,7 +26,7 @@ typechain-types
 generated-types
 artifacts
 cache
-test/tests/inputs/*
+tests/tests/inputs/*
 temp_asn1.der
 tests/tests/__pycache__
 circuits/ecdsa/tmp/*
@@ -36,3 +36,4 @@ circuits/ecdsa/tmp/*
 !tests/tests/inputs/isNotAdultInput.json
 !tests/tests/inputs/validInput.json
 helpers/blacklist_generation/__pycache__
+package-lock.json

@@ -27,16 +27,13 @@ const config: HardhatUserConfig = {
     circuitsDir: "circuits",
     compilationSettings: {
       c: true,
-      onlyFiles: ["participationProof.circom"],
-      skipFiles: ["registerIdentity2688TMSP.circom", "registerIdentity2704.circom", "registerIdentityUniversal.circom",
-    "registerIdentity2688.circom", "registerIdentityUniversalRSA2048.circom", "registerIdentityUniversalRSA2048TD1.circom",]
+      onlyFiles: ["multiplier.circom"],
+      skipFiles: []
     },
     setupSettings: {
       ptauDir: "zkit/ptau",
-      onlyFiles: ["participationProof.circom"],
-      skipFiles: ["registerIdentity2688TMSP.circom", "registerIdentity2704.circom", "registerIdentityUniversal.circom",
-    "registerIdentity2688.circom", "registerIdentityUniversalRSA2048.circom", "registerIdentityUniversalRSA2048TD1.circom",
-    "registerIdentityUniversalRSA4096.circom"]
+      onlyFiles: ["multiplier.circom"],
+      skipFiles: []
     },
   },
   typechain: {
