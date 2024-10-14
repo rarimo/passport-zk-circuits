@@ -1,10 +1,10 @@
 // LICENSE: GPL-3.0
 pragma circom 2.1.6;
 
-include "../node_modules/circomlib/circuits/bitify.circom";
-include "../node_modules/circomlib/circuits/comparators.circom";
-include "../node_modules/circomlib/circuits/switcher.circom";
-include "../node_modules/circomlib/circuits/poseidon.circom";
+include "circomlib/circuits/bitify.circom";
+include "circomlib/circuits/comparators.circom";
+include "circomlib/circuits/switcher.circom";
+include "circomlib/circuits/poseidon.circom";
 
 
 template SMTHash1() {

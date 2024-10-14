@@ -37,3 +37,5 @@ circuits/ecdsa/tmp/*
 !tests/tests/inputs/validInput.json
 helpers/blacklist_generation/__pycache__
 package-lock.json
+test/passports/*
+test/inputs/*

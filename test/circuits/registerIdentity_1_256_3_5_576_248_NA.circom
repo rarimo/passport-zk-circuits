@@ -1,6 +1,6 @@
 pragma circom 2.1.6;
 
-include  "../../../../circuits/identityManagement/circuits/registerIdentityBuilder.circom";
+include  "../../circuits/identityManagement/circuits/registerIdentityMock.circom";
 
 component main { public [slaveMerkleRoot] } = RegisterIdentityBuilder(
 		1,	//sig_algo

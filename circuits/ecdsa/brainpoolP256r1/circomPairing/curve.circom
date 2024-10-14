@@ -422,8 +422,11 @@ template EllipticCurveScalarMultiply(CHUNK_SIZE, CHUNK_NUMBER, b, x, p){
                 pDouble[i].in[j][idx] <== r[i+1][j][idx]; 
             
             if(BITS[i] == 0){
-                for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
-                    r[i][j][idx] <== pDouble[i].out[j][idx];
+                for(var j=0; j<2; j++){
+                    for(var idx=0; idx<CHUNK_NUMBER; idx++){
+                        r[i][j][idx] <== pDouble[i].out[j][idx];
+                    }
+                }
                 rIsO[i] <== rIsO[i+1]; 
             }else{
                 // pAdd[CUR_ID] = pDouble[i] + P 

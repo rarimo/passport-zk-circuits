@@ -22,18 +22,22 @@ function get_BLS12_381_prime(CHUNK_SIZE, CHUNK_NUMBER){
 
 // half of 8th ROOTS of unity, up to negation
 function get_roots_of_unity(CHUNK_SIZE, CHUNK_NUMBER){
-    assert( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 );
+
+    assert(CHUNK_SIZE == 55 && CHUNK_NUMBER == 7);
+
     var ROOTS[4][2][150];
+
     for(var idx=0; idx<CHUNK_NUMBER; idx++){
         ROOTS[0][0][idx] = 0;
         ROOTS[0][1][idx] = 0;
         ROOTS[1][0][idx] = 0;
         ROOTS[1][1][idx] = 0;
     }
+
     ROOTS[0][0][0] = 1; // ROOTS[0] = 1
     ROOTS[1][1][0] = 1; // ROOTS[1] = sqrt(-1)
 
-    if( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 ){
+    if(CHUNK_SIZE == 55 && CHUNK_NUMBER == 7){
         ROOTS[2][0] = [4649817190157321,
                     14178090100713872,
                     25898210532243870,
@@ -67,11 +71,11 @@ function get_roots_of_unity(CHUNK_SIZE, CHUNK_NUMBER){
 }
 
 function get_etas(CHUNK_SIZE, CHUNK_NUMBER){
-    assert( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 );
+    assert(CHUNK_SIZE == 55 && CHUNK_NUMBER == 7);
     var p[150] = get_BLS12_381_prime(CHUNK_SIZE, CHUNK_NUMBER);
     var ETAS[4][2][150];
      
-    if( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 ){
+    if(CHUNK_SIZE == 55 && CHUNK_NUMBER == 7){
         ETAS[0][0] = [15111404105178256,
                      12179658998385743,
                      23072200951145993,
@@ -111,8 +115,11 @@ function get_etas(CHUNK_SIZE, CHUNK_NUMBER){
 // coefficients for the 3-isogeny map from E2' to E2 
 // taken from E.3 of https://cfrg.github.io/draft-irtf-cfrg-hash-to-curve/draft-irtf-cfrg-hash-to-curve.html#appendix-E.3
 function get_iso3_coeffs(CHUNK_SIZE, CHUNK_NUMBER){
+
     assert( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 );
+
     var COEFFS[4][4][2][150];
+
     if( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 ){
         COEFFS[0][0][0] = [15950248680265686, 32024958503631044, 4244301805875352, 29783714120969249, 35703698803053471, 29228779030399226, 406640325010316];
         COEFFS[0][0][1] = [15950248680265686, 32024958503631044, 4244301805875352, 29783714120969249, 35703698803053471, 29228779030399226, 406640325010316];
@@ -151,7 +158,9 @@ function get_iso3_coeffs(CHUNK_SIZE, CHUNK_NUMBER){
 }
 
 function get_generator_G1(CHUNK_SIZE, CHUNK_NUMBER){
-    assert( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 );
+
+    assert(CHUNK_SIZE == 55 && CHUNK_NUMBER == 7);
+
     var G1[2][150];
 
     G1[0] = [16589478066046651,
@@ -173,7 +182,9 @@ function get_generator_G1(CHUNK_SIZE, CHUNK_NUMBER){
 }
 
 function get_generator_G2(CHUNK_SIZE, CHUNK_NUMBER){
-    assert( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 );
+
+    assert(CHUNK_SIZE == 55 && CHUNK_NUMBER == 7);
+
     var G2[2][2][150];
 
     G2[0][0] = [95420233661880, 1773856045391785, 5044075188989616, 23082975677810779, 22805092780977487, 23121359448368568, 161253150172098];
@@ -185,12 +196,15 @@ function get_generator_G2(CHUNK_SIZE, CHUNK_NUMBER){
 }
 
 function get_Fp12_frobenius(CHUNK_SIZE, CHUNK_NUMBER){
+
     assert( (CHUNK_SIZE==96 && CHUNK_NUMBER==4) || (CHUNK_SIZE==77 && CHUNK_NUMBER==5) || (CHUNK_SIZE==55 && CHUNK_NUMBER==7) );
-    var COEFF[12][6][2][20]; // 
+
+    var COEFF[12][6][2][20];  
+
     // COEFF[j][i] represents an element in F_q^2
     // F_q^12 = F_q^2[w] / (w^6 - (u+1)) 
     // Apply Frobenius j times to w^i: (w^i)^(q^j) = COEFF[j][i] * w^i 
-    if( CHUNK_SIZE==96 && CHUNK_NUMBER==4 ){
+    if( CHUNK_SIZE == 96 && CHUNK_NUMBER == 4){
         COEFF[0][0][0][0] = 1;
         COEFF[0][0][0][1] = 0;
         COEFF[0][0][0][2] = 0;
@@ -2929,5 +2943,6 @@ function get_Fp12_frobenius(CHUNK_SIZE, CHUNK_NUMBER){
         COEFF[11][5][1][5] = 1778035881690211;
         COEFF[11][5][1][6] = 69335985795384;
     }
+    
     return COEFF;
 }

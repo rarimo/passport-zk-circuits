@@ -1,7 +1,7 @@
 pragma circom  2.1.6;
 
-include "../node_modules/circomlib/circuits/sha256/sha256.circom";
-include "../node_modules/circomlib/circuits/bitify.circom";
+include "circomlib/circuits/sha256/sha256.circom";
+include "circomlib/circuits/bitify.circom";
 include "./passportVerificationValidity.circom";
 
 template PassportVerificationSHA256(N) {
