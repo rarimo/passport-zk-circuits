@@ -117,7 +117,7 @@ template RegisterIdentity(
     skIndentityHasher.inputs[0] <== skIdentity;
     dg1Hasher.inputs[4] <== skIndentityHasher.out;
 
-    dg1Commitment <== dg1Hasher.out
+    dg1Commitment <== dg1Hasher.out;
 
 
     // Forming EdDSA BybyJubJub public key point from private key (identity)
