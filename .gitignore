@@ -39,3 +39,4 @@ helpers/blacklist_generation/__pycache__
 package-lock.json
 test/passports/*
 test/inputs/*
+test/registerIdentityTest.ts
