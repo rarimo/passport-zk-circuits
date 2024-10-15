@@ -27,6 +27,31 @@ function createQueryCircuit(){
     } catch (err) {
         console.error(`Error writing to file: ${err}`);
     }
+
+    res_string = "pragma circom  2.1.6;\n\n"
+    res_string += `include "../../circuits/identityManagement/circuits/queryIdentityTD1.circom";\n\n`
+    res_string += `component main { public [eventID,\n`
+    res_string +=  `                       eventData,\n`
+    res_string +=  `                       idStateRoot,\n` 
+    res_string +=  `                       selector,\n`
+    res_string +=  `                       currentDate,\n`
+    res_string +=  `                       timestampLowerbound,\n`
+    res_string +=  `                       timestampUpperbound,\n`
+    res_string +=  `                       identityCounterLowerbound,\n`
+    res_string +=  `                       identityCounterUpperbound,\n`
+    res_string +=  `                       birthDateLowerbound,\n`
+    res_string +=  `                       birthDateUpperbound,\n`
+    res_string +=  `                       expirationDateLowerbound,\n`
+    res_string +=  `                       expirationDateUpperbound,\n`
+    res_string +=  `                       citizenshipMask\n`
+    res_string +=  `                       ] } = QueryIdentity(80);`
+
+    try {
+        fs.writeFileSync("test/circuits/queryIdentityTD1.circom", res_string, 'utf8');
+        // console.log(`File created and content written to ${filePath}`);
+    } catch (err) {
+        console.error(`Error writing to file: ${err}`);
+    }
 }
 
 function updateOnlyFilesInConfig(filenames, configFilePath) {
@@ -38,7 +63,7 @@ function updateOnlyFilesInConfig(filenames, configFilePath) {
         // Find and update the line that contains 'onlyFiles: []'
         lines = lines.map(line => {
             if (line.includes('onlyFiles:')) {
-                return `      onlyFiles: ["queryIdentity.circom", ${filenames.map(file => `"${file}.circom"`)}],`
+                return `      onlyFiles: ["queryIdentity.circom", "queryIdentityTD1.circom", ${filenames.map(file => `"${file}.circom"`)}],`
             }
             return line;
         });
@@ -98,15 +123,31 @@ function copyFileSync(src, dest) {
 
 function generateTestFile(filenames){
 
-    let result_str = "import { zkit } from \"hardhat\";\nimport { expect } from \"chai\";\nimport fs from \"fs\";\nimport path from \"path\";\n"
-    result_str += `import { Core, QueryIdentity } from "@zkit";\n`
+    let result_str = "import { zkit } from \"hardhat\";\nimport { expect } from \"chai\";\nimport fs from \"fs\";\nimport path from \"path\";\nimport { Poseidon, babyJub } from \"@iden3/js-crypto\";\n"
+    result_str += `import { Core } from "@zkit";\n`
+
+    result_str += `\nfunction bigintToUint8Array(bigIntValue: bigint): Uint8Array {`
+    result_str += `\n\tconst hexString = bigIntValue.toString(16);`
+    result_str += `\n\tconst paddedHexString = hexString.length % 2 === 0 ? hexString : '0' + hexString;`
+    result_str += `\n\tconst byteArray = new Uint8Array(paddedHexString.length / 2);`
+    result_str += `\n\tfor (let i = 0; i < byteArray.length; i++) {`
+    result_str += `\n\t\tbyteArray[i] = parseInt(paddedHexString.substr(i * 2, 2), 16);`
+    result_str += `\n\t}`
+    result_str += `\n\tif (byteArray.length < 32) {`
+    result_str += `\n\t\tconst paddedArray = new Uint8Array(32);`
+    result_str += `\n\t\tpaddedArray.set(byteArray, 32 - byteArray.length);`
+    result_str += `\n\t\treturn paddedArray;`
+    result_str += `\n\t}`
+    result_str += `\n\treturn byteArray;`
+    result_str += `\n}\n`
     
     result_str += `\n\ndescribe("Register Identity Circuit Tests", function () {\n`
     for (var i = 0; i < filenames.length; i++){
         result_str += `\tlet circuit${i}: Core.R${filenames[i].slice(1)}Circom.RegisterIdentityBuilder;\n`
         result_str += `\tlet input${i}: any;\n`
     }
-    result_str += `\tlet queryCircuit: QueryIdentity;\n`
+    result_str += `\tlet queryCircuit: Core.QueryIdentityCircom.QueryIdentity;\n`
+	result_str += `\tlet queryCircuitTD1: Core.QueryIdentityTD1Circom.QueryIdentity;\n`
     
   
     result_str += `\n\n\tbefore(async function () {\n`;
@@ -114,15 +155,21 @@ function generateTestFile(filenames){
        result_str += `\t\tcircuit${i} = await zkit.getCircuit("test/circuits/${filenames[i]}.circom:RegisterIdentityBuilder");\n`
        result_str += `\t\tconst testJson${i} = path.join(__dirname, \`./inputs/${filenames[i]}.json\`);\n`
        result_str += `\t\tconst data${i} = await fs.promises.readFile(testJson${i}, 'utf8');\n`
-       result_str += `\t\tinput${i} = JSON.parse(data${i});\n\n`
+       result_str += `\t\tinput${i} = JSON.parse(data${i});\n`
     }
-    result_str += `\t\tqueryCircuit = await zkit.getCircuit("QueryIdentity");\n\n`;
+    result_str += `\n\t\tqueryCircuit = await zkit.getCircuit("test/circuits/queryIdentity.circom:QueryIdentity");`
+    result_str += `\n\t\tqueryCircuitTD1 = await zkit.getCircuit("test/circuits/queryIdentityTD1.circom:QueryIdentity");\n\n`
 
     result_str += `\t});\n`
 
     for (var i = 0; i < filenames.length; i++){
         result_str += `\n\n\tit("${filenames[i]} test", async function () {\n`
-        result_str += `\n\t\tconst circuitInput = {`
+        result_str += `\n\t\tlet docType${i} = parseInt("${filenames[i]}".split("_")[3]);\n`
+        result_str += `\n\t\tlet dg1Len${i} = 760;`
+        result_str += `\n\t\t\tif (docType${i} == 3){`
+        result_str += `\n\t\t\tdg1Len${i} = 744;`
+        result_str += `\n\t\t}\n`
+        result_str += `\n\t\tconst circuitInput${i} = {`
         result_str += `\n\t\t\tdg1: input${i}.dg1,`
         result_str += `\n\t\t\tdg15: input${i}.dg15,`
         result_str += `\n\t\t\tsignedAttributes: input${i}.signedAttributes,`
@@ -133,28 +180,43 @@ function generateTestFile(filenames){
         result_str += `\n\t\t\tslaveMerkleRoot: input${i}.slaveMerkleRoot,`
         result_str += `\n\t\t\tslaveMerkleInclusionBranches: input${i}.slaveMerkleInclusionBranches`
         result_str += `\n\t\t};`
-        result_str += `\n\t\tawait expect(circuit${i}).to.have.witnessInputs(circuitInput);`
-        result_str += `\n\t\tconst proof = await circuit${i}.generateProof(circuitInput);`
-        result_str += `\n\t\tawait expect(circuit${i}).to.verifyProof(proof);\n\n`
-        result_str += `\t\tconst queryCircuitInput = {\n`
-		result_str += `\t\t\tdg1: input${i}.dg1,\n`
+        result_str += `\n\t\tawait expect(circuit${i}).to.have.witnessInputs(circuitInput${i});`
+        result_str += `\n\t\tconst proof${i} = await circuit${i}.generateProof(circuitInput${i});`
+        result_str += `\n\t\tawait expect(circuit${i}).to.verifyProof(proof${i});\n\n`
+        result_str += `\n\t\tlet chunking${i} = ["", "", "", ""];`
+        result_str += `\n\t\tfor (var i = 0; i < 4; i++){`
+        result_str += `\n\t\t\tfor (var j = 0; j < dg1Len${i}/4; j++){`
+        result_str += `\n\t\t\t\tchunking${i}[i] += input${i}.dg1[i*(dg1Len${i}/4) + dg1Len${i}/4 - 1 - j].toString();`
+        result_str += `\n\t\t\t}`
+        result_str += `\n\t\t}\n`
+		result_str += `\n\t\tlet skHash${i} = Poseidon.hash([BigInt(input${i}.skIdentity)]);`
+		result_str += `\n\t\tlet dgCommit${i} = Poseidon.hash([BigInt(\`0b\${chunking${i}[0]}\`), BigInt(\`0b\${chunking${i}[1]}\`), BigInt(\`0b\${chunking${i}[2]}\`), BigInt(\`0b\${chunking${i}[3]}\`), skHash${i}]);`
+		result_str += `\n\t\tconst timestampSeconds${i} = Date.now().toString().slice(0, Date.now().toString().length-3);`
+		result_str += `\n\t\tlet value${i} = Poseidon.hash([BigInt(dgCommit${i}), 1n, BigInt(timestampSeconds${i})]);`
+		result_str += `\n\n\t\tlet pubkey${i} = babyJub.mulPointEscalar(babyJub.Base8, BigInt(input${i}.skIdentity));`
+		result_str += `\n\t\tlet pk_hash${i} = Poseidon.hash(pubkey${i});`
+		result_str += `\n\t\tlet index${i} = Poseidon.hash([BigInt(proof${i}.publicSignals.passportHash), pk_hash${i}]);`
+		result_str += `\n\n\t\tlet root${i} = Poseidon.hash([index${i}, value${i}, 1n]);`
+		result_str += `\n\t\tlet branches${i} = new Array(80).fill("0");\n`
+        result_str += `\t\tconst queryCircuitInput${i} = {\n`
+		result_str += `\t\t\tdg1: input${i}.dg1.slice(0, dg1Len${i}),\n`
         result_str += `\t\t\teventID: "0x1234567890",\n`
         result_str += `\t\t\teventData: "0x12345678901234567890",\n`
-        result_str += `\t\t\tidStateRoot: \`"\$\{proof.publicSignals.slaveMerkleRoot\}"\`,\n`
-        result_str += `\t\t\tidStateSiblings: "",\n`
-        result_str += `\t\t\tpkPassportHash: \`"\$\{proof.publicSignals.passportHash\}"\`,\n`
-        result_str += `\t\t\tskIdentity: \`"\$\{input${i}.skIdentity\}"\`,\n`
+        result_str += `\t\t\tidStateRoot: \`\$\{root${i}\}\`,\n`
+        result_str += `\t\t\tidStateSiblings: branches${i},\n`
+        result_str += `\t\t\tpkPassportHash: \`\$\{proof${i}.publicSignals.passportHash\}\`,\n`
+        result_str += `\t\t\tskIdentity: \`\$\{input${i}.skIdentity\}\`,\n`
         result_str += `\t\t\tselector: "0",\n`
-        result_str += `\t\t\ttimestamp: "",\n`
+        result_str += `\t\t\ttimestamp: \`\$\{timestampSeconds${i}\}\`,\n`
         const currentDate = new Date();
         const formattedDate = currentDate.toISOString().split('T')[0].split("-");
         const date = `0x3${formattedDate[0][2]}3${formattedDate[0][3]}3${formattedDate[1][0]}3${formattedDate[1][1]}3${formattedDate[2][0]}3${formattedDate[2][1]}`
         result_str += `\t\t\tcurrentDate: "${date}",\n`
-        result_str += `\t\t\tidentityCounter: "",\n`
+        result_str += `\t\t\tidentityCounter: "1",\n`
         result_str += `\t\t\ttimestampLowerbound: "0",\n`
         result_str += `\t\t\ttimestampUpperbound: "19000000000",\n`
-        result_str += `\t\t\tidentityCounterLowerbound: 0,\n`
-        result_str += `\t\t\tidentityCounterUpperbound: 1000,\n`
+        result_str += `\t\t\tidentityCounterLowerbound: "0",\n`
+        result_str += `\t\t\tidentityCounterUpperbound: "1000",\n`
         const birthDate = `0x3${formattedDate[0][3] >= 8 ? parseInt(formattedDate[0][2], 10) - 1 : parseInt(formattedDate[0][2], 10) - 2}3${formattedDate[0][3] >= 8 ? parseInt(formattedDate[0][3], 10) - 8 : parseInt(formattedDate[0][3], 10) + 2}3${formattedDate[1][0]}3${formattedDate[1][1]}3${formattedDate[2][0]}3${formattedDate[2][1]}`
         result_str += `\t\t\tbirthDateLowerbound: "0x303030303030",\n`
         result_str += `\t\t\tbirthDateUpperbound: "${birthDate}",\n`
@@ -162,6 +224,15 @@ function generateTestFile(filenames){
         result_str += `\t\t\texpirationDateUpperbound: "0x333030303030",\n`
         result_str += `\t\t\tcitizenshipMask: "15"\n`
 		result_str += `\t\t}\n`
+        result_str += `\n\t\tif (docType${i} == 3) {`
+		result_str += `\n\t\t\tawait expect(queryCircuit).to.have.witnessInputs(queryCircuitInput${i});`
+		result_str += `\n\t\t\tconst proof${i}_2 = await queryCircuit.generateProof(queryCircuitInput${i});`
+		result_str += `\n\t\t\tawait expect(queryCircuit).to.verifyProof(proof${i}_2);`
+		result_str += `\n\t\t}else{`
+		result_str += `\n\t\t\tawait expect(queryCircuitTD1).to.have.witnessInputs(queryCircuitInput${i});`
+		result_str += `\n\t\t\tconst proof${i}_2 = await queryCircuitTD1.generateProof(queryCircuitInput${i});`
+		result_str += `\n\t\t\tawait expect(queryCircuitTD1).to.verifyProof(proof${i}_2);`
+		result_str += `\n\t\t}`
         result_str += `\n\t});\n`
     }
     result_str += "});"
@@ -173,7 +244,6 @@ function generateTestFile(filenames){
     } catch (err) {
         console.error(`Error writing to file: ${err}`);
     }
-
 }
 
 function generateFilesForAll(filenames, callback) {

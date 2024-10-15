@@ -18,7 +18,7 @@ template IdentityStateVerifier(idTreeDepth) {
     // Retrieve pkIdentity from skIdentity + proving id ownership
     component babyPbk = BabyPbk();
     babyPbk.in <== skIdentity;
-
+    
     // Hashing identity pk
     component pkIdentityHasher = Poseidon(2);
     pkIdentityHasher.inputs[0] <== babyPbk.Ax;

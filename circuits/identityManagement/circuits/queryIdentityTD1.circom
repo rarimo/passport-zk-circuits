@@ -210,7 +210,7 @@ template QueryIdentity(idTreeDepth) {
         }
         dg1Hasher.inputs[i] <== dg1Chunking[i].out;
     }
-
+    
     component skIndentityHasher = Poseidon(1);   //skData = Poseidon(skIdentity)
     skIndentityHasher.inputs[0] <== skIdentity;
     dg1Hasher.inputs[4] <== skIndentityHasher.out;
