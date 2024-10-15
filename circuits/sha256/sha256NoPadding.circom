@@ -1,7 +1,7 @@
 pragma circom 2.1.6;
 
-include "../node_modules/circomlib/circuits/sha256/constants.circom";
-include "../node_modules/circomlib/circuits/sha256/sha256compression.circom";
+include "circomlib/circuits/sha256/constants.circom";
+include "circomlib/circuits/sha256/sha256compression.circom";
 
 template Sha256NoPadding(nBlocks) {
     signal input in[nBlocks * 512];

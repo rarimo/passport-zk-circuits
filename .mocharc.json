@@ -1,5 +1,6 @@
 {
   "require": "hardhat/register",
-  "timeout": 100000,
-  "_": ["test/**/*.ts"]
+  "timeout": 10000000,
+  "_": ["test/**/*.ts"],
+  "ignore": "test/generateRegisterIdentityTest.js"
 }

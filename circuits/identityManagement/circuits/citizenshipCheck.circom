@@ -1,7 +1,7 @@
 pragma circom 2.1.6;
 
-include "./circomlib/circuits/bitify.circom";
-include "./circomlib/circuits/comparators.circom";
+include "circomlib/circuits/bitify.circom";
+include "circomlib/circuits/comparators.circom";
 
 template CitizenshipCheck(){
     signal input citizenship;

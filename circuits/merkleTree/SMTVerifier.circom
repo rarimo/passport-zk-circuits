@@ -1,10 +1,10 @@
 // LICENSE: GPL-3.0
 pragma circom 2.1.6;
 
-include "../node_modules/circomlib/circuits/bitify.circom";
-include "../node_modules/circomlib/circuits/comparators.circom";
-include "../node_modules/circomlib/circuits/switcher.circom";
-include "../node_modules/circomlib/circuits/poseidon.circom";
+include "circomlib/circuits/bitify.circom";
+include "circomlib/circuits/comparators.circom";
+include "circomlib/circuits/switcher.circom";
+include "circomlib/circuits/poseidon.circom";
 
 
 template SMTHash1() {
@@ -165,15 +165,7 @@ template SMTVerifier(N_LEVELS) {
         } else {
             levels[i].child <== levels[i + 1].root;
         }
-        // if (i == 0 || i == 40 || i == 20){
-        //     log("st_top", levels[i].st_top);
-        //     log("st_inew", levels[i].st_inew);
-        //     log("sibling", levels[i].sibling);
-        //     log("new1leaf", levels[i].new1leaf);
-        //     log("lrbit", levels[i].lrbit);
-
-        // }
-        // log("root", i, " ", levels[i].root);
+        
     }
 
     component isEqual = IsEqual();

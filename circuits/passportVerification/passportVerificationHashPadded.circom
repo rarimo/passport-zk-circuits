@@ -1,7 +1,7 @@
 pragma circom 2.1.6;
 
-include "../node_modules/circomlib/circuits/bitify.circom";
-include "../node_modules/circomlib/circuits/poseidon.circom";
+include "circomlib/circuits/bitify.circom";
+include "circomlib/circuits/poseidon.circom";
 include "../rsa/rsa.circom";
 include "../sha256/sha256NoPadding.circom";
 include "../merkleTree/SMTVerifier.circom";

@@ -7,6 +7,7 @@ include "identityStateVerifier.circom";
 include "../../dateUtilities/dateComparisonEncoded.circom";
 include "circomlib/circuits/comparators.circom";
 include "../../dateUtilities/dateComparisonEncodedNormalized.circom";
+include "./citizenshipCheck.circom";
 
 // QUERY SELECTOR:
 // 0 - nullifier   (+)
@@ -210,7 +211,7 @@ template QueryIdentity(idTreeDepth) {
         }
         dg1Hasher.inputs[i] <== dg1Chunking[i].out;
     }
-
+    
     component skIndentityHasher = Poseidon(1);   //skData = Poseidon(skIdentity)
     skIndentityHasher.inputs[0] <== skIdentity;
     dg1Hasher.inputs[4] <== skIndentityHasher.out;
@@ -228,4 +229,11 @@ template QueryIdentity(idTreeDepth) {
 
     identityStateVerifier.idStateRoot <== idStateRoot;
     identityStateVerifier.idStateSiblings <== idStateSiblings;
+
+    //---------------------------------
+    //Citizenship Blacklist check
+
+    component citizenshipCheck = CitizenshipCheck();
+    citizenshipCheck.citizenship <== dg1DataExtractor.citizenship;
+    citizenshipCheck.blacklist <== citizenshipMask;
 }

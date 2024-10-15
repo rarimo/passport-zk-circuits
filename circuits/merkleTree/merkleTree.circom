@@ -3,7 +3,7 @@ pragma circom  2.1.6;
 include "dualMux.circom";
 include "hashLeftRight.circom";
 
-include "../node_modules/circomlib/circuits/comparators.circom";
+include "circomlib/circuits/comparators.circom";
 
 template MerkleTreeVerifier(depth) {
     signal output isVerified;

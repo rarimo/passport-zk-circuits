@@ -1,8 +1,8 @@
 pragma circom  2.1.6;
 
-include "../node_modules/circomlib/circuits/bitify.circom";
+include "circomlib/circuits/bitify.circom";
 include "../dateUtilities/dateComparison.circom";
-include "../node_modules/circomlib/circuits/comparators.circom";
+include "circomlib/circuits/comparators.circom";
 
 template PassportVerificationValidity(N) {
     signal input currDateYear;

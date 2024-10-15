@@ -1,7 +1,7 @@
 pragma circom 2.1.6;
 
 include "secp192r1.circom";
-include "Secp192r1Func.circom";
+include "secp192r1Func.circom";
 include "circomlib/circuits/bitify.circom";
 include "../utils/func.circom";
 

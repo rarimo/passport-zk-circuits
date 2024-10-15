@@ -1,8 +1,8 @@
 // LICENSE: GPL-3.0
 pragma circom  2.1.6;
 
-include "../node_modules/circomlib/circuits/poseidon.circom";
-include "../node_modules/circomlib/circuits/comparators.circom";
+include "circomlib/circuits/poseidon.circom";
+include "circomlib/circuits/comparators.circom";
 include "../merkleTree/merkleTree.circom";
 
 // BuildNullifier creates a new nullifier from documentHash, blinder and salt in the same way as it 

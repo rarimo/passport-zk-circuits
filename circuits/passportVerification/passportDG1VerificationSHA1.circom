@@ -1,6 +1,6 @@
 pragma circom  2.1.6;
 
-include "../node_modules/circomlib/circuits/bitify.circom";
+include "circomlib/circuits/bitify.circom";
 include "./passportVerificationValidity.circom";
 include "./utils/sha1.circom";
 
