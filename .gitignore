@@ -40,3 +40,4 @@ package-lock.json
 test/passports/*
 test/inputs/*
 test/registerIdentityTest.ts
+test/circuits/*
