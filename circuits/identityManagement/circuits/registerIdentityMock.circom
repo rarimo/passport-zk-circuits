@@ -30,8 +30,8 @@ template RegisterIdentityBuilder (
     signal output dg1Commitment;
     signal output pkIdentityHash;
 
-    dg15PubKeyHash <== dg1[0] * dg1[1];
-    passportHash <== dg1[0] * dg1[1];
+    dg15PubKeyHash <== 12333;
+    passportHash <== 12345;
     dg1Commitment <== dg1[0] * dg1[1];
     pkIdentityHash <== dg1[0] * dg1[1];
     

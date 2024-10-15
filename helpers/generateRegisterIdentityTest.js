@@ -183,6 +183,10 @@ function generateTestFile(filenames){
         result_str += `\n\t\tawait expect(circuit${i}).to.have.witnessInputs(circuitInput${i});`
         result_str += `\n\t\tconst proof${i} = await circuit${i}.generateProof(circuitInput${i});`
         result_str += `\n\t\tawait expect(circuit${i}).to.verifyProof(proof${i});\n\n`
+        result_str += `\n\t\tlet pkPassportHash${i} = proof${i}.publicSignals.dg15PubKeyHash;`
+		result_str += `\n\t\tif (proof${i}.publicSignals.dg15PubKeyHash == 0) {`
+		result_str += `\n\t\t\tpkPassportHash${i} = proof${i}.publicSignals.passportHash;`
+		result_str += `\n\t\t}\n`
         result_str += `\n\t\tlet chunking${i} = ["", "", "", ""];`
         result_str += `\n\t\tfor (var i = 0; i < 4; i++){`
         result_str += `\n\t\t\tfor (var j = 0; j < dg1Len${i}/4; j++){`
@@ -195,7 +199,7 @@ function generateTestFile(filenames){
 		result_str += `\n\t\tlet value${i} = Poseidon.hash([BigInt(dgCommit${i}), 1n, BigInt(timestampSeconds${i})]);`
 		result_str += `\n\n\t\tlet pubkey${i} = babyJub.mulPointEscalar(babyJub.Base8, BigInt(input${i}.skIdentity));`
 		result_str += `\n\t\tlet pk_hash${i} = Poseidon.hash(pubkey${i});`
-		result_str += `\n\t\tlet index${i} = Poseidon.hash([BigInt(proof${i}.publicSignals.passportHash), pk_hash${i}]);`
+		result_str += `\n\t\tlet index${i} = Poseidon.hash([BigInt(pkPassportHash${i}), pk_hash${i}]);`
 		result_str += `\n\n\t\tlet root${i} = Poseidon.hash([index${i}, value${i}, 1n]);`
 		result_str += `\n\t\tlet branches${i} = new Array(80).fill("0");\n`
         result_str += `\t\tconst queryCircuitInput${i} = {\n`
@@ -204,7 +208,7 @@ function generateTestFile(filenames){
         result_str += `\t\t\teventData: "0x12345678901234567890",\n`
         result_str += `\t\t\tidStateRoot: \`\$\{root${i}\}\`,\n`
         result_str += `\t\t\tidStateSiblings: branches${i},\n`
-        result_str += `\t\t\tpkPassportHash: \`\$\{proof${i}.publicSignals.passportHash\}\`,\n`
+        result_str += `\t\t\tpkPassportHash: \`\$\{pkPassportHash${i}\}\`,\n`
         result_str += `\t\t\tskIdentity: \`\$\{input${i}.skIdentity\}\`,\n`
         result_str += `\t\t\tselector: "0",\n`
         result_str += `\t\t\ttimestamp: \`\$\{timestampSeconds${i}\}\`,\n`
