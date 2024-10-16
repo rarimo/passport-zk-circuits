@@ -17,8 +17,8 @@ template PointOnLineFp2(CHUNK_SIZE, CHUNK_NUMBER, P) {
     signal input in[3][2][2][CHUNK_NUMBER]; 
 
     var LOGK = log_ceil(CHUNK_NUMBER);
-    var LOGK2 = log_ceil(6*CHUNK_NUMBER*CHUNK_NUMBER);
-    assert(3*CHUNK_SIZE + LOGK2 < 251);
+    var LOGK2 = log_ceil(6 * CHUNK_NUMBER*CHUNK_NUMBER);
+    assert(3 * CHUNK_SIZE + LOGK2 < 251);
 
     // AKA check point on line 
     component left = BigMultShortLong2D(CHUNK_SIZE, CHUNK_NUMBER, 2); // 3 x 2k-1 registers abs val < 4k*2^{2n}
@@ -38,16 +38,16 @@ template PointOnLineFp2(CHUNK_SIZE, CHUNK_NUMBER, P) {
     }
     
     component diffRed[2]; 
-    diffRed[0] = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER-1, P, 3*CHUNK_SIZE + 2*LOGK + 2);
-    diffRed[1] = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER-1, P, 3*CHUNK_SIZE + 2*LOGK + 1);
+    diffRed[0] = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER-1, P, 3 * CHUNK_SIZE + 2*LOGK + 2);
+    diffRed[1] = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER-1, P, 3 * CHUNK_SIZE + 2*LOGK + 1);
     for(var i=0; i<2*CHUNK_NUMBER-1; i++) {
         diffRed[0].in[i] <== left.out[0][i] - left.out[2][i] - right.out[0][i] + right.out[2][i];
         diffRed[1].in[i] <== left.out[1][i] - right.out[1][i]; 
     }
-    // diffRed has CHUNK_NUMBER registers abs val < 6*CHUNK_NUMBER^2*2^{3n} -- to see this, easier to use SignedFp2MultiplyNoCarry instead of BigMultShortLong2D 
+    // diffRed has CHUNK_NUMBER registers abs val < 6 * CHUNK_NUMBER^2*2^{3n} -- to see this, easier to use SignedFp2MultiplyNoCarry instead of BigMultShortLong2D 
     component diffMod[2];
     for (var j = 0; j < 2; j ++) {
-        diffMod[j] = SignedCheckCarryModToZero(CHUNK_SIZE, CHUNK_NUMBER, 3*CHUNK_SIZE + LOGK2, P);
+        diffMod[j] = SignedCheckCarryModToZero(CHUNK_SIZE, CHUNK_NUMBER, 3 * CHUNK_SIZE + LOGK2, P);
         for (var i = 0; i < CHUNK_NUMBER; i ++) {
             diffMod[j].in[i] <== diffRed[j].out[i];
         }
@@ -76,7 +76,7 @@ template PointOnCurveFp2(CHUNK_SIZE, CHUNK_NUMBER, A, B, P){
             ySq.b[i][j] <== in[1][i][j];
         }
     }
-    component xCu = SignedFp2MultiplyNoCarryUnequal(CHUNK_SIZE, 2*CHUNK_NUMBER-1, CHUNK_NUMBER, 3*CHUNK_SIZE+2*LOGK+2); // 3k-2 registers in [0, 4*CHUNK_NUMBER^2 * 2^{3n}) 
+    component xCu = SignedFp2MultiplyNoCarryUnequal(CHUNK_SIZE, 2*CHUNK_NUMBER-1, CHUNK_NUMBER, 3 * CHUNK_SIZE+2*LOGK+2); // 3k-2 registers in [0, 4*CHUNK_NUMBER^2 * 2^{3n}) 
     for (var i = 0; i < 2; i ++) {
         for (var j = 0; j < 2*CHUNK_NUMBER-1; j ++) {
             xCu.a[i][j] <== xSq.out[i][j];
@@ -89,8 +89,8 @@ template PointOnCurveFp2(CHUNK_SIZE, CHUNK_NUMBER, A, B, P){
     // xCu + A x + B has 3k-2 registers < (4k^2 + 1/2^CHUNK_SIZE + 1/2^2n)2^{3n} <= (4*CHUNK_NUMBER^2+2/2^CHUNK_SIZE)2^{3n} 
     component cuRed[2];
     for (var j = 0; j < 2; j ++) {
-        cuRed[j] = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_NUMBER-2, P, 4*CHUNK_SIZE + 3*LOGK + 4);
-        for(var i=0; i<3*CHUNK_NUMBER-2; i++){
+        cuRed[j] = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_NUMBER-2, P, 4*CHUNK_SIZE + 3 * LOGK + 4);
+        for(var i=0; i<3 * CHUNK_NUMBER-2; i++){
             if(i == 0) {
                 if(j == 0)
                     cuRed[j].in[i] <== xCu.out[j][i] + A[0] * in[0][0][i] - A[1] * in[0][1][i] + B[j];
@@ -113,7 +113,7 @@ template PointOnCurveFp2(CHUNK_SIZE, CHUNK_NUMBER, A, B, P){
 
     component ySqRed[2]; // CHUNK_NUMBER registers < 2k^2*2^{3n} 
     for (var i = 0; i < 2; i ++) {
-        ySqRed[i] = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER-1, P, 3*CHUNK_SIZE + 2*LOGK + 1);
+        ySqRed[i] = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER-1, P, 3 * CHUNK_SIZE + 2*LOGK + 1);
         for(var j=0; j<2*CHUNK_NUMBER-1; j++){
             ySqRed[i].in[j] <== ySq.out[i][j];
         }
@@ -148,7 +148,7 @@ template EllipticCurveFunction(CHUNK_SIZE, CHUNK_NUMBER, A, B, P){
             xSq.b[i][j] <== in[i][j];
         }
     }
-    component xCu = SignedFp2MultiplyNoCarryUnequal(CHUNK_SIZE, 2*CHUNK_NUMBER-1, CHUNK_NUMBER, 3*CHUNK_SIZE+2*LOGK+2); // 3k-2 registers in [0, 4*CHUNK_NUMBER^2 * 2^{3n}) 
+    component xCu = SignedFp2MultiplyNoCarryUnequal(CHUNK_SIZE, 2*CHUNK_NUMBER-1, CHUNK_NUMBER, 3 * CHUNK_SIZE+2*LOGK+2); // 3k-2 registers in [0, 4*CHUNK_NUMBER^2 * 2^{3n}) 
     for (var i = 0; i < 2; i ++) {
         for (var j = 0; j < 2*CHUNK_NUMBER-1; j ++) {
             xCu.a[i][j] <== xSq.out[i][j];
@@ -161,8 +161,8 @@ template EllipticCurveFunction(CHUNK_SIZE, CHUNK_NUMBER, A, B, P){
     // xCu + A x + B has 3k-2 registers < (4*CHUNK_NUMBER^2+1)2^{3n} 
     component cuRed[2];
     for (var j = 0; j < 2; j ++) {
-        cuRed[j] = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_NUMBER-2, P, 4*CHUNK_SIZE + 3*LOGK + 4);
-        for(var i=0; i<3*CHUNK_NUMBER-2; i++){
+        cuRed[j] = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_NUMBER-2, P, 4*CHUNK_SIZE + 3 * LOGK + 4);
+        for(var i=0; i<3 * CHUNK_NUMBER-2; i++){
             if(i == 0) {
                 if(j == 0)
                     cuRed[j].in[i] <== xCu.out[j][i] + A[0] * in[0][i] - A[1] * in[1][i] + B[j];
@@ -212,10 +212,10 @@ template PointOnTangentFp2(CHUNK_SIZE, CHUNK_NUMBER, A, P){
             xSq.b[i][j] <== in[0][0][i][j];
         }
     }
-    component right = SignedFp2MultiplyNoCarryUnequal(CHUNK_SIZE, 2*CHUNK_NUMBER-1, CHUNK_NUMBER, 3*CHUNK_SIZE + 2*LOGK + 3); // 3k-2 registers < 2(6*CHUNK_NUMBER^2 + 2k/2^CHUNK_SIZE)*2^{3n} 
+    component right = SignedFp2MultiplyNoCarryUnequal(CHUNK_SIZE, 2*CHUNK_NUMBER-1, CHUNK_NUMBER, 3 * CHUNK_SIZE + 2*LOGK + 3); // 3k-2 registers < 2(6 * CHUNK_NUMBER^2 + 2k/2^CHUNK_SIZE)*2^{3n} 
     for(var i=0; i<2*CHUNK_NUMBER-1; i++){
         if(i == 0) {
-            right.a[0][i] <== 3 * xSq.out[0][i] + A[0]; // registers in [0, 3*CHUNK_NUMBER*2^{2n} + 2^CHUNK_SIZE )  
+            right.a[0][i] <== 3 * xSq.out[0][i] + A[0]; // registers in [0, 3 * CHUNK_NUMBER*2^{2n} + 2^CHUNK_SIZE )  
             right.a[1][i] <== 3 * xSq.out[1][i] + A[1];
         }
         else {
@@ -240,7 +240,7 @@ template PointOnTangentFp2(CHUNK_SIZE, CHUNK_NUMBER, A, P){
     component diffRed[2];
     for (var i = 0; i < 2; i ++) {
         diffRed[i] = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_NUMBER-2, P, 4*CHUNK_SIZE + LOGK3);
-        for (var j = 0; j < 3*CHUNK_NUMBER-2; j ++) {
+        for (var j = 0; j < 3 * CHUNK_NUMBER-2; j ++) {
             if (j < 2*CHUNK_NUMBER-1) {
                 diffRed[i].in[j] <== right.out[i][j] - left.out[i][j];
             }
@@ -315,7 +315,7 @@ template EllipticCurveAddUnequalFp2(CHUNK_SIZE, CHUNK_NUMBER, P) {
         }
     }
 
-    // x_1 + x_2 + x_3 has registers in [0, 3*2^CHUNK_SIZE) 
+    // x_1 + x_2 + x_3 has registers in [0, 3 * 2^CHUNK_SIZE) 
     component cubic = BigMultShortLong2DUnequal(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_NUMBER-1, 2, 2); // 3k-2 x 3 registers < 12 * CHUNK_NUMBER^2 * 2^{3n} ) 
     for(var i=0; i<CHUNK_NUMBER; i++) {
         cubic.a[0][i] <== A[0][0][i] + B[0][0][i] + out[0][0][i]; 
@@ -334,7 +334,7 @@ template EllipticCurveAddUnequalFp2(CHUNK_SIZE, CHUNK_NUMBER, P) {
         cubic_red[0].in[i] <== cubic.out[0][i] - cubic.out[2][i] - dy_sq.out[0][i] + dy_sq.out[2][i]; // registers abs val < 12*CHUNK_NUMBER^2*2^{3n} + 2k*2^{2n} <= (12k^2 + 2k/2^CHUNK_SIZE) * 2^{3n}
         cubic_red[1].in[i] <== cubic.out[1][i] - dy_sq.out[1][i]; // registers in < 12*CHUNK_NUMBER^2*2^{3n} + 4k*2^{2n} < (12k+1)CHUNK_NUMBER * 2^{3n} )
     }
-    for(var i=2*CHUNK_NUMBER-1; i<3*CHUNK_NUMBER-2; i++) {
+    for(var i=2*CHUNK_NUMBER-1; i<3 * CHUNK_NUMBER-2; i++) {
         cubic_red[0].in[i] <== cubic.out[0][i] - cubic.out[2][i]; 
         cubic_red[1].in[i] <== cubic.out[1][i];
     }
