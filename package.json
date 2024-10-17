@@ -35,7 +35,7 @@
         "@iden3/js-crypto": "^1.0.3",
         "@nomicfoundation/hardhat-toolbox": "^5.0.0",
         "@solarity/chai-zkit": "^0.2.5",
-        "@solarity/hardhat-zkit": "^0.4.6",
+        "@solarity/hardhat-zkit": "^0.4.7",
         "@typechain/ethers-v6": "^0.5.1",
         "@types/chai": "^4.3.14",
         "@types/mocha": "^10.0.6",

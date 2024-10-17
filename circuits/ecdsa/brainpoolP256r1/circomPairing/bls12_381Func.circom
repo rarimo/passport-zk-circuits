@@ -7,14 +7,14 @@ function get_BLS12_381_parameter(){
 
 function get_BLS12_381_prime(CHUNK_SIZE, CHUNK_NUMBER){
     var p[150];
-    assert( (CHUNK_SIZE==96 && CHUNK_NUMBER==4) || (CHUNK_SIZE==77 && CHUNK_NUMBER==5) || (CHUNK_SIZE==55 && CHUNK_NUMBER==7));
-    if( CHUNK_SIZE==96 && CHUNK_NUMBER==4 ){
+    assert(( CHUNK_SIZE == 96 && CHUNK_NUMBER == 4) || (CHUNK_SIZE == 77 && CHUNK_NUMBER == 5) || (CHUNK_SIZE == 55 && CHUNK_NUMBER == 7));
+    if(CHUNK_SIZE == 96 && CHUNK_NUMBER == 4 ){
         p = [54880396502181392957329877675, 31935979117156477062286671870, 20826981314825584179608359615, 8047903782086192180586325942];
     }
-    if( CHUNK_SIZE==77 && CHUNK_NUMBER==5 ){
+    if(CHUNK_SIZE == 77 && CHUNK_NUMBER == 5 ){
         p = [151110683138771015150251, 101672770061349971921567, 5845403419599137187901, 110079541992039310225047, 7675079137884323292337];
     }
-    if( CHUNK_SIZE==55 && CHUNK_NUMBER==7 ){
+    if(CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 ){
         p = [35747322042231467, 36025922209447795, 1084959616957103, 7925923977987733, 16551456537884751, 23443114579904617, 1829881462546425];
     }
     return p;
@@ -27,7 +27,7 @@ function get_roots_of_unity(CHUNK_SIZE, CHUNK_NUMBER){
 
     var ROOTS[4][2][150];
 
-    for(var idx=0; idx<CHUNK_NUMBER; idx++){
+    for(var idx  = 0; idx < CHUNK_NUMBER; idx++){
         ROOTS[0][0][idx] = 0;
         ROOTS[0][1][idx] = 0;
         ROOTS[1][0][idx] = 0;
@@ -120,7 +120,7 @@ function get_iso3_coeffs(CHUNK_SIZE, CHUNK_NUMBER){
 
     var COEFFS[4][4][2][150];
 
-    if( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 ){
+    if(CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 ){
         COEFFS[0][0][0] = [15950248680265686, 32024958503631044, 4244301805875352, 29783714120969249, 35703698803053471, 29228779030399226, 406640325010316];
         COEFFS[0][0][1] = [15950248680265686, 32024958503631044, 4244301805875352, 29783714120969249, 35703698803053471, 29228779030399226, 406640325010316];
         COEFFS[0][1][0] = [0, 0, 0, 0, 0, 0, 0];
@@ -197,14 +197,14 @@ function get_generator_G2(CHUNK_SIZE, CHUNK_NUMBER){
 
 function get_Fp12_frobenius(CHUNK_SIZE, CHUNK_NUMBER){
 
-    assert( (CHUNK_SIZE==96 && CHUNK_NUMBER==4) || (CHUNK_SIZE==77 && CHUNK_NUMBER==5) || (CHUNK_SIZE==55 && CHUNK_NUMBER==7) );
+    assert( (CHUNK_SIZE == 96 && CHUNK_NUMBER == 4) || (CHUNK_SIZE == 77 && CHUNK_NUMBER == 5) || (CHUNK_SIZE == 55 && CHUNK_NUMBER == 7) );
 
     var COEFF[12][6][2][20];  
 
     // COEFF[j][i] represents an element in F_q^2
     // F_q^12 = F_q^2[w] / (w^6 - (u+1)) 
     // Apply Frobenius j times to w^i: (w^i)^(q^j) = COEFF[j][i] * w^i 
-    if( CHUNK_SIZE == 96 && CHUNK_NUMBER == 4){
+    if(CHUNK_SIZE == 96 && CHUNK_NUMBER == 4){
         COEFF[0][0][0][0] = 1;
         COEFF[0][0][0][1] = 0;
         COEFF[0][0][0][2] = 0;
@@ -925,7 +925,7 @@ function get_Fp12_frobenius(CHUNK_SIZE, CHUNK_NUMBER){
         COEFF[11][5][1][2] = 10870206300725050764578763631;
         COEFF[11][5][1][3] = 304942890421345320673339650;
     }
-    if( CHUNK_SIZE==77 && CHUNK_NUMBER==5){
+    if(CHUNK_SIZE == 77 && CHUNK_NUMBER == 5){
         COEFF[0][0][0][0] = 1;
         COEFF[0][0][0][1] = 0;
         COEFF[0][0][0][2] = 0;
@@ -1790,7 +1790,7 @@ function get_Fp12_frobenius(CHUNK_SIZE, CHUNK_NUMBER){
         COEFF[11][5][1][3] = 93599087433168491987599;
         COEFF[11][5][1][4] = 290816202565522499726;
     }
-    if( CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 ){
+    if(CHUNK_SIZE == 55 && CHUNK_NUMBER == 7 ){
         COEFF[0][0][0][0] = 1;
         COEFF[0][0][0][1] = 0;
         COEFF[0][0][0][2] = 0;
