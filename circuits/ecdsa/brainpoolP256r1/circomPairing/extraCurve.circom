@@ -27,7 +27,7 @@ template EllipticCurveAddUnequal3Reg(CHUNK_SIZE, Q0, Q1, Q2) {
     Q[1] = Q1;
     Q[2] = Q2;
     for (var idx = 3; idx < 20; idx++) {
-	Q[idx] = 0;
+	    Q[idx] = 0;
     }
     
     // b[1] - a[1]
@@ -139,7 +139,7 @@ template EllipticCurveAddUnequal4Reg(CHUNK_SIZE, Q0, Q1, Q2, q3) {
     Q[2] = Q2;
     Q[3] = q3;
     for (var idx = 4; idx < 20; idx++) {
-	Q[idx] = 0;
+	    Q[idx] = 0;
     }
     
     // b[1] - a[1]
@@ -247,8 +247,8 @@ template EllipticCurveDouble0(CHUNK_SIZE, CHUNK_NUMBER, a, Q0, Q1, Q2, q3) {
 
     signal output out[2][CHUNK_NUMBER];
 
-    // assuming Q < 2**(4n) 
-    // represent Q = Q0 + Q1 * 2**CHUNK_SIZE + Q2 * 2**(2n) + q3 * 2**(3n)
+    // assuming Q < 2 *  * (4n) 
+    // represent Q = Q0 + Q1 * 2 * *CHUNK_SIZE + Q2 * 2 *  * (2n) + q3 * 2 *  * (3n)
     // not sure how I feel about this convention...
     var Q[20];
     Q[0] = Q0;
@@ -341,7 +341,7 @@ template EllipticCurveDouble0(CHUNK_SIZE, CHUNK_NUMBER, a, Q0, Q1, Q2, q3) {
         out0Pre.b[i] <== in[0][i];
         out0Pre.p[i] <== Q[i];
     }
-    // out0 = LAMBDA**2 - 2*in[0]
+    // out0 = LAMBDA**2 - 2 * in[0]
     component out0 = BigSubModP(CHUNK_SIZE, CHUNK_NUMBER);
     for (var i = 0; i < CHUNK_NUMBER; i++) {
         out0.a[i] <== out0Pre.out[i];
@@ -386,59 +386,59 @@ template LineEqualCoefficients(CHUNK_SIZE, CHUNK_NUMBER, Q){
     signal input P[2][CHUNK_NUMBER]; 
     signal output out[3][CHUNK_NUMBER];
     
-    component xsq3 = BigMultShortLong(CHUNK_SIZE, CHUNK_NUMBER); // 2k-1 registers [0, 3*CHUNK_NUMBER* 2^{2n})
-    component ysq = BigMultShortLong(CHUNK_SIZE, CHUNK_NUMBER); // 2k-1 registers [0, CHUNK_NUMBER*2^{2n}) 
-    for(var i=0; i<CHUNK_NUMBER; i++){
-        xsq3.a[i] <== 3*P[0][i];
+    component xsq3 = BigMultShortLong(CHUNK_SIZE, CHUNK_NUMBER); // 2k - 1 registers [0, 3 * CHUNK_NUMBER* 2^{2n})
+    component ysq = BigMultShortLong(CHUNK_SIZE, CHUNK_NUMBER); // 2k - 1 registers [0, CHUNK_NUMBER*2^{2n}) 
+    for(var i = 0; i < CHUNK_NUMBER; i++){
+        xsq3.a[i] <== 3 * P[0][i];
         xsq3.b[i] <== P[0][i];
         
         ysq.a[i] <== P[1][i];
         ysq.b[i] <== P[1][i];
     }
     
-    component xcube3 = BigMultShortLongUnequal(CHUNK_SIZE, 2*CHUNK_NUMBER-1, CHUNK_NUMBER); // 3k-2 registers [0, 3*CHUNK_NUMBER^2* 2^{3n} )
-    for(var i=0; i<2*CHUNK_NUMBER-1; i++)
+    component xcube3 = BigMultShortLongUnequal(CHUNK_SIZE, 2 * CHUNK_NUMBER - 1, CHUNK_NUMBER); // 3k - 2  registers [0, 3 * CHUNK_NUMBER^2 *  2^{3n})
+    for(var i = 0; i < 2 * CHUNK_NUMBER - 1; i++)
         xcube3.a[i] <== xsq3.out[i];
-    for(var i=0; i<CHUNK_NUMBER; i++)
+    for(var i = 0; i < CHUNK_NUMBER; i++)
         xcube3.b[i] <== P[0][i];
 
     
-    component xsq3red = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER-1, Q); // CHUNK_NUMBER registers in [0, CHUNK_NUMBER^2 * 2^{3n} )
-    for(var i=0; i<2*CHUNK_NUMBER-1; i++) 
+    component xsq3red = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER - 1, Q); // CHUNK_NUMBER registers in [0, CHUNK_NUMBER^2 * 2^{3n})
+    for(var i = 0; i < 2 * CHUNK_NUMBER - 1; i++) 
         xsq3red.in[i] <== xsq3.out[i];
     
-    component a = FpCarryModP(CHUNK_SIZE, CHUNK_NUMBER, 3*CHUNK_SIZE + log_ceil(CHUNK_NUMBER*CHUNK_NUMBER), Q);
-    for(var i=0; i<CHUNK_NUMBER; i++){
+    component a = FpCarryModP(CHUNK_SIZE, CHUNK_NUMBER, 3 * CHUNK_SIZE + log_ceil(CHUNK_NUMBER * CHUNK_NUMBER), Q);
+    for(var i = 0; i < CHUNK_NUMBER; i++){
         a.in[0][i] <== 0;
         a.in[1][i] <== xsq3red.out[i];
     }
-    for(var i=0; i<CHUNK_NUMBER; i++)
+    for(var i = 0; i < CHUNK_NUMBER; i++)
         out[0][i] <== a.out[i];
     
     // I think reducing registers of b to [0, 2^CHUNK_SIZE) is still useful for future multiplications
     component b = BigAddModP(CHUNK_SIZE, CHUNK_NUMBER);
-    for(var i=0; i<CHUNK_NUMBER; i++){
+    for(var i = 0; i < CHUNK_NUMBER; i++){
         b.a[i] <== P[1][i];
         b.b[i] <== P[1][i];
         b.p[i] <== Q[i];
     }
-    for(var i=0; i<CHUNK_NUMBER; i++)
+    for(var i = 0; i < CHUNK_NUMBER; i++)
         out[1][i] <== b.out[i];
     
-    component xcube3red = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_NUMBER-2, Q); // CHUNK_NUMBER registers in [0, 3*CHUNK_NUMBER^2*(2*CHUNK_NUMBER-2) * 2^{4n} )
-    for(var i=0; i<3*CHUNK_NUMBER-2; i++) 
+    component xcube3red = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, 2 * CHUNK_NUMBER - 2, Q); // CHUNK_NUMBER registers in [0, 3 * CHUNK_NUMBER^2 * (2 * CHUNK_NUMBER - 2 ) * 2^{4n})
+    for(var i = 0; i < 3 * CHUNK_NUMBER - 2; i++) 
         xcube3red.in[i] <== xcube3.out[i];
     
-    component ysqred = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER-1, Q); 
-    for(var i=0; i<2*CHUNK_NUMBER-1; i++) 
+    component ysqred = PrimeReduce(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER - 1, Q); 
+    for(var i = 0; i < 2 * CHUNK_NUMBER - 1; i++) 
         ysqred.in[i] <== ysq.out[i];
 
-    component c = FpCarryModP(CHUNK_SIZE, CHUNK_NUMBER, 4*CHUNK_SIZE + log_ceil(3*CHUNK_NUMBER*CHUNK_NUMBER*(2*CHUNK_NUMBER-2)), Q); 
-    for(var i=0; i<CHUNK_NUMBER; i++){
+    component c = FpCarryModP(CHUNK_SIZE, CHUNK_NUMBER, 4 * CHUNK_SIZE + log_ceil(3 * CHUNK_NUMBER * CHUNK_NUMBER * (2 * CHUNK_NUMBER - 2 )), Q); 
+    for(var i = 0; i < CHUNK_NUMBER; i++){
         c.in[0][i] <== xcube3red.out[i];
-        c.in[1][i] <== 2*ysqred.out[i];
+        c.in[1][i] <== 2 * ysqred.out[i];
     }
-    for(var i=0; i<CHUNK_NUMBER; i++)
+    for(var i = 0; i < CHUNK_NUMBER; i++)
         out[2][i] <== c.out[i];
     
 }*/
@@ -450,7 +450,7 @@ template LineEqualCoefficients(CHUNK_SIZE, CHUNK_NUMBER, Q){
 //  P is 2 x CHUNK_NUMBER array where P = (x, y) is a point in E[r](Fq) 
 //  Q is 2 x 6 x 2 x CHUNK_NUMBER array representing point (X, Y) in E(Fq12) 
 // Output:
-// f_r(Q) where <f_r> = [r]P - [r]O is computed using Miller's algorithm
+// f_r(Q) where <f_r >= [r]P - [r]O is computed using Miller's algorithm
 // Assume:
 //  r has CHUNK_NUMBER registers in [0, 2^CHUNK_SIZE)
 //  Q has CHUNK_NUMBER registers in [0, 2^CHUNK_SIZE)
@@ -463,14 +463,14 @@ template MillerLoop1(CHUNK_SIZE, CHUNK_NUMBER, b, r, q){
 
     var LOGK = log_ceil(CHUNK_NUMBER);
     var XI0 = 1;
-    var LOGK2 = log_ceil(36*(2+XI0)*(2+XI0) * CHUNK_NUMBER*CHUNK_NUMBER);
-    var LOGK3 = log_ceil(36*(2+XI0)*(2+XI0) * CHUNK_NUMBER*CHUNK_NUMBER*(2*CHUNK_NUMBER-1));
-    assert( 4*CHUNK_SIZE + LOGK3 < 251 );
+    var LOGK2 = log_ceil(36 * (2 + XI0) * (2 + XI0) * CHUNK_NUMBER * CHUNK_NUMBER);
+    var LOGK3 = log_ceil(36 * (2 + XI0) * (2 + XI0) * CHUNK_NUMBER * CHUNK_NUMBER * (2 * CHUNK_NUMBER - 1));
+    assert(4 * CHUNK_SIZE + LOGK3 < 251);
 
 
     var BITS[513]; // length is CHUNK_NUMBER * CHUNK_SIZE
     var BIT_LENGTH;
-    var SIG_BITS=0;
+    var SIG_BITS = 0;
     for (var i = 0; i < CHUNK_NUMBER; i++) {
         for (var j = 0; j < CHUNK_SIZE; j++) {
             BITS[j + CHUNK_SIZE * i] = (r[i] >> j) & 1;
@@ -493,90 +493,167 @@ template MillerLoop1(CHUNK_SIZE, CHUNK_NUMBER, b, r, q){
     component pAdd[SIG_BITS];
     component fAdd[SIG_BITS]; 
     component fAddPre[SIG_BITS]; 
-    var CUR_ID=0;
+    var CUR_ID = 0;
 
-    for(var i=BIT_LENGTH - 1; i>=0; i--){
-        if( i == BIT_LENGTH - 1 ){
+    for(var i=BIT_LENGTH - 1; i >= 0; i--){
+        if(i == BIT_LENGTH - 1){
             // f = 1 
-            for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
-                if(l==0 && j==0 && idx==0)
-                    f[i][l][j][idx] <== 1;
-                else    
-                    f[i][l][j][idx] <== 0;
+            for(var l = 0; l < 6; l++){
+                for(var j = 0; j < 2; j++){
+                    for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                        if(l == 0 && j == 0 && idx == 0){
+                            f[i][l][j][idx] <== 1;
+                        } else {    
+                            f[i][l][j][idx] <== 0;
+                        }
+                    }
+                }
             }
-            for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+            for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
                 pInterMed[i][j][idx] <== P[j][idx];
-        }else{
+        } else {
             // compute fDouble[i] = f[i+1]^2 * l_{pInterMed[i+1], pInterMed[i+1]}(Q) 
-            square[i] = SignedFp12MultiplyNoCarry(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_SIZE + 4 + LOGK); // 6 x 2 x 2k-1 registers in [0, 6 * CHUNK_NUMBER * (2+XI0) * 2^{2n} )
-            for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
-                square[i].a[l][j][idx] <== f[i+1][l][j][idx];
-                square[i].b[l][j][idx] <== f[i+1][l][j][idx];
+            square[i] = SignedFp12MultiplyNoCarry(CHUNK_SIZE, CHUNK_NUMBER, 2 * CHUNK_SIZE + 4 + LOGK); // 6 x 2 x 2k - 1 registers in [0, 6 * CHUNK_NUMBER * (2 + XI0) * 2^{2n})
+            for(var l = 0; l < 6; l++){
+                for(var j = 0; j < 2; j++){
+                    for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                        square[i].a[l][j][idx] <== f[i+1][l][j][idx];
+                        square[i].b[l][j][idx] <== f[i+1][l][j][idx];
+                    }
+                }
             }
 
             line[i] = LineFunctionEqual(CHUNK_SIZE, CHUNK_NUMBER, q); // 6 x 2 x CHUNK_NUMBER registers in [0, 2^CHUNK_SIZE) 
-            for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
-                line[i].P[j][idx] <== pInterMed[i+1][j][idx];            
-            for(var eps=0; eps<2; eps++)
-                for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
-                    line[i].Q[eps][l][j][idx] <== Q[eps][l][j][idx];
+            for(var j = 0; j < 2; j++){
+                for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                    line[i].P[j][idx] <== pInterMed[i+1][j][idx];            
+                }
+            }
+            for(var eps = 0; eps < 2; eps++){
+                for(var l = 0; l < 6; l++){
+                    for(var j = 0; j < 2; j++){
+                        for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                            line[i].Q[eps][l][j][idx] <== Q[eps][l][j][idx];
+                        }
+                    }
+                }
+            }
 
-            noCarry[i] = SignedFp12MultiplyNoCarryUnequal(CHUNK_SIZE, 2*CHUNK_NUMBER-1, CHUNK_NUMBER, 3*CHUNK_SIZE + LOGK2); // 6 x 2 x 3k-2 registers < (6 * (2+XI0))^2 * CHUNK_NUMBER^2 * 2^{3n} ) 
-            for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<2*CHUNK_NUMBER-1; idx++)
-                noCarry[i].a[l][j][idx] <== square[i].out[l][j][idx];
+            noCarry[i] = SignedFp12MultiplyNoCarryUnequal(CHUNK_SIZE, 2 * CHUNK_NUMBER - 1, CHUNK_NUMBER, 3 * CHUNK_SIZE + LOGK2); // 6 x 2 x 3k - 2  registers < (6 * (2 + XI0))^2 * CHUNK_NUMBER^2 * 2^{3n}) 
+            for(var l = 0; l < 6; l++){
+                for(var j = 0; j < 2; j++){
+                    for(var idx = 0; idx < 2 * CHUNK_NUMBER - 1; idx++){
+                        noCarry[i].a[l][j][idx] <== square[i].out[l][j][idx];
+                    }
+                }
+            }
             
-            for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
-                noCarry[i].b[l][j][idx] <== line[i].out[l][j][idx];
+            for(var l = 0; l < 6; l++){
+                for(var j = 0; j < 2; j++){
+                    for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                        noCarry[i].b[l][j][idx] <== line[i].out[l][j][idx];
+                    }
+                }
+            }
             
-            compress[i] = Fp12Compress(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_NUMBER-2, q, 4*CHUNK_SIZE + LOGK3); // 6 x 2 x CHUNK_NUMBER registers < (6 * (2+ XI0))^2 * CHUNK_NUMBER^2 * (2k-1) * 2^{4n} )
-            for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<3*CHUNK_NUMBER-2; idx++)
-                compress[i].in[l][j][idx] <== noCarry[i].out[l][j][idx];
+            compress[i] = Fp12Compress(CHUNK_SIZE, CHUNK_NUMBER, 2 * CHUNK_NUMBER - 2, q, 4 * CHUNK_SIZE + LOGK3); // 6 x 2 x CHUNK_NUMBER registers < (6 * (2 +  XI0))^2 * CHUNK_NUMBER^2 * (2k - 1) * 2^{4n})
+            for(var l = 0; l < 6; l++){
+                for(var j = 0; j < 2; j++){
+                    for(var idx = 0; idx < 3 * CHUNK_NUMBER - 2; idx++){
+                        compress[i].in[l][j][idx] <== noCarry[i].out[l][j][idx];
+                    }
+                }
+            }
 
-            fDouble[i] = SignedFp12CarryModP(CHUNK_SIZE, CHUNK_NUMBER, 4*CHUNK_SIZE + LOGK3, q);
-            for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
-                fDouble[i].in[l][j][idx] <== compress[i].out[l][j][idx]; 
+            fDouble[i] = SignedFp12CarryModP(CHUNK_SIZE, CHUNK_NUMBER, 4 * CHUNK_SIZE + LOGK3, q);
+            for(var l = 0; l < 6; l++){
+                for(var j = 0; j < 2; j++){
+                    for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                        fDouble[i].in[l][j][idx] <== compress[i].out[l][j][idx];
+                    }
+                }
+            }
 
             pDouble[i] = EllipticCurveDouble(CHUNK_SIZE, CHUNK_NUMBER, 0, b, q);  
-            for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
-                pDouble[i].in[j][idx] <== pInterMed[i+1][j][idx]; 
+            for(var j = 0; j < 2; j++){
+                for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                    pDouble[i].in[j][idx] <== pInterMed[i+1][j][idx]; 
+                }
+            }
             
             if(BITS[i] == 0){
-                for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
-                    f[i][l][j][idx] <== fDouble[i].out[l][j][idx]; 
-                for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
-                    pInterMed[i][j][idx] <== pDouble[i].out[j][idx];
-            }else{
+                for(var l = 0; l < 6; l++){
+                    for(var j = 0; j < 2; j++){
+                        for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                            f[i][l][j][idx] <== fDouble[i].out[l][j][idx]; 
+                        }
+                    }
+                }
+                for(var j = 0; j < 2; j++){
+                    for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                        pInterMed[i][j][idx] <== pDouble[i].out[j][idx];
+                    }
+                }
+            } else {
                 // fAdd[CUR_ID] = fDouble * l_{pDouble[i], P}(Q) 
                 fAdd[CUR_ID] = Fp12MultiplyWithLineUnequal(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER, CHUNK_SIZE, Q); 
-                for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
-                    fAdd[CUR_ID].g[l][j][idx] <== fDouble[i].out[l][j][idx];
-                
-                for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
-                    fAdd[CUR_ID].P[0][j][idx] <== pDouble[i].out[j][idx];            
-                    fAdd[CUR_ID].P[1][j][idx] <== P[j][idx];            
+                for(var l = 0; l < 6; l++){
+                    for(var j = 0; j < 2; j++){
+                        for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                            fAdd[CUR_ID].g[l][j][idx] <== fDouble[i].out[l][j][idx];
+                        }
+                    }
                 }
-                for(var eps=0; eps<2; eps++)for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
-                    fAdd[CUR_ID].Q[eps][l][j][idx] <== Q[eps][l][j][idx];
+                
+                for(var j = 0; j < 2; j++){
+                    for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                        fAdd[CUR_ID].P[0][j][idx] <== pDouble[i].out[j][idx];            
+                        fAdd[CUR_ID].P[1][j][idx] <== P[j][idx];    
+                    }        
+                }
+                for(var eps = 0; eps < 2; eps++){
+                    for(var l = 0; l < 6; l++){
+                        for(var j = 0; j < 2; j++){
+                            for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                                fAdd[CUR_ID].Q[eps][l][j][idx] <== Q[eps][l][j][idx];
+                            }
+                        }
+                    }
+                }
 
-                for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
-                    f[i][l][j][idx] <== fAdd[CUR_ID].out[l][j][idx]; 
+                for(var l = 0; l < 6; l++){
+                    for(var j = 0; j < 2; j++){
+                        for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                            f[i][l][j][idx] <== fAdd[CUR_ID].out[l][j][idx]; 
+                        }
+                    }
+                }
 
                 // pAdd[CUR_ID] = pDouble[i] + P 
                 pAdd[CUR_ID] = EllipticCurveAddUnequal(CHUNK_SIZE, CHUNK_NUMBER, q); 
-                for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
-                    pAdd[CUR_ID].a[j][idx] <== pDouble[i].out[j][idx];
-                    pAdd[CUR_ID].b[j][idx] <== P[j][idx];
+                for(var j = 0; j < 2; j++){
+                    for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                        pAdd[CUR_ID].a[j][idx] <== pDouble[i].out[j][idx];
+                        pAdd[CUR_ID].b[j][idx] <== P[j][idx];
+                    }
                 }
 
-                for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
-                    pInterMed[i][j][idx] <== pAdd[CUR_ID].out[j][idx];
-                
+                for(var j = 0; j < 2; j++){
+                    for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                        pInterMed[i][j][idx] <== pAdd[CUR_ID].out[j][idx];
+                    }
+                }
                 CUR_ID++;
             }
         }
     }
-    for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
-        out[l][j][idx] <== f[0][l][j][idx];
+    for(var l = 0; l < 6; l++){
+        for(var j = 0; j < 2; j++){
+            for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                out[l][j][idx] <== f[0][l][j][idx];
+            }
+        }
+    }
     
 }
 
@@ -597,36 +674,36 @@ template Fp12MultiplyWithLineEqual(CHUNK_SIZE, CHUNK_NUMBER, kg, overflowg, Q){
     signal output out[6][2][CHUNK_NUMBER];
 
     var LOGK = log_ceil(CHUNK_NUMBER);
-    component line = LineFunctionEqualNoCarry(CHUNK_SIZE, CHUNK_NUMBER, 3*CHUNK_SIZE + 2*LOGK + 2); // 6 x 4 x (3k - 2) registers in [0, 2^{3n + 2log(CHUNK_NUMBER) + 2})
-    for(var l=0; l<2; l++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+    component line = LineFunctionEqualNoCarry(CHUNK_SIZE, CHUNK_NUMBER, 3 * CHUNK_SIZE + 2 * LOGK + 2); // 6 x 4 x (3k - 2) registers in [0, 2^{3n + 2log(CHUNK_NUMBER) + 2})
+    for(var l = 0; l < 2; l++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
         line.P[l][idx] <== P[l][idx];
-    for(var l=0; l<2; l++)for(var i=0; i<6; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+    for(var l = 0; l < 2; l++)for(var i = 0; i < 6; i++)for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
         line.Q[l][i][j][idx] <== Q[l][i][j][idx];
 
     var mink;
-    if(kg < 3*CHUNK_NUMBER - 2)
+    if(kg < 3 * CHUNK_NUMBER - 2)
         mink = kg;
     else
-        mink = 3*CHUNK_NUMBER - 2;
-    var logc = log_ceil(12 * (2*CHUNK_NUMBER + kg - 2) * mink * CHUNK_NUMBER * CHUNK_NUMBER);
-    assert( overflowg + 4*CHUNK_SIZE + logc + 2 < 252 );
-    var log2kkg = log_ceil ( 2*CHUNK_NUMBER + kg - 2);
-    component mult = Fp12MultiplyNoCarryUnequal(CHUNK_SIZE, kg, 3*CHUNK_NUMBER - 2, overflowg + 3*CHUNK_SIZE + logc + 2 - log2kkg); // 3k + kg - 3 registers in [0, 12 * min(kg, 3k - 2) * 2^{overflowg + 3n + 2log(CHUNK_NUMBER) + 2} )
+        mink = 3 * CHUNK_NUMBER - 2;
+    var logc = log_ceil(12 * (2 * CHUNK_NUMBER + kg - 2) * mink * CHUNK_NUMBER * CHUNK_NUMBER);
+    assert(overflowg + 4 * CHUNK_SIZE + logc + 2 < 252);
+    var log2kkg = log_ceil (2 * CHUNK_NUMBER + kg - 2);
+    component mult = Fp12MultiplyNoCarryUnequal(CHUNK_SIZE, kg, 3 * CHUNK_NUMBER - 2, overflowg + 3 * CHUNK_SIZE + logc + 2 - log2kkg); // 3k + kg - 3 registers in [0, 12 * min(kg, 3k - 2) * 2^{overflowg + 3n + 2log(CHUNK_NUMBER) + 2})
     
-    for(var i=0; i<6; i++)for(var j=0; j<4; j++)for(var idx=0; idx<kg; idx++)
+    for(var i = 0; i < 6; i++)for(var j = 0; j<4; j++)for(var idx = 0; idx<kg; idx++)
         mult.a[i][j][idx] <== g[i][j][idx];
-    for(var i=0; i<6; i++)for(var j=0; j<4; j++)for(var idx=0; idx<3*CHUNK_NUMBER-2; idx++)
+    for(var i = 0; i < 6; i++)for(var j = 0; j<4; j++)for(var idx = 0; idx < 3 * CHUNK_NUMBER - 2; idx++)
         mult.b[i][j][idx] <== line.out[i][j][idx];
-    component reduce = Fp12Compress(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_NUMBER + kg - 3, Q, overflowg + 4*CHUNK_SIZE + logc + 2); // CHUNK_NUMBER registers in [0, 12 * (2k + kg - 2) * min(kg, 3k - 2) * 2^{overflowg + 4n + 2log(CHUNK_NUMBER) + 2} )
-    for(var i=0; i<6; i++)for(var j=0; j<4; j++)for(var idx=0; idx<3*CHUNK_NUMBER + kg - 3; idx++)
+    component reduce = Fp12Compress(CHUNK_SIZE, CHUNK_NUMBER, 2 * CHUNK_NUMBER + kg - 3, Q, overflowg + 4 * CHUNK_SIZE + logc + 2); // CHUNK_NUMBER registers in [0, 12 * (2k + kg - 2) * min(kg, 3k - 2) * 2^{overflowg + 4n + 2log(CHUNK_NUMBER) + 2})
+    for(var i = 0; i < 6; i++)for(var j = 0; j<4; j++)for(var idx = 0; idx < 3 * CHUNK_NUMBER + kg - 3; idx++)
         reduce.in[i][j][idx] <== mult.out[i][j][idx];
 
-    component carry = Fp12CarryModP(CHUNK_SIZE, CHUNK_NUMBER, overflowg + 4*CHUNK_SIZE + logc + 2, Q);
+    component carry = Fp12CarryModP(CHUNK_SIZE, CHUNK_NUMBER, overflowg + 4 * CHUNK_SIZE + logc + 2, Q);
 
-    for(var i=0; i<6; i++)for(var j=0; j<4; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+    for(var i = 0; i < 6; i++)for(var j = 0; j<4; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
         carry.in[i][j][idx] <== reduce.out[i][j][idx];
 
-    for(var i=0; i<6; i++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+    for(var i = 0; i < 6; i++)for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
         out[i][j][idx] <== carry.out[i][j][idx];
 }
 */
@@ -641,7 +718,7 @@ template MillerLoop2(CHUNK_SIZE, CHUNK_NUMBER, b, r, Q){
 
     var rBits[513]; // length is CHUNK_NUMBER * CHUNK_SIZE
     var rBitLength;
-    var rSigBits=0;
+    var rSigBits = 0;
     for (var i = 0; i < CHUNK_NUMBER; i++) {
         for (var j = 0; j < CHUNK_SIZE; j++) {
             rBits[j + CHUNK_SIZE * i] = (r[i] >> j) & 1;
@@ -660,80 +737,80 @@ template MillerLoop2(CHUNK_SIZE, CHUNK_NUMBER, b, r, Q){
     component fDouble[rBitLength];
     component square[rBitLength];
     component fAdd[rSigBits]; 
-    var CUR_ID=0;
+    var CUR_ID = 0;
 
     var LOGK = log_ceil(CHUNK_NUMBER);
-    assert( 6*CHUNK_SIZE + LOGK + 6 + log_ceil( 12*(4*CHUNK_NUMBER-3) * (2*CHUNK_NUMBER-1) * CHUNK_NUMBER * CHUNK_NUMBER ) < 252 );
+    assert(6*CHUNK_SIZE + LOGK + 6 + log_ceil(12 * (4 * CHUNK_NUMBER-3) * (2 * CHUNK_NUMBER - 1) * CHUNK_NUMBER * CHUNK_NUMBER) < 252);
     
-    for(var i=rBitLength - 1; i>=0; i--){
-        if( i == rBitLength - 1 ){
+    for(var i=rBitLength - 1; i >= 0; i--){
+        if(i == rBitLength - 1){
             // f = 1 
-            for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
-                if(l==0 && j==0 && idx==0)
+            for(var l = 0; l < 6; l++)for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++){
+                if(l == 0 && j == 0 && idx == 0)
                     f[i][l][j][idx] <== 1;
                 else
                     f[i][l][j][idx] <== 0;
             }
-            for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+            for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
                 pInterMed[i][j][idx] <== P[j][idx];
-        }else{
+        } else {
             // compute fDouble[i] = f[i+1]^2 * l_{pInterMed[i+1], pInterMed[i+1]}(Q) 
-            square[i] = Fp12MultiplyNoCarry(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_SIZE + LOGK + 4); // 2k-1 registers in [0, 12 * CHUNK_NUMBER * 2^{2n} )
-            for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+            square[i] = Fp12MultiplyNoCarry(CHUNK_SIZE, CHUNK_NUMBER, 2 * CHUNK_SIZE + LOGK + 4); // 2k - 1 registers in [0, 12 * CHUNK_NUMBER * 2^{2n})
+            for(var l = 0; l < 6; l++)for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++){
                 square[i].a[l][j][idx] <== f[i+1][l][j][idx];
                 square[i].a[l][j+2][idx] <== 0;
                 square[i].b[l][j][idx] <== f[i+1][l][j][idx];
                 square[i].b[l][j+2][idx] <== 0;
             }
 
-            fDouble[i] = Fp12MultiplyWithLineEqual(CHUNK_SIZE, CHUNK_NUMBER, 2*CHUNK_NUMBER-1, 2*CHUNK_SIZE + LOGK + 4, Q);
-            // assert ( 6n + log(CHUNK_NUMBER) + 6 + log(12 * (4k-3) * (2k-1) * CHUNK_NUMBER * CHUNK_NUMBER ) ) < 252
-            for(var l=0; l<6; l++)for(var j=0; j<4; j++)for(var idx=0; idx<2*CHUNK_NUMBER-1; idx++)
+            fDouble[i] = Fp12MultiplyWithLineEqual(CHUNK_SIZE, CHUNK_NUMBER, 2 * CHUNK_NUMBER - 1, 2 * CHUNK_SIZE + LOGK + 4, Q);
+            // assert (6n + log(CHUNK_NUMBER) + 6 + log(12 * (4k-3) * (2k - 1) * CHUNK_NUMBER * CHUNK_NUMBER)) < 252
+            for(var l = 0; l < 6; l++)for(var j = 0; j<4; j++)for(var idx = 0; idx < 2 * CHUNK_NUMBER - 1; idx++)
                 fDouble[i].g[l][j][idx] <== square[i].out[l][j][idx];
-            for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+            for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
                 fDouble[i].P[j][idx] <== pInterMed[i+1][j][idx];            
-            for(var eps=0; eps<2; eps++)for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+            for(var eps = 0; eps < 2; eps++)for(var l = 0; l < 6; l++)for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
                 fDouble[i].Q[eps][l][j][idx] <== Q[eps][l][j][idx];
 
-            if( i != 0 || (i == 0 && rBits[i] == 1) ){
+            if(i != 0 || (i == 0 && rBits[i] == 1)){
                 pDouble[i] = EllipticCurveDouble(CHUNK_SIZE, CHUNK_NUMBER, 0, b, Q);  
-                for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+                for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
                     pDouble[i].in[j][idx] <== pInterMed[i+1][j][idx]; 
             }
             
             if(rBits[i] == 0){
-                for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+                for(var l = 0; l < 6; l++)for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
                     f[i][l][j][idx] <== fDouble[i].out[l][j][idx]; 
-                if( i != 0 ){
-                    for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+                if(i != 0){
+                    for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
                         pInterMed[i][j][idx] <== pDouble[i].out[j][idx];
                 }
-            }else{
+            } else {
                 // fAdd[CUR_ID] = fDouble * l_{pDouble[i], P}(Q) 
                 fAdd[CUR_ID] = Fp12MultiplyWithLineUnequal(CHUNK_SIZE, CHUNK_NUMBER, CHUNK_NUMBER, CHUNK_SIZE, Q); 
-                for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+                for(var l = 0; l < 6; l++)for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++){
                     fAdd[CUR_ID].g[l][j][idx] <== fDouble[i].out[l][j][idx];
                     fAdd[CUR_ID].g[l][j+2][idx] <== 0;
                 }
-                for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+                for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++){
                     fAdd[CUR_ID].P[0][j][idx] <== pDouble[i].out[j][idx];            
                     fAdd[CUR_ID].P[1][j][idx] <== P[j][idx];            
                 }
-                for(var eps=0; eps<2; eps++)for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+                for(var eps = 0; eps < 2; eps++)for(var l = 0; l < 6; l++)for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
                     fAdd[CUR_ID].Q[eps][l][j][idx] <== Q[eps][l][j][idx];
 
-                for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+                for(var l = 0; l < 6; l++)for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
                     f[i][l][j][idx] <== fAdd[CUR_ID].out[l][j][idx]; 
 
                 if(i != 0){
                     // pAdd[CUR_ID] = pDouble[i] + P 
                     pAdd[CUR_ID] = EllipticCurveAddUnequal(CHUNK_SIZE, CHUNK_NUMBER, Q); 
-                    for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++){
+                    for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++){
                         pAdd[CUR_ID].a[j][idx] <== pDouble[i].out[j][idx];
                         pAdd[CUR_ID].b[j][idx] <== P[j][idx];
                     }
 
-                    for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+                    for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
                         pInterMed[i][j][idx] <== pAdd[CUR_ID].out[j][idx];
                 }
                 
@@ -741,7 +818,7 @@ template MillerLoop2(CHUNK_SIZE, CHUNK_NUMBER, b, r, Q){
             }
         }
     }
-    for(var l=0; l<6; l++)for(var j=0; j<2; j++)for(var idx=0; idx<CHUNK_NUMBER; idx++)
+    for(var l = 0; l < 6; l++)for(var j = 0; j < 2; j++)for(var idx = 0; idx < CHUNK_NUMBER; idx++)
         out[l][j][idx] <== f[0][l][j][idx];
     
 }
