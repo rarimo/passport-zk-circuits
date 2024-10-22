@@ -64,7 +64,7 @@ template CoreVerifyPubkeyG1NoCheck(CHUNK_SIZE, CHUNK_NUMBER){
         for(var j = 0; j < 2; j++){
             for(var idx = 0; idx < CHUNK_NUMBER; idx++){
                 is_valid[i][j][idx] = IsZero(); 
-                if(i= = 0 && j= = 0 && idx= = 0){
+                if(i == 0 && j == 0 && idx == 0){
                     is_valid[i][j][idx].in <== finalExp.out[i][j][idx] - 1;
                 } else {
                     is_valid[i][j][idx].in <== finalExp.out[i][j][idx];
