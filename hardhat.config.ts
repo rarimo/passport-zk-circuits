@@ -27,12 +27,12 @@ const config: HardhatUserConfig = {
     circuitsDir: "test/circuits",
     compilationSettings: {
       c: true,
-      onlyFiles: ["queryIdentity.circom", "queryIdentityTD1.circom", "registerIdentity_1_256_3_4_600_248_1_1496_3_256.circom","registerIdentity_12_256_3_3_336_232_NA.circom","registerIdentity_10_256_3_3_576_248_1_1184_5_264.circom","registerIdentity_1_256_3_5_576_248_NA.circom","registerIdentity_1_256_3_6_576_248_1_2432_5_296.circom"],
+      onlyFiles: ["queryIdentity.circom", "queryIdentityTD1.circom", "registerIdentity_1_256_3_4_600_248_1_1496_3_256.circom"],
       skipFiles: []
     },
     setupSettings: {
       ptauDir: "zkit/ptau",
-      onlyFiles: ["queryIdentity.circom", "queryIdentityTD1.circom", "registerIdentity_1_256_3_4_600_248_1_1496_3_256.circom","registerIdentity_12_256_3_3_336_232_NA.circom","registerIdentity_10_256_3_3_576_248_1_1184_5_264.circom","registerIdentity_1_256_3_5_576_248_NA.circom","registerIdentity_1_256_3_6_576_248_1_2432_5_296.circom"],
+      onlyFiles: ["queryIdentity.circom", "queryIdentityTD1.circom", "registerIdentity_1_256_3_4_600_248_1_1496_3_256.circom"],
       skipFiles: []
     },
   },

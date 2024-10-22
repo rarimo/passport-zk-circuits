@@ -68,8 +68,8 @@ template CoreVerifyPubkeyG1NoCheck(CHUNK_SIZE, CHUNK_NUMBER){
                     is_valid[i][j][idx].in <== finalExp.out[i][j][idx] - 1;
                 } else {
                     is_valid[i][j][idx].in <== finalExp.out[i][j][idx];
-                    total -= is_valid[i][j][idx].out; 
                 }
+                total -= is_valid[i][j][idx].out; 
             }
         }
     }
