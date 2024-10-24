@@ -181,32 +181,42 @@ template SplitThree(CHUNK_SIZE, M, CHUNK_NUMBER) {
     in === small + medium * (1 << CHUNK_SIZE) + big * (1 << CHUNK_SIZE + M);
 }
 
+// a[i], b[i] in 0... 2**n-1
+// represent a = a[0] + a[1] * 2**n + .. + a[k - 1] * 2**(n * k)
+template BigAddNoCarry(n, k) {
+    assert(n <= 252);
+
+    signal input a[k];
+    signal input b[k];
+    signal output out[k];
+
+    for (var i = 0; i < k; i++) {
+        out[i] <== a[i] + b[i];
+    }
+}
+
 // a[i], b[i] in 0... 2**CHUNK_SIZE-1
 // represent a = a[0] + a[1] * 2**CHUNK_SIZE + .. + a[CHUNK_NUMBER - 1] * 2**(CHUNK_SIZE * CHUNK_NUMBER)
-template BigAdd(CHUNK_SIZE, CHUNK_NUMBER) {
-    assert(CHUNK_SIZE <= 252);
-    signal input a[CHUNK_NUMBER];
-    signal input b[CHUNK_NUMBER];
-    signal output out[CHUNK_NUMBER + 1];
+template BigAdd(n, k) {
+    signal input a[k];
+    signal input b[k];
+    signal output out[k + 1];
 
-    component unit0 = ModSum(CHUNK_SIZE);
-    unit0.a <== a[0];
-    unit0.b <== b[0];
-    out[0] <== unit0.sum;
-
-    component unit[CHUNK_NUMBER - 1];
-    for (var i = 1; i < CHUNK_NUMBER; i++) {
-        unit[i - 1] = ModSumThree(CHUNK_SIZE);
-        unit[i - 1].a <== a[i];
-        unit[i - 1].b <== b[i];
-        if (i == 1) {
-            unit[i - 1].c <== unit0.carry;
-        } else {
-            unit[i - 1].c <== unit[i - 2].carry;
-        }
-        out[i] <== unit[i - 1].sum;
+    component add = BigAddNoCarry(n, k);
+    for (var i = 0; i < k; i++) {
+        add.a[i] <== a[i];
+        add.b[i] <== b[i];
     }
-    out[CHUNK_NUMBER] <== unit[CHUNK_NUMBER - 2].carry;
+
+    var carry = 0;
+    var mod = ((1 << n) - 1);
+
+    for (var i = 0; i < k; i++) {
+        out[i] <-- (add.out[i] + carry) & mod;
+        carry = (add.out[i] + carry) >> n;
+    }
+
+    out[k] <-- carry;
 }
 
 /* 
