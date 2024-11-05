@@ -189,14 +189,12 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
         if (EC_FIELD_SIZE > 248){
             DIFF = 248 - EC_FIELD_SIZE;
         }
-        component xToNum = Bits2Num(248 - DIFF);
-        component yToNum = Bits2Num(248 - DIFF);
+        component xToNum = Bits2Num(EC_FIELD_SIZE - DIFF);
+        component yToNum = Bits2Num(EC_FIELD_SIZE - DIFF);
 
-
-       
         for (var i = 0; i < EC_FIELD_SIZE - DIFF; i++) {
-            xToNum.in[EC_FIELD_SIZE - 1 - i] <== pubkey[i + DIFF];
-            yToNum.in[EC_FIELD_SIZE - 1 - i] <== pubkey[EC_FIELD_SIZE + i + DIFF];
+            xToNum.in[EC_FIELD_SIZE - DIFF - 1 - i] <== pubkey[i + DIFF];
+            yToNum.in[EC_FIELD_SIZE - DIFF - 1 - i] <== pubkey[EC_FIELD_SIZE + i + DIFF];
         }
         
         component pubkeyHasher = Poseidon(2);
