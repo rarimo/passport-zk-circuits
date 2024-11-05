@@ -183,14 +183,20 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
     }
     //ECDSA SIG
     else {
-        component xToNum = Bits2Num(248 - 24 * (SIGNATURE_TYPE == 24));
-        component yToNum = Bits2Num(248 - 24 * (SIGNATURE_TYPE == 24));
-        
+               
         var EC_FIELD_SIZE = CHUNK_NUMBER * CHUNK_SIZE;
-        
-        for (var i = 0; i < 248 - 24 * (SIGNATURE_TYPE == 24); i++) {
-            xToNum.in[247 - 24 * (SIGNATURE_TYPE == 24) - i] <== pubkey[i + 8 * (1 - (SIGNATURE_TYPE == 24))];
-            yToNum.in[247 - 24 * (SIGNATURE_TYPE == 24) - i] <== pubkey[EC_FIELD_SIZE + i + 8 * (1 - (SIGNATURE_TYPE == 24))];
+        var DIFF = 0;
+        if (EC_FIELD_SIZE > 248){
+            DIFF = 248 - EC_FIELD_SIZE;
+        }
+        component xToNum = Bits2Num(248 - DIFF);
+        component yToNum = Bits2Num(248 - DIFF);
+
+
+       
+        for (var i = 0; i < EC_FIELD_SIZE - DIFF; i++) {
+            xToNum.in[EC_FIELD_SIZE - 1 - i] <== pubkey[i + DIFF];
+            yToNum.in[EC_FIELD_SIZE - 1 - i] <== pubkey[EC_FIELD_SIZE + i + DIFF];
         }
         
         component pubkeyHasher = Poseidon(2);
