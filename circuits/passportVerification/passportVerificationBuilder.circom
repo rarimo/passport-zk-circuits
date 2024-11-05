@@ -39,12 +39,14 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
         HASH_TYPE = 160;
     }
     
+    var EC_HASH_TYPE = HASH_TYPE;
+    
     if (SIGNATURE_TYPE == 24){
         CHUNK_NUMBER = 7;
         CHUNK_SIZE = 32;
         HASH_TYPE = 224;
     }
-    
+
     var DG_HASH_BLOCK_SIZE = 1024;
     if (DG_HASH_TYPE <= 256){
         DG_HASH_BLOCK_SIZE = 512;
@@ -53,6 +55,8 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
     if (HASH_TYPE <= 256){
         HASH_BLOCK_SIZE = 512;
     }
+
+
     
     var DG1_LEN = 1024;
     var SIGNED_ATTRIBUTES_LEN = 1024;
@@ -92,7 +96,7 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
     dg1PassportHasher.out ==> dg1Hash;
     
     signal dg15Hash               [DG_HASH_TYPE];
-    signal encapsulatedContentHash[HASH_TYPE + 32 * (SIGNATURE_TYPE == 24)];
+    signal encapsulatedContentHash[EC_HASH_TYPE];
     signal signedAttributesHash   [HASH_TYPE];
     
     component ecPassportHasher;
@@ -114,7 +118,7 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
         }
     }
     
-    ecPassportHasher = PassportHash(HASH_BLOCK_SIZE, EC_BLOCK_NUMBER, HASH_TYPE + 32 * (SIGNATURE_TYPE == 24));
+    ecPassportHasher = PassportHash(HASH_BLOCK_SIZE, EC_BLOCK_NUMBER, EC_HASH_TYPE);
     for (var j = 0; j < HASH_BLOCK_SIZE * EC_BLOCK_NUMBER; j++){
         ecPassportHasher.in[j] <== encapsulatedContent[j];
     }
@@ -132,7 +136,7 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
         DG15_ACTUAL_SHIFT = DG15_SHIFT;
     }
     
-    passportVerificationFlow = PassportVerificationFlow(ENCAPSULATED_CONTENT_LEN,DG_HASH_TYPE,HASH_TYPE + 32 * (SIGNATURE_TYPE == 24),DG1_SHIFT,DG15_ACTUAL_SHIFT,EC_SHIFT,AA_SIGNATURE_ALGO); 
+    passportVerificationFlow = PassportVerificationFlow(ENCAPSULATED_CONTENT_LEN,DG_HASH_TYPE,EC_HASH_TYPE,DG1_SHIFT,DG15_ACTUAL_SHIFT,EC_SHIFT,AA_SIGNATURE_ALGO); 
     
     passportVerificationFlow.dg1Hash <== dg1Hash;
     passportVerificationFlow.dg15Hash <== dg15Hash;
@@ -179,14 +183,14 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
     }
     //ECDSA SIG
     else {
-        component xToNum = Bits2Num(248 - 32 * (SIGNATURE_TYPE == 24));
-        component yToNum = Bits2Num(248 - 32 * (SIGNATURE_TYPE == 24));
+        component xToNum = Bits2Num(248 - 24 * (SIGNATURE_TYPE == 24));
+        component yToNum = Bits2Num(248 - 24 * (SIGNATURE_TYPE == 24));
         
         var EC_FIELD_SIZE = CHUNK_NUMBER * CHUNK_SIZE;
         
-        for (var i = 0; i < 248 - 32 * (SIGNATURE_TYPE == 24); i++) {
-            xToNum.in[247 - 32 * (SIGNATURE_TYPE == 24) - i] <== pubkey[i + 8];
-            yToNum.in[247 - 32 * (SIGNATURE_TYPE == 24) - i] <== pubkey[EC_FIELD_SIZE + i + 8];
+        for (var i = 0; i < 248 - 24 * (SIGNATURE_TYPE == 24); i++) {
+            xToNum.in[247 - 24 * (SIGNATURE_TYPE == 24) - i] <== pubkey[i + 8 * (1 - (SIGNATURE_TYPE == 24))];
+            yToNum.in[247 - 24 * (SIGNATURE_TYPE == 24) - i] <== pubkey[EC_FIELD_SIZE + i + 8 * (1 - (SIGNATURE_TYPE == 24))];
         }
         
         component pubkeyHasher = Poseidon(2);

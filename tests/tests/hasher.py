@@ -146,7 +146,7 @@ def hash_pk_ecdsa(pk):
     len_2 = int(len(pk) / 2)
     print(len_2)
     if len(pk) < 512:
-        ecdsa_arr = [int(pk[8:len_2], 2), int(pk[len_2+8:len(pk)], 2)]
+        ecdsa_arr = [int(pk[0:len_2], 2), int(pk[len_2:len(pk)], 2)]
     else:
         ecdsa_arr = [int(pk[8:256], 2), int(pk[256+8:512], 2)]
 
