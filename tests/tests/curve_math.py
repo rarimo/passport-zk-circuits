@@ -10,13 +10,19 @@ from utils import *
 # Gy= 36134250956749795798585127919587881956611106672985015071877198253568414405109
 
 
-P  = 0xfffffffffffffffffffffffffffffffeffffffffffffffff
-A  = 0xfffffffffffffffffffffffffffffffefffffffffffffffc
-B  = 0x64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1
-Gx = 0x188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012
-Gy = 0x07192b95ffc8da78631011ed6b24cdd573f977a11e794811
-N  = 0xffffffffffffffffffffffff99def836146bc9b1b4d22831
+# P  = 0xfffffffffffffffffffffffffffffffeffffffffffffffff
+# A  = 0xfffffffffffffffffffffffffffffffefffffffffffffffc
+# B  = 0x64210519e59c80e70fa7e9ab72243049feb8deecc146b9b1
+# Gx = 0x188da80eb03090f67cbf20eb43a18800f4ff0afd82ff1012
+# Gy = 0x07192b95ffc8da78631011ed6b24cdd573f977a11e794811
+# N  = 0xffffffffffffffffffffffff99def836146bc9b1b4d22831
 
+P = 0xffffffffffffffffffffffffffffffff000000000000000000000001
+A = 0xfffffffffffffffffffffffffffffffefffffffffffffffffffffffe
+B = 0xb4050a850c04b3abf54132565044b0b7d7bfd8ba270b39432355ffb4
+Gx = 0xb70e0cbd6bb4bf7f321390b94a03c1d356c21122343280d6115c1d21
+Gy = 0xbd376388b5f723fb4c22dfe6cd4375a05a07476444d5819985007e34
+N = 0xffffffffffffffffffffffffffff16a2e0b8f03e13dd29455c5c2a3d
 
 def egcd(a, b):
     if a == 0:

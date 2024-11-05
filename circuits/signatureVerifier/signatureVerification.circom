@@ -4,12 +4,13 @@ include "../ecdsa/secp256r1/signatureVerification.circom";
 include "../ecdsa/brainpoolP256r1/signatureVerification.circom";
 include "../ecdsa/brainpoolP320r1/signatureVerification.circom";
 include "../ecdsa/secp192r1/signatureVerification.circom";
+include "../ecdsa/p224/signatureVerification.circom";
 include "../rsa/rsa.circom";
 include "../rsaPss/rsaPss.circom";
 
 template VerifySignature(SIG_ALGO){
 
-    assert(((SIG_ALGO >= 1)&&(SIG_ALGO <= 2))||((SIG_ALGO >= 10)&&(SIG_ALGO <= 13))||((SIG_ALGO >= 20)&&(SIG_ALGO <= 23)));
+    assert(((SIG_ALGO >= 1)&&(SIG_ALGO <= 2))||((SIG_ALGO >= 10)&&(SIG_ALGO <= 14))||((SIG_ALGO >= 20)&&(SIG_ALGO <= 24)));
     
     var CHUNK_SIZE = 64;
     var CHUNK_NUMBER = 32;
@@ -54,6 +55,12 @@ template VerifySignature(SIG_ALGO){
         HASH_LEN = 384;
         SALT_LEN = 48;
     }
+        if (SIG_ALGO == 14){
+        CHUNK_NUMBER = 48;
+        PUBKEY_LEN = CHUNK_NUMBER;
+        SIGNATURE_LEN = CHUNK_NUMBER;
+        HASH_LEN = 256;
+    }
 
     if (SIG_ALGO == 20){
         CHUNK_NUMBER = 4;
@@ -78,6 +85,14 @@ template VerifySignature(SIG_ALGO){
         HASH_LEN = 160;
         PUBKEY_LEN = 2 * CHUNK_SIZE * CHUNK_NUMBER;
         SIGNATURE_LEN = 2 * CHUNK_SIZE * CHUNK_NUMBER;
+    }
+
+    if (SIG_ALGO == 24){
+        CHUNK_NUMBER = 7;
+        CHUNK_SIZE = 32;
+        PUBKEY_LEN = 2 * CHUNK_SIZE * CHUNK_NUMBER;
+        SIGNATURE_LEN = 2 * CHUNK_SIZE * CHUNK_NUMBER;
+        HASH_LEN = 224;
     }
 
     signal input pubkey[PUBKEY_LEN];
@@ -120,6 +135,12 @@ template VerifySignature(SIG_ALGO){
         rsaPssSha384Verification.signature <== signature;
         rsaPssSha384Verification.hashed <== hashed;
     }
+    if (SIG_ALGO == 14){
+        component rsaPssSha384Verification = VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, HASH_LEN);
+        rsaPssSha384Verification.pubkey <== pubkey;
+        rsaPssSha384Verification.signature <== signature;
+        rsaPssSha384Verification.hashed <== hashed;
+    }
 
     if (SIG_ALGO == 20){
         component p256Verification = verifyP256(CHUNK_SIZE, CHUNK_NUMBER, HASH_LEN);
@@ -144,6 +165,12 @@ template VerifySignature(SIG_ALGO){
         secp192Verification.pubkey <== pubkey;
         secp192Verification.signature <== signature;
         secp192Verification.hashed <== hashed;
+    }
+     if (SIG_ALGO == 24){
+        component p224Verification = verifyP224(CHUNK_SIZE, CHUNK_NUMBER, HASH_LEN);
+        p224Verification.pubkey <== pubkey;
+        p224Verification.signature <== signature;
+        p224Verification.hashed <== hashed;
     }
     
 }

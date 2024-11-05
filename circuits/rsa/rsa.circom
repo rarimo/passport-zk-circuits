@@ -30,6 +30,7 @@ template RsaVerifyPkcs1v15(CHUNK_SIZE, CHUNK_NUMBER, E_BITS, HASH_TYPE) {
 
     // 1. Check hashed data
     for (var i = 0; i < 4; i++) {
+        log(hashed_chunks[i]);
         hashed_chunks[i] === pm.out[i];
     }
     
