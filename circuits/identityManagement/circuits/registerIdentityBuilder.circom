@@ -20,6 +20,7 @@ include "circomlib/circuits/poseidon.circom";
 //   - 11: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256 + e = 65537 + salt = 32
 //   - 12: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256 + e = 65537 + salt = 64
 //   - 13: RSASSA-PSS 2048 bits MGF1 (SHA2-384) + SHA2-384 + e = 65537 + salt = 48
+//   - 14: RSASSA-PSS 3072 bits MGF1 (SHA2-256) + SHA2-256 + e = 65537 + salt = 32
 
 //   - 20: ECDSA brainpoolP256r1 + SHA256
 //   - 21: ECDSA secp256r1 + SHA256
@@ -62,6 +63,10 @@ template RegisterIdentityBuilder (
         HASH_TYPE = 384;
     }
 
+    if (SIGNATURE_TYPE == 14){
+        CHUNK_NUMBER = 48;
+    }
+
     if (SIGNATURE_TYPE >= 20){
         CHUNK_NUMBER = 4;
     }
@@ -74,7 +79,12 @@ template RegisterIdentityBuilder (
         CHUNK_NUMBER = 3;
         HASH_TYPE = 160;
     }
-
+    
+    if (SIGNATURE_TYPE == 24){
+        CHUNK_NUMBER = 7;
+        CHUNK_SIZE = 32;
+        HASH_TYPE = 224;
+    }
 
     var DG_HASH_BLOCK_SIZE = 1024;
     if (DG_HASH_TYPE <= 256){
