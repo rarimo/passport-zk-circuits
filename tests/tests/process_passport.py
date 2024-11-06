@@ -22,6 +22,8 @@ def get_new_sig_type(sig_type, salt, e_bits):
         sig_type = 12
     if sig_type == 5:
         sig_type = 13
+    if sig_type == 4:
+        sig_type = 14
     return sig_type
 
 def get_AA_shift_and_pubkey(dg15_hex, dg15_sig_algo, dg15_base64):
@@ -132,12 +134,14 @@ def process_sa(asn1_data):
 
 def process_pubkey(asn1_data):
     lines = asn1_data.split('\n')
+    # print(asn1_data)s
 
     pubkey_ecdsa_location = 0
 
     rsa_pubkey_location = 0
 
     pubkey_ecdsa_lines = [line for line in lines if 'l=  66' in line]
+    pubkey_ecdsa_lines_224 = [line for line in lines if 'l=  58' in line]
 
     rsa_pubkey_locations = [line for line in lines if 'BIT STRING' in line]
 
@@ -146,6 +150,10 @@ def process_pubkey(asn1_data):
     rsa_pubkey_location = int([s for s in rsa_pubkey_locations[0].split(":")[0].split(" ") if s][0])
 
     for line in pubkey_ecdsa_lines:
+        if "BIT STRING" in line:
+            filtered_list = [s for s in line.split(":")[0].split(" ") if s]
+            pubkey_ecdsa_location = int(filtered_list[0])
+    for line in pubkey_ecdsa_lines_224:
         if "BIT STRING" in line:
             filtered_list = [s for s in line.split(":")[0].split(" ") if s]
             pubkey_ecdsa_location = int(filtered_list[0])
@@ -231,7 +239,11 @@ def get_sig_algo(sod_hex, salt, signature, hash_algo):
         return 7
     if "ffffffff00000001000000000000000000000000fffffffffffffffffffffff" in sod_hex:
         return 6
+    if "fffffffffffffffffffffffffffffffefffffffffffffffffffffffe" in sod_hex:
+        return 24
     if salt !=0:
+        if len(signature) == 384:
+            return 4
         if len(signature) == 512:
             return 3 if hash_algo == 256 else 5
         return 4
@@ -257,6 +269,25 @@ def get_ecdsa_params(sod_hex, pubkey_ecdsa_location, signature):
 
     return pubkey_arr, signature_arr, chunk_num, pk_hash
 
+def get_ecdsa_params_224(sod_hex, pubkey_ecdsa_location, signature):
+    pubkey = sod_hex[2*(pubkey_ecdsa_location + 4): 2*pubkey_ecdsa_location + 120]
+    pubkey_bit = hex_to_bin(pubkey)
+    pubkey_arr = format_bit_string(pubkey_bit)
+
+
+    chunk_num = 7
+
+    signature = signature[-116:]
+
+    sig = signature[0:56] + signature[60:116]
+    sig_bit = hex_to_bin(sig)
+    signature_arr = format_bit_string(sig_bit) 
+
+    pk_hash = hash_pk_ecdsa(pubkey_bit)
+    
+    return pubkey_arr, signature_arr, chunk_num, pk_hash
+
+
 def get_rsa_2048_rsa_pss_params(sod_hex, rsa_pubkey_location, rsa_pubkey_len, signature):
 
     signature_arr = bigint_to_array(64, 32, int(signature, 16))
@@ -266,6 +297,22 @@ def get_rsa_2048_rsa_pss_params(sod_hex, rsa_pubkey_location, rsa_pubkey_len, si
     pubkey_arr = bigint_to_array(64, chunk_num, int(pubkey, 16))
 
     e_bits =  2 if (rsa_pubkey_len == 269) else 17
+
+    pk_hash =  hash_pk_rsa(chunk_num, pubkey) 
+
+    return pubkey_arr, signature_arr, chunk_num, e_bits, pk_hash
+
+
+def get_rsa_3072_rsa_pss_params(sod_hex, rsa_pubkey_location, rsa_pubkey_len, signature):
+
+    signature_arr = bigint_to_array(64, 48, int(signature, 16))
+    chunk_num = 48
+    print(sod_hex)
+    pubkey = sod_hex[rsa_pubkey_location * 2 -1: rsa_pubkey_location *2 + rsa_pubkey_len*2 + 2].split("82018100")[1][0:768]
+    print(pubkey)
+    pubkey_arr = bigint_to_array(64, chunk_num, int(pubkey, 16))
+
+    e_bits =  17
 
     pk_hash =  hash_pk_rsa(chunk_num, pubkey) 
 
@@ -291,7 +338,8 @@ def get_shifts(dg1_hex, dg15_hex, ec_hex, dg_hash_algo, hash_algo, sa_hex):
     dg1_hash = ""
     dg15_hash = ""
     ec_hash = ""
-
+    print(dg_hash_algo)
+    print(hash_algo)
     dg1_shift = 0
     dg15_shift = dg_hash_algo
     ec_shift = 0
@@ -308,7 +356,8 @@ def get_shifts(dg1_hex, dg15_hex, ec_hex, dg_hash_algo, hash_algo, sa_hex):
     if dg_hash_algo == 384:
         dg1_hash = sha384_hash_from_hex(dg1_hex)
         dg15_hash = sha384_hash_from_hex(dg15_hex)
-    
+
+    ec_hash = sha256_hash_from_hex(ec_hex)
     if hash_algo == 160:
         ec_hash = sha1_hash_from_hex(ec_hex)
     if hash_algo == 256:
@@ -387,7 +436,6 @@ def process_passport(file_path):
     sig_algo = get_sig_algo(sod_hex, salt, signature, hash_algo)
 
     pubkey_ecdsa_location, rsa_pubkey_location, rsa_pubkey_len = process_pubkey(asn1_data)
-
     pubkey_arr = []
     signature_arr = []
     chunk_number = 0
@@ -395,13 +443,19 @@ def process_passport(file_path):
 
     if sig_algo == 6 or sig_algo == 7:
         pubkey_arr, signature_arr, chunk_number, pk_hash = get_ecdsa_params(sod_hex, pubkey_ecdsa_location, signature)
+    
+    if  sig_algo == 24:
+        pubkey_arr, signature_arr, chunk_number, pk_hash = get_ecdsa_params_224(sod_hex, pubkey_ecdsa_location, signature)
 
     if sig_algo == 2:
         pubkey_arr, signature_arr, chunk_number, e_bits, pk_hash = get_rsa_4096_params(sod_hex, rsa_pubkey_location, rsa_pubkey_len, signature)
+    
+    if sig_algo == 4:
+        pubkey_arr, signature_arr, chunk_number, e_bits, pk_hash = get_rsa_3072_rsa_pss_params(sod_hex, rsa_pubkey_location, rsa_pubkey_len, signature)
 
     if sig_algo == 1 or sig_algo == 3 or sig_algo == 5:
         pubkey_arr, signature_arr, chunk_number, e_bits, pk_hash = get_rsa_2048_rsa_pss_params(sod_hex, rsa_pubkey_location, rsa_pubkey_len, signature)
-    
+   
     dg1_shift, dg15_shift, ec_shift = get_shifts(dg1_hex, dg15_hex, ec_hex, dg_hash_algo, hash_algo, sa_hex)
 
     dg15_arr, ec_arr = get_hash_matrix(dg15_blocks, ec_blocks)
