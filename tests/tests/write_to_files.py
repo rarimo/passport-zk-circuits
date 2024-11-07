@@ -73,5 +73,5 @@ def write_to_json(dg1_res, dg15_res, sa_res, ec_res, pubkey_arr, signature_arr, 
         }, f_out, indent=4)
 
 def write_tmp_to_file(real_name):
-    with open('./tests/tests/inputs/tmp.txt', 'w') as file:
-        file.write(real_name)
+    with open('./tests/tests/inputs/tmp.txt', 'a') as file:
+        file.write(real_name+"\n")
