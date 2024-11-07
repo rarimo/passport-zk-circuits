@@ -187,7 +187,7 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
         var EC_FIELD_SIZE = CHUNK_NUMBER * CHUNK_SIZE;
         var DIFF = 0;
         if (EC_FIELD_SIZE > 248){
-            DIFF = 248 - EC_FIELD_SIZE;
+            DIFF = EC_FIELD_SIZE - 248;
         }
         component xToNum = Bits2Num(EC_FIELD_SIZE - DIFF);
         component yToNum = Bits2Num(EC_FIELD_SIZE - DIFF);
