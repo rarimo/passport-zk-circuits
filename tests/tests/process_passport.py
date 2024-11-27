@@ -10,6 +10,8 @@ from hasher import *
 from utils import *
 
 def get_new_sig_type(sig_type, salt, e_bits):
+    if sig_type == 8:
+        sig_type = 3
     if sig_type == 7:
         sig_type = 21
     if sig_type == 6: 
@@ -134,7 +136,7 @@ def process_sa(asn1_data):
 
 def process_pubkey(asn1_data):
     lines = asn1_data.split('\n')
-    # print(asn1_data)s
+    # print(asn1_data)
 
     pubkey_ecdsa_location = 0
 
@@ -164,7 +166,7 @@ def process_algo(asn1_data):
     lines = asn1_data.split('\n')
 
     hash_locations = [line for line in lines if 'sha' in str.lower(line)]
-    hash_type = int(str.lower(hash_locations[-1]).split("sha")[1][:3])
+    hash_type = int(str.lower(hash_locations[-1]).split("sha")[1][:3].replace("1wi", "160"))
     chunk_size = 512 if hash_type <= 256 else 1024
     return hash_type, chunk_size
 
@@ -248,6 +250,8 @@ def get_sig_algo(sod_hex, salt, signature, hash_algo):
             return 3 if hash_algo == 256 else 5
         return 4
     if (len(signature) == 512):
+        if hash_algo == 160:
+            return 8
         return 1
     return 2
 
@@ -307,9 +311,7 @@ def get_rsa_3072_rsa_pss_params(sod_hex, rsa_pubkey_location, rsa_pubkey_len, si
 
     signature_arr = bigint_to_array(64, 48, int(signature, 16))
     chunk_num = 48
-    print(sod_hex)
     pubkey = sod_hex[rsa_pubkey_location * 2 -1: rsa_pubkey_location *2 + rsa_pubkey_len*2 + 2].split("82018100")[1][0:768]
-    print(pubkey)
     pubkey_arr = bigint_to_array(64, chunk_num, int(pubkey, 16))
 
     e_bits =  17
@@ -453,7 +455,7 @@ def process_passport(file_path):
     if sig_algo == 4:
         pubkey_arr, signature_arr, chunk_number, e_bits, pk_hash = get_rsa_3072_rsa_pss_params(sod_hex, rsa_pubkey_location, rsa_pubkey_len, signature)
 
-    if sig_algo == 1 or sig_algo == 3 or sig_algo == 5:
+    if sig_algo == 1 or sig_algo == 3 or sig_algo == 5 or sig_algo == 8:
         pubkey_arr, signature_arr, chunk_number, e_bits, pk_hash = get_rsa_2048_rsa_pss_params(sod_hex, rsa_pubkey_location, rsa_pubkey_len, signature)
    
     dg1_shift, dg15_shift, ec_shift = get_shifts(dg1_hex, dg15_hex, ec_hex, dg_hash_algo, hash_algo, sa_hex)

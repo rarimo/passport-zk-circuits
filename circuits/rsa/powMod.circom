@@ -45,3 +45,35 @@ template PowerMod(CHUNK_SIZE, CHUNK_NUMBER, E_BITS) {
         out[i] <== muls[E_BITS - 1].out[i];
     }
 }
+
+
+template GetLastBit(){
+    signal input in;
+    signal output bit;
+    signal output div;
+    
+    bit <-- in % 2;
+    div <-- in \ 2;
+    
+    (1 - bit) * bit === 0;
+    div * 2 + bit * bit === in;
+}
+
+template GetLastNBits(N){
+    signal input in;
+    signal output div;
+    signal output out[N];
+    
+    component getLastBit[N];
+    for (var i = 0; i < N; i++){
+        getLastBit[i] = GetLastBit();
+        if (i == 0){
+            getLastBit[i].in <== in;
+        } else {
+            getLastBit[i].in <== getLastBit[i - 1].div;
+        }
+        out[i] <== getLastBit[i].bit;
+    }
+    
+    div <== getLastBit[N - 1].div;
+}
