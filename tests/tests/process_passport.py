@@ -26,6 +26,8 @@ def get_new_sig_type(sig_type, salt, e_bits):
         sig_type = 13
     if sig_type == 4:
         sig_type = 14
+    if e_bits == 37187:
+        sig_type = 4
     return sig_type
 
 def get_AA_shift_and_pubkey(dg15_hex, dg15_sig_algo, dg15_base64):
@@ -44,7 +46,6 @@ def get_AA_shift_and_pubkey(dg15_hex, dg15_sig_algo, dg15_base64):
         file.write(dg15_bytes)
 
     decoded = parse_asn1("temp_asn1.der")
-    print(decoded)
     pos = 0 
     hl= 0
     for line in decoded.split('\n'):
@@ -120,18 +121,26 @@ def get_sa(sod_hex, sa_locations, chunk_size):
         n = sa_locations[-3][0]
         l = sa_locations[-3][1]
         sa = "31" + sod_hex[n*2+2:n*2+l*2]
+    if (len(sa) > 2000):
+        n = sa_locations[-1][0]
+        l = sa_locations[-1][1]
+        sa = "31" + sod_hex[n*2+2:n*2+l*2]
 
     _, sa_padded, _ = process_and_pad_hex(sa, chunk_size)
     sa_res = format_bit_string(sa_padded)
+    print(sa)
+
     return sa, sa_res
 
 def process_sa(asn1_data):
     lines = asn1_data.split('\n')
+    print(asn1_data)
     cont_lines = [line for line in lines if 'cont [ 0 ]' in line]
     sa_locations = []
     for line in cont_lines:
         filtered_list = [s for s in line.split("l=")[2].split(" ") if s]
         sa_locations.append([int(line.split(":")[0]), int(filtered_list[0]) + 2])
+    print(sa_locations)
     return sa_locations
 
 def process_pubkey(asn1_data):
@@ -253,6 +262,8 @@ def get_sig_algo(sod_hex, salt, signature, hash_algo):
         if hash_algo == 160:
             return 8
         return 1
+    if len(signature) == 768:
+        return 9
     return 2
 
 def get_ecdsa_params(sod_hex, pubkey_ecdsa_location, signature):
@@ -313,8 +324,11 @@ def get_rsa_3072_rsa_pss_params(sod_hex, rsa_pubkey_location, rsa_pubkey_len, si
     chunk_num = 48
     pubkey = sod_hex[rsa_pubkey_location * 2 -1: rsa_pubkey_location *2 + rsa_pubkey_len*2 + 2].split("82018100")[1][0:768]
     pubkey_arr = bigint_to_array(64, chunk_num, int(pubkey, 16))
-
-    e_bits =  17
+    print(sod_hex[rsa_pubkey_location *2 + rsa_pubkey_len*2 + 2: rsa_pubkey_location *2 + rsa_pubkey_len*2 + 8])
+    if (sod_hex[rsa_pubkey_location *2 + rsa_pubkey_len*2 + 2: rsa_pubkey_location *2 + rsa_pubkey_len*2 + 8] == "009143"):
+        e_bits = 37187
+    else:
+        e_bits =  17
 
     pk_hash =  hash_pk_rsa(chunk_num, pubkey) 
 
@@ -340,8 +354,6 @@ def get_shifts(dg1_hex, dg15_hex, ec_hex, dg_hash_algo, hash_algo, sa_hex):
     dg1_hash = ""
     dg15_hash = ""
     ec_hash = ""
-    print(dg_hash_algo)
-    print(hash_algo)
     dg1_shift = 0
     dg15_shift = dg_hash_algo
     ec_shift = 0
@@ -442,7 +454,7 @@ def process_passport(file_path):
     signature_arr = []
     chunk_number = 0
     e_bits = 0
-
+    print(sig_algo)
     if sig_algo == 6 or sig_algo == 7:
         pubkey_arr, signature_arr, chunk_number, pk_hash = get_ecdsa_params(sod_hex, pubkey_ecdsa_location, signature)
     
@@ -452,7 +464,7 @@ def process_passport(file_path):
     if sig_algo == 2:
         pubkey_arr, signature_arr, chunk_number, e_bits, pk_hash = get_rsa_4096_params(sod_hex, rsa_pubkey_location, rsa_pubkey_len, signature)
     
-    if sig_algo == 4:
+    if sig_algo == 4 or sig_algo == 9:
         pubkey_arr, signature_arr, chunk_number, e_bits, pk_hash = get_rsa_3072_rsa_pss_params(sod_hex, rsa_pubkey_location, rsa_pubkey_len, signature)
 
     if sig_algo == 1 or sig_algo == 3 or sig_algo == 5 or sig_algo == 8:
@@ -471,7 +483,6 @@ def process_passport(file_path):
     short_file_path = get_short_file_path(file_path)
 
     sig_algo = get_new_sig_type(sig_algo, salt, e_bits)
-
     if isdg15 == 0:
         dg15_shift = 0
 
@@ -482,17 +493,12 @@ def process_passport(file_path):
     AA_pubkey = ""
     if isdg15!=0:
         (AA_shift, AA_pubkey) = get_AA_shift_and_pubkey(dg15_hex, isdg15, dg15_base64)
-    print(AA_shift)
-    print(AA_pubkey)
 
     real_circuit_name = ""
     if isdg15 == 0:
         real_circuit_name = "registerIdentity_"+ str(sig_algo) + "_" + str(dg_hash_algo) + "_" + str(document_type) + "_" + str(ec_blocks) + "_" + str(ec_shift) + "_" + str(dg1_shift) + "_" + "NA"
     else:
         real_circuit_name = "registerIdentity_"+ str(sig_algo) + "_" + str(dg_hash_algo) + "_" + str(document_type) + "_" + str(ec_blocks) + "_" + str(ec_shift) + "_" + str(dg1_shift) + "_" + str(isdg15) + "_" + str(dg15_shift) + "_" + str(dg15_blocks) + "_" + str(AA_shift)
-
-
-
 
     write_tmp_to_file(real_circuit_name)
 

@@ -94,3 +94,43 @@ template RsaVerifyPkcs1v15Sha1(CHUNK_SIZE, CHUNK_NUMBER, E_BITS, HASH_TYPE) {
     }
     pm.out[CHUNK_NUMBER - 1] === 562949953421311;
 }
+
+template RsaVerifyPkcs1v15Sha1E37817(CHUNK_SIZE, CHUNK_NUMBER, HASH_TYPE) {
+    signal input signature[CHUNK_NUMBER];
+    signal input pubkey[CHUNK_NUMBER]; //aka modulus
+
+    signal input hashed[HASH_TYPE];
+
+    // signature ** exp mod modulus
+    component pm = PowerMod37817(CHUNK_SIZE, CHUNK_NUMBER);
+    for (var i  = 0; i < CHUNK_NUMBER; i++) {
+        pm.base[i] <== signature[i];
+        pm.modulus[i] <== pubkey[i];
+    }
+
+    signal hashed_chunks[2];
+
+    component bits2num[2];
+    for (var i = 0; i < 2; i++){
+        bits2num[i] = Bits2Num(64);
+        for (var j = 0; j < 64; j++){
+            bits2num[i].in[j] <== hashed[159 - j - i * 64];
+        }
+    }
+
+    component getBits = GetLastNBits(32);
+    getBits.in <== pm.out[2];
+    for (var i = 0; i < 32; i++){
+        getBits.out[i] === hashed[31 - i];
+    }
+    getBits.div === 83887124; //0x5000414
+
+    pm.out[3] === 650212878678426138;
+    pm.out[4] === 18446744069417738544;
+    for (var i = 5; i < CHUNK_NUMBER-1; i++) {
+        pm.out[i] === 18446744073709551615; // 0b1111111111111111111111111111111111111111111111111111111111111111
+    }
+    pm.out[CHUNK_NUMBER - 1] === 562949953421311;
+}
+
+

@@ -21,6 +21,10 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
     if (SIGNATURE_TYPE == 3){
         HASH_TYPE = 160;
     }
+    if (SIGNATURE_TYPE == 4){
+        HASH_TYPE = 160;
+        CHUNK_NUMBER = 48;
+    }
     if (SIGNATURE_TYPE == 13){
         HASH_TYPE = 384;
     }
@@ -137,7 +141,6 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
     if (AA_SIGNATURE_ALGO != 0){
         DG15_ACTUAL_SHIFT = DG15_SHIFT;
     }
-    
     passportVerificationFlow = PassportVerificationFlow(ENCAPSULATED_CONTENT_LEN,DG_HASH_TYPE,EC_HASH_TYPE,DG1_SHIFT,DG15_ACTUAL_SHIFT,EC_SHIFT,AA_SIGNATURE_ALGO);
     
     passportVerificationFlow.dg1Hash <== dg1Hash;

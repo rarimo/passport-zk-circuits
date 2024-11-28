@@ -64,6 +64,11 @@ template RegisterIdentityBuilder (
         HASH_TYPE = 160;
     }
 
+    if (SIGNATURE_TYPE == 4){
+        HASH_TYPE = 160;
+        CHUNK_NUMBER = 48;
+    }
+
     if (SIGNATURE_TYPE == 13){
         HASH_TYPE = 384;
     }
@@ -143,6 +148,7 @@ template RegisterIdentityBuilder (
     // -------
     // PASSPORT VERIFICATION
     // -------
+
     component passportVerifier = PassportVerificationBuilder(
         SIGNATURE_TYPE,                 // 1, 2..  (list above) ^^^
         DG_HASH_TYPE,                   // 160, 224, 256, 384, 512 (list above)^^^
