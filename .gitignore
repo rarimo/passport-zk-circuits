@@ -42,3 +42,4 @@ test/inputs/*
 test/registerIdentityTest.ts
 test/circuits/*
 !test/passports/readme.txt
+circuits/scripts/*

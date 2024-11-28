@@ -104,7 +104,7 @@ template RsaVerifyPkcs1v15Sha1E37817(CHUNK_SIZE, CHUNK_NUMBER, HASH_TYPE) {
     signal input hashed[HASH_TYPE];
 
     // signature ** exp mod modulus
-    component pm = PowerMod37187(CHUNK_SIZE, CHUNK_NUMBER);
+    component pm = PowerModAnyExp(CHUNK_SIZE, CHUNK_NUMBER, 37187);
     for (var i  = 0; i < CHUNK_NUMBER; i++) {
         pm.base[i] <== signature[i];
         pm.modulus[i] <== pubkey[i];
@@ -134,5 +134,3 @@ template RsaVerifyPkcs1v15Sha1E37817(CHUNK_SIZE, CHUNK_NUMBER, HASH_TYPE) {
     }
     pm.out[CHUNK_NUMBER - 1] === 562949953421311;
 }
-
-
