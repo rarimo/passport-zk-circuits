@@ -95,6 +95,8 @@ template RsaVerifyPkcs1v15Sha1(CHUNK_SIZE, CHUNK_NUMBER, E_BITS, HASH_TYPE) {
     pm.out[CHUNK_NUMBER - 1] === 562949953421311;
 }
 
+// TODO: research this moment https://www.youtube.com/watch?v=XfELJU1mRMg, 
+// optimisation may be possible
 template RsaVerifyPkcs1v15Sha1E37817(CHUNK_SIZE, CHUNK_NUMBER, HASH_TYPE) {
     signal input signature[CHUNK_NUMBER];
     signal input pubkey[CHUNK_NUMBER]; //aka modulus
