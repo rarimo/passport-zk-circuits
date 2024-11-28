@@ -46,7 +46,7 @@ template PowerMod(CHUNK_SIZE, CHUNK_NUMBER, E_BITS) {
 
 // CHUNK_NUMBER is the length of the base and modulus
 // calculates (base^exp) % modulus, exp = 2^(E_BITS - 1) + 1 = 2^16 + 1
-template PowerMod37817(CHUNK_SIZE, CHUNK_NUMBER) {
+template PowerMod37187(CHUNK_SIZE, CHUNK_NUMBER) {
 
     signal input base[CHUNK_NUMBER];
     signal input modulus[CHUNK_NUMBER];

@@ -102,7 +102,7 @@ template RsaVerifyPkcs1v15Sha1E37817(CHUNK_SIZE, CHUNK_NUMBER, HASH_TYPE) {
     signal input hashed[HASH_TYPE];
 
     // signature ** exp mod modulus
-    component pm = PowerMod37817(CHUNK_SIZE, CHUNK_NUMBER);
+    component pm = PowerMod37187(CHUNK_SIZE, CHUNK_NUMBER);
     for (var i  = 0; i < CHUNK_NUMBER; i++) {
         pm.base[i] <== signature[i];
         pm.modulus[i] <== pubkey[i];
