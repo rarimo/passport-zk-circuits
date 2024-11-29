@@ -4,6 +4,7 @@ include "../bigInt/bigInt.circom";
 
 // CHUNK_NUMBER is the length of the base and modulus
 // calculates (base^exp) % modulus, exp = 2^(E_BITS - 1) + 1 = 2^16 + 1
+// Deprecated
 template PowerMod(CHUNK_SIZE, CHUNK_NUMBER, E_BITS) {
     assert(E_BITS >= 2);
 
@@ -149,8 +150,11 @@ template PowerModAnyExp(CHUNK_SIZE, CHUNK_NUMBER, EXP) {
             resultMuls[i].b <== muls[exp_process[i + 3] - 1].out;
         }
     }
-
-    out <== resultMuls[exp_process[1] - 2].out;
+    if (exp_process[1] == 1){
+        out <== muls[exp_process[0] - 1].out;
+    } else {
+        out <== resultMuls[exp_process[1] - 2].out;
+    }
 }
 
 

@@ -43,3 +43,5 @@ test/registerIdentityTest.ts
 test/circuits/*
 !test/passports/readme.txt
 circuits/scripts/*
+tests/tests/circuits/identityManagement/*
+tests/tests/circuits/passportVerification/*
