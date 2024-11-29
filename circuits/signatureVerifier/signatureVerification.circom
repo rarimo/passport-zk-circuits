@@ -18,7 +18,7 @@ template VerifySignature(SIG_ALGO){
     var PUBKEY_LEN;
     var SIGNATURE_LEN;
     var SALT_LEN = 32;
-    var E_BITS = 17;
+    var EXP = 65537;
 
     if (SIG_ALGO == 1){
         PUBKEY_LEN = CHUNK_NUMBER;
@@ -41,6 +41,7 @@ template VerifySignature(SIG_ALGO){
         PUBKEY_LEN = CHUNK_NUMBER;
         SIGNATURE_LEN = CHUNK_NUMBER;
         HASH_LEN = 160;
+        EXP = 37187;
     }
 
 
@@ -48,7 +49,7 @@ template VerifySignature(SIG_ALGO){
         PUBKEY_LEN = CHUNK_NUMBER;
         SIGNATURE_LEN = CHUNK_NUMBER;
         HASH_LEN = 256;
-        E_BITS = 2;
+        EXP = 3;
     }
     if (SIG_ALGO == 11){
         PUBKEY_LEN = CHUNK_NUMBER;
@@ -113,55 +114,55 @@ template VerifySignature(SIG_ALGO){
     signal input hashed[HASH_LEN];
 
     if (SIG_ALGO == 1){
-        component rsa2048Sha256Verification = RsaVerifyPkcs1v15(CHUNK_SIZE, CHUNK_NUMBER, E_BITS, HASH_LEN);
+        component rsa2048Sha256Verification = RsaVerifyPkcs1v15(CHUNK_SIZE, CHUNK_NUMBER, EXP, HASH_LEN);
         rsa2048Sha256Verification.pubkey <== pubkey;
         rsa2048Sha256Verification.signature <== signature;
         rsa2048Sha256Verification.hashed <== hashed;
     }
     if (SIG_ALGO == 2){
-        component rsa4096Sha256Verification = RsaVerifyPkcs1v15(CHUNK_SIZE, CHUNK_NUMBER, E_BITS, HASH_LEN);
+        component rsa4096Sha256Verification = RsaVerifyPkcs1v15(CHUNK_SIZE, CHUNK_NUMBER, EXP, HASH_LEN);
         rsa4096Sha256Verification.pubkey <== pubkey;
         rsa4096Sha256Verification.signature <== signature;
         rsa4096Sha256Verification.hashed <== hashed;
     }
     if (SIG_ALGO == 3){
-        component rsa2048Sha160Verification = RsaVerifyPkcs1v15Sha1(CHUNK_SIZE, CHUNK_NUMBER, E_BITS, HASH_LEN);
+        component rsa2048Sha160Verification = RsaVerifyPkcs1v15Sha1(CHUNK_SIZE, CHUNK_NUMBER, EXP, HASH_LEN);
         rsa2048Sha160Verification.pubkey <== pubkey;
         rsa2048Sha160Verification.signature <== signature;
         rsa2048Sha160Verification.hashed <== hashed;
     }
     if (SIG_ALGO == 4){
-        component verifyRsa3072Sha1E37817 = RsaVerifyPkcs1v15Sha1E37817(CHUNK_SIZE, CHUNK_NUMBER, HASH_LEN);
+        component verifyRsa3072Sha1E37817 = RsaVerifyPkcs1v15Sha1(CHUNK_SIZE, CHUNK_NUMBER, EXP, HASH_LEN);
         verifyRsa3072Sha1E37817.pubkey <== pubkey;
         verifyRsa3072Sha1E37817.signature <== signature;
         verifyRsa3072Sha1E37817.hashed <== hashed;
     }
     if (SIG_ALGO == 10){
-        component rsa2048PssSha256Verification = VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, HASH_LEN);
+        component rsa2048PssSha256Verification = VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, EXP, HASH_LEN);
         rsa2048PssSha256Verification.pubkey <== pubkey;
         rsa2048PssSha256Verification.signature <== signature;
         rsa2048PssSha256Verification.hashed <== hashed;
     }
     if (SIG_ALGO == 11){
-        component rsa4096PssSha256Verification = VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, HASH_LEN);
+        component rsa4096PssSha256Verification = VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, EXP, HASH_LEN);
         rsa4096PssSha256Verification.pubkey <== pubkey;
         rsa4096PssSha256Verification.signature <== signature;
         rsa4096PssSha256Verification.hashed <== hashed;
     }
     if (SIG_ALGO == 12){
-        component rsaPssSha384Verification = VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, HASH_LEN);
+        component rsaPssSha384Verification = VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, EXP, HASH_LEN);
         rsaPssSha384Verification.pubkey <== pubkey;
         rsaPssSha384Verification.signature <== signature;
         rsaPssSha384Verification.hashed <== hashed;
     }
     if (SIG_ALGO == 13){
-        component rsaPssSha384Verification = VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, HASH_LEN);
+        component rsaPssSha384Verification = VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, EXP, HASH_LEN);
         rsaPssSha384Verification.pubkey <== pubkey;
         rsaPssSha384Verification.signature <== signature;
         rsaPssSha384Verification.hashed <== hashed;
     }
     if (SIG_ALGO == 14){
-        component rsaPssSha384Verification = VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, HASH_LEN);
+        component rsaPssSha384Verification = VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, EXP, HASH_LEN);
         rsaPssSha384Verification.pubkey <== pubkey;
         rsaPssSha384Verification.signature <== signature;
         rsaPssSha384Verification.hashed <== hashed;
