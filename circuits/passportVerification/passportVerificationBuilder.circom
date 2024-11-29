@@ -18,7 +18,13 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
     if (SIGNATURE_TYPE == 2){
         CHUNK_NUMBER = 64;
     }
-    
+    if (SIGNATURE_TYPE == 3){
+        HASH_TYPE = 160;
+    }
+    if (SIGNATURE_TYPE == 4){
+        HASH_TYPE = 160;
+        CHUNK_NUMBER = 48;
+    }
     if (SIGNATURE_TYPE == 13){
         HASH_TYPE = 384;
     }
@@ -46,7 +52,7 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
         CHUNK_SIZE = 32;
         HASH_TYPE = 224;
     }
-
+    
     var DG_HASH_BLOCK_SIZE = 1024;
     if (DG_HASH_TYPE <= 256){
         DG_HASH_BLOCK_SIZE = 512;
@@ -55,8 +61,8 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
     if (HASH_TYPE <= 256){
         HASH_BLOCK_SIZE = 512;
     }
-
-
+    
+    
     
     var DG1_LEN = 1024;
     var SIGNED_ATTRIBUTES_LEN = 1024;
@@ -135,8 +141,7 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
     if (AA_SIGNATURE_ALGO != 0){
         DG15_ACTUAL_SHIFT = DG15_SHIFT;
     }
-    
-    passportVerificationFlow = PassportVerificationFlow(ENCAPSULATED_CONTENT_LEN,DG_HASH_TYPE,EC_HASH_TYPE,DG1_SHIFT,DG15_ACTUAL_SHIFT,EC_SHIFT,AA_SIGNATURE_ALGO); 
+    passportVerificationFlow = PassportVerificationFlow(ENCAPSULATED_CONTENT_LEN,DG_HASH_TYPE,EC_HASH_TYPE,DG1_SHIFT,DG15_ACTUAL_SHIFT,EC_SHIFT,AA_SIGNATURE_ALGO);
     
     passportVerificationFlow.dg1Hash <== dg1Hash;
     passportVerificationFlow.dg15Hash <== dg15Hash;
@@ -183,7 +188,7 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
     }
     //ECDSA SIG
     else {
-               
+        
         var EC_FIELD_SIZE = CHUNK_NUMBER * CHUNK_SIZE;
         var DIFF = 0;
         if (EC_FIELD_SIZE > 248){
@@ -191,7 +196,7 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
         }
         component xToNum = Bits2Num(EC_FIELD_SIZE - DIFF);
         component yToNum = Bits2Num(EC_FIELD_SIZE - DIFF);
-
+        
         for (var i = 0; i < EC_FIELD_SIZE - DIFF; i++) {
             xToNum.in[EC_FIELD_SIZE - DIFF - 1 - i] <== pubkey[i + DIFF];
             yToNum.in[EC_FIELD_SIZE - DIFF - 1 - i] <== pubkey[EC_FIELD_SIZE + i + DIFF];

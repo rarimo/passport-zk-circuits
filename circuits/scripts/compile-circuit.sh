@@ -31,7 +31,7 @@ mkdir -p ${BUILD_DIR}
 # Compiling circuit with .r1cs and .wasm files as result
 echo -e "\nCompiling the circuits..."
 
-time circom ${CIRCUIT_FILE} --r1cs --wasm --c --sym -o ${BUILD_DIR} -l ../../node_modules --O0
+time circom ${CIRCUIT_FILE} --r1cs --wasm --c --sym -o ${BUILD_DIR} -l ../../node_modules --O2
 
 mv ${BUILD_DIR}/${CIRCUIT_NAME}_js/${CIRCUIT_NAME}.wasm ${BUILD_DIR}/${CIRCUIT_NAME}.wasm
 

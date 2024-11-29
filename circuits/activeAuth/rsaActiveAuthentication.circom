@@ -19,10 +19,6 @@ template RsaSha1ActiveAuthentication(CHUNK_SIZE, CHUNK_NUMBER, E_BITS) {
         rsaDecryptor.modulus[i] <== modulus[i];
     }
 
-    for (var i = 0; i < CHUNK_NUMBER; i++) {
-        log(rsaDecryptor.out[i]);
-    }
-
 }
 
 component main = RsaSha1ActiveAuthentication(64, 16, 17);
