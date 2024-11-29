@@ -3,15 +3,15 @@ pragma circom 2.1.6;
 include "./powMod.circom";
 include "circomlib/circuits/bitify.circom";
 
-// Pkcs1v15 + Sha256, e = 65537
-template RsaVerifyPkcs1v15(CHUNK_SIZE, CHUNK_NUMBER, E_BITS, HASH_TYPE) {
+// Pkcs1v15 + Sha256
+template RsaVerifyPkcs1v15(CHUNK_SIZE, CHUNK_NUMBER, EXP, HASH_TYPE) {
     signal input signature[CHUNK_NUMBER];
     signal input pubkey[CHUNK_NUMBER]; //aka modulus
 
     signal input hashed[HASH_TYPE];
 
     // signature ** exp mod modulus
-    component pm = PowerMod(CHUNK_SIZE, CHUNK_NUMBER, E_BITS);
+    component pm = PowerModAnyExp(CHUNK_SIZE, CHUNK_NUMBER, EXP);
     for (var i  = 0; i < CHUNK_NUMBER; i++) {
         pm.base[i] <== signature[i];
         pm.modulus[i] <== pubkey[i];
@@ -56,15 +56,15 @@ template RsaVerifyPkcs1v15(CHUNK_SIZE, CHUNK_NUMBER, E_BITS, HASH_TYPE) {
     }
 }
 
-// Pkcs1v15 + Sha160, e = 65537
-template RsaVerifyPkcs1v15Sha1(CHUNK_SIZE, CHUNK_NUMBER, E_BITS, HASH_TYPE) {
+// Pkcs1v15 + Sha160
+template RsaVerifyPkcs1v15Sha1(CHUNK_SIZE, CHUNK_NUMBER, EXP, HASH_TYPE) {
     signal input signature[CHUNK_NUMBER];
     signal input pubkey[CHUNK_NUMBER]; //aka modulus
 
     signal input hashed[HASH_TYPE];
 
     // signature ** exp mod modulus
-    component pm = PowerMod(CHUNK_SIZE, CHUNK_NUMBER, E_BITS);
+    component pm = PowerModAnyExp(CHUNK_SIZE, CHUNK_NUMBER, EXP);
     for (var i  = 0; i < CHUNK_NUMBER; i++) {
         pm.base[i] <== signature[i];
         pm.modulus[i] <== pubkey[i];
@@ -97,6 +97,7 @@ template RsaVerifyPkcs1v15Sha1(CHUNK_SIZE, CHUNK_NUMBER, E_BITS, HASH_TYPE) {
 
 // TODO: research this moment https://www.youtube.com/watch?v=XfELJU1mRMg, 
 // optimisation may be possible
+// Deprecated
 template RsaVerifyPkcs1v15Sha1E37817(CHUNK_SIZE, CHUNK_NUMBER, HASH_TYPE) {
     signal input signature[CHUNK_NUMBER];
     signal input pubkey[CHUNK_NUMBER]; //aka modulus
