@@ -15,6 +15,7 @@ include "circomlib/circuits/poseidon.circom";
 // SIGNATURE_TYPE:
 //   - 1: RSA 2048 bits + SHA2-256 + e = 65537
 //   - 2: RSA 4096 bits + SHA2-256 + e = 65537
+//   - 3: RSA 2048 bits + SHA1 + e = 65537
 
 //   - 10: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256 + e = 3 + salt = 32
 //   - 11: RSASSA-PSS 2048 bits MGF1 (SHA2-256) + SHA2-256 + e = 65537 + salt = 32
@@ -57,6 +58,15 @@ template RegisterIdentityBuilder (
 
     if (SIGNATURE_TYPE == 2){
         CHUNK_NUMBER = 64;
+    }
+
+    if (SIGNATURE_TYPE == 3){
+        HASH_TYPE = 160;
+    }
+
+    if (SIGNATURE_TYPE == 4){
+        HASH_TYPE = 160;
+        CHUNK_NUMBER = 48;
     }
 
     if (SIGNATURE_TYPE == 13){
@@ -138,6 +148,7 @@ template RegisterIdentityBuilder (
     // -------
     // PASSPORT VERIFICATION
     // -------
+
     component passportVerifier = PassportVerificationBuilder(
         SIGNATURE_TYPE,                 // 1, 2..  (list above) ^^^
         DG_HASH_TYPE,                   // 160, 224, 256, 384, 512 (list above)^^^

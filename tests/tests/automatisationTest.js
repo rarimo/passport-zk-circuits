@@ -12,8 +12,18 @@ const Fr = new F1Field(exports.p);
 
 const assert = chai.assert;
 
+let files = [];
 function generateFilesForAll(filenames, done) {
     let index = 0;
+
+    const tmpfilePath = path.join(__dirname, `./inputs/tmp.txt`);
+    fs.writeFile(tmpfilePath, '', (err) => {
+        if (err) {
+          console.error('Error emptying file:', err);
+        } else {
+          console.log('File emptied successfully');
+        }
+      });
 
     function executeNext() {
         if (index >= filenames.length) {
@@ -32,7 +42,9 @@ function generateFilesForAll(filenames, done) {
                 console.error(`Script stderr: ${stderr}`);
                 return done(new Error(stderr));
             }
-
+            const tmp_txt = path.join(__dirname, `./inputs/tmp.txt`);
+            const short_fileneme = fs.promises.readFile(tmp_txt, 'utf8');
+            files.push(short_fileneme);
             index++;
             setTimeout(executeNext, 2000); // 2-second delay before processing the next file
         });
@@ -53,6 +65,7 @@ describe("File generation test", function () {
         generateFilesForAll(filenames.map(file => path.join(passportDir, file)), done);
     });
 
+    let counter = 0;
     filenames.forEach(filename => {
         // it("Verification passport test", async function () {
 
@@ -89,9 +102,10 @@ describe("File generation test", function () {
         it("Register identity test", async function () {
 
             const tmp_txt = path.join(__dirname, `./inputs/tmp.txt`);
-            const short_fileneme = await fs.promises.readFile(tmp_txt, 'utf8');
+            const short_filenemes = await fs.promises.readFile(tmp_txt, 'utf8');
 
-
+            let short_fileneme = short_filenemes.split("\n")[counter];
+            console.log("Executing " + short_fileneme + ".circom");
             const testJson = path.join(__dirname, `./inputs/generated/input_${short_fileneme}_2.dev.json`);
         
             try {
@@ -118,6 +132,7 @@ describe("File generation test", function () {
                 console.error('Error:', err);
                 throw err;  
             }
+            counter+=1;
         });
     });
 

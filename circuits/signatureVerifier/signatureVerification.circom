@@ -10,7 +10,7 @@ include "../rsaPss/rsaPss.circom";
 
 template VerifySignature(SIG_ALGO){
 
-    assert(((SIG_ALGO >= 1)&&(SIG_ALGO <= 2))||((SIG_ALGO >= 10)&&(SIG_ALGO <= 14))||((SIG_ALGO >= 20)&&(SIG_ALGO <= 24)));
+    assert(((SIG_ALGO >= 1)&&(SIG_ALGO <= 4))||((SIG_ALGO >= 10)&&(SIG_ALGO <= 14))||((SIG_ALGO >= 20)&&(SIG_ALGO <= 24)));
     
     var CHUNK_SIZE = 64;
     var CHUNK_NUMBER = 32;
@@ -31,6 +31,19 @@ template VerifySignature(SIG_ALGO){
         SIGNATURE_LEN = CHUNK_NUMBER;
         HASH_LEN = 256;
     }
+    if (SIG_ALGO == 3){
+        PUBKEY_LEN = CHUNK_NUMBER;
+        SIGNATURE_LEN = CHUNK_NUMBER;
+        HASH_LEN = 160;
+    }
+     if (SIG_ALGO == 4){
+        CHUNK_NUMBER = 48;
+        PUBKEY_LEN = CHUNK_NUMBER;
+        SIGNATURE_LEN = CHUNK_NUMBER;
+        HASH_LEN = 160;
+    }
+
+
     if (SIG_ALGO == 10){
         PUBKEY_LEN = CHUNK_NUMBER;
         SIGNATURE_LEN = CHUNK_NUMBER;
@@ -55,7 +68,7 @@ template VerifySignature(SIG_ALGO){
         HASH_LEN = 384;
         SALT_LEN = 48;
     }
-        if (SIG_ALGO == 14){
+    if (SIG_ALGO == 14){
         CHUNK_NUMBER = 48;
         PUBKEY_LEN = CHUNK_NUMBER;
         SIGNATURE_LEN = CHUNK_NUMBER;
@@ -110,6 +123,18 @@ template VerifySignature(SIG_ALGO){
         rsa4096Sha256Verification.pubkey <== pubkey;
         rsa4096Sha256Verification.signature <== signature;
         rsa4096Sha256Verification.hashed <== hashed;
+    }
+    if (SIG_ALGO == 3){
+        component rsa2048Sha160Verification = RsaVerifyPkcs1v15Sha1(CHUNK_SIZE, CHUNK_NUMBER, E_BITS, HASH_LEN);
+        rsa2048Sha160Verification.pubkey <== pubkey;
+        rsa2048Sha160Verification.signature <== signature;
+        rsa2048Sha160Verification.hashed <== hashed;
+    }
+    if (SIG_ALGO == 4){
+        component verifyRsa3072Sha1E37817 = RsaVerifyPkcs1v15Sha1E37817(CHUNK_SIZE, CHUNK_NUMBER, HASH_LEN);
+        verifyRsa3072Sha1E37817.pubkey <== pubkey;
+        verifyRsa3072Sha1E37817.signature <== signature;
+        verifyRsa3072Sha1E37817.hashed <== hashed;
     }
     if (SIG_ALGO == 10){
         component rsa2048PssSha256Verification = VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, HASH_LEN);

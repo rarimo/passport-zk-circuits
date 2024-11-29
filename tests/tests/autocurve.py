@@ -662,12 +662,10 @@ def write_pows(n, k, curve_name):
     ecdsa_func_str = get_ecdsa_func_str(n, k, stride_list)
     f = open('tests/tests/circuits/testCurve/{curve_name}Pows.circom'.format(curve_name = curve_name, n = n, k = k), 'w')
 
-
     orig_stdout = sys.stdout
     sys.stdout = f
 
     print(ecdsa_func_str)
-
 
 def write_func(n, k, curve_name):
 
