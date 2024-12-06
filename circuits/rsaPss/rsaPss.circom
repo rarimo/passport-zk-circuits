@@ -5,7 +5,7 @@ include "./mgf1.circom";
 include "./xor2.circom";
 include "../hasher/passportHash.circom";
 
-template VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, HASH_TYPE){
+template VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, EXP, HASH_TYPE){
 
     assert((HASH_TYPE == 384 && SALT_LEN == 48) || (HASH_TYPE == 256 && SALT_LEN == 64) || (HASH_TYPE == 256 && SALT_LEN == 32));
 
@@ -23,7 +23,7 @@ template VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, E_BITS, HASH_TYPE){
     signal eMsgInBits[EM_LEN_BITS];
     
     //computing encoded message
-    component powmod = PowerMod(CHUNK_SIZE, CHUNK_NUMBER, E_BITS);
+    component powmod = PowerModAnyExp(CHUNK_SIZE, CHUNK_NUMBER, EXP);
     powmod.base <== signature;
     powmod.modulus <== pubkey;
 
