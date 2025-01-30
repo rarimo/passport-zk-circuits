@@ -7,7 +7,7 @@ include "../hasher/passportHash.circom";
 
 template VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, EXP, HASH_TYPE){
 
-    assert((HASH_TYPE == 384 && SALT_LEN == 48) || (HASH_TYPE == 256 && SALT_LEN == 64) || (HASH_TYPE == 256 && SALT_LEN == 32));
+    assert((HASH_TYPE == 384 && SALT_LEN == 48) || (HASH_TYPE == 256 && SALT_LEN == 64) || (HASH_TYPE == 256 && SALT_LEN == 32) || (HASH_TYPE == 512 && SALT_LEN == 64));
 
 
     signal input pubkey[CHUNK_NUMBER]; //aka modulus
@@ -78,7 +78,7 @@ template VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, EXP, HASH_TYPE){
     //getting mask
     if (HASH_TYPE == 256){
         component MGF1_256 = Mgf1Sha256(HASH_LEN, DB_MASK_LEN);
-        for (var i = 0; i < (HASH_TYPE); i++) {
+        for (var i = 0; i < HASH_TYPE; i++) {
             MGF1_256.seed[i] <== hash[i];
         }
         for (var i = 0; i < DB_MASK_LEN * 8; i++) {
@@ -87,15 +87,22 @@ template VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, EXP, HASH_TYPE){
     }
     if (HASH_TYPE == 384){
         component MGF1_384 = Mgf1Sha384(HASH_LEN, DB_MASK_LEN);
-        for (var i = 0; i < (HASH_TYPE); i++) {
+        for (var i = 0; i < HASH_TYPE; i++) {
             MGF1_384.seed[i] <== hash[i];
         }
         for (var i = 0; i < DB_MASK_LEN * 8; i++) {
             dbMask[i] <== MGF1_384.out[i];
         }
     }
-    
-    
+    if (HASH_TYPE == 512){
+        component MGF1_512 = Mgf1Sha512(HASH_LEN, DB_MASK_LEN);
+        for (var i = 0; i < HASH_TYPE; i++) {
+            MGF1_512.seed[i] <== hash[i];
+        }
+        for (var i = 0; i < DB_MASK_LEN * 8; i++) {
+            dbMask[i] <== MGF1_512.out[i];
+        }
+    }
 
     component xor = Xor2(DB_MASK_LEN * 8);
     for (var i = 0; i < DB_MASK_LEN * 8; i++) {
@@ -116,7 +123,11 @@ template VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, EXP, HASH_TYPE){
         salt[SALT_LEN_BITS - 1 - i] <== db[(DB_MASK_LEN * 8) -1 - i];
     }
 
-    signal mDash[1024]; 
+    var M_DASH_LEN = 1024;
+    if (HASH_TYPE == 512 && SALT_LEN == 64){
+        M_DASH_LEN = 2048;
+    }
+    signal mDash[M_DASH_LEN]; 
     //adding 0s
     for (var i = 0; i < 64; i++) {
         mDash[i] <== 0;
@@ -124,12 +135,10 @@ template VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, EXP, HASH_TYPE){
     //adding message hash
     for (var i = 0 ; i < HASH_LEN * 8; i++) {
         mDash[64 + i] <== hashed[i];
-
     }
     //adding salt
     for (var i = 0; i < SALT_LEN * 8; i++) {
         mDash[64 + HASH_LEN * 8 + i] <== salt[i];
-
     }
 
     if (HASH_TYPE == 256 && SALT_LEN == 32){
@@ -199,6 +208,33 @@ template VerifyRsaSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, EXP, HASH_TYPE){
         hDash384.in <== mDash;
         
         hDash384.out === hash;
+    }
+    if (HASH_TYPE == 512 && SALT_LEN == 64){
+
+        //padding
+        //len = 64+64*16 = 1088 = 10001000000
+        for (var i = 1089; i < 2037; i++){
+            mDash[i] <== 0;
+        }
+        mDash[1088] <== 1;
+        mDash[2047] <== 0;
+        mDash[2046] <== 0;
+        mDash[2045] <== 0;
+        mDash[2044] <== 0;
+        mDash[2043] <== 0;
+        mDash[2042] <== 0;
+        mDash[2041] <== 1;
+        mDash[2040] <== 0;
+        mDash[2039] <== 0;
+        mDash[2038] <== 0;
+        mDash[2037] <== 1;
+
+        //hashing mDash
+        component hDash512 = PassportHash(1024, 2, HASH_TYPE);
+        hDash512.in <== mDash;
+        hDash512.out === hash;
+        
+
     }
 }
 

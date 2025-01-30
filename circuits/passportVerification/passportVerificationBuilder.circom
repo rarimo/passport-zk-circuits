@@ -31,6 +31,9 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
     if (SIGNATURE_TYPE == 14){
         CHUNK_NUMBER = 48;
     }
+    if (SIGNATURE_TYPE == 15){
+        HASH_TYPE = 512;
+    }
     
     if (SIGNATURE_TYPE >= 20){
         CHUNK_NUMBER = 4;
