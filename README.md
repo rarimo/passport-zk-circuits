@@ -323,7 +323,7 @@ The nullifier is used in order to prevent user from participating in some event 
 
 The nullifier can be bypassed by reissuing the identity. One way to solve this problem is by fixing the identity state (thus no one can reissue the new identity). Another approach is described in **Using the query circuit for an airdrop**
 
-***EventId***
+##### ***EventId***
 
 The eventId is used to generate different nullifiers by the same identity for different use cases (events). Current event constants:
 
