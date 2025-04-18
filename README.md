@@ -276,7 +276,7 @@ TD1 query (example for selector = 39)
 ]
 ```
 
-***Selector***
+#### ***Selector***
 
 By applying the selector, we can use the same circuit for any set of revealed and unrevealed personal data.
 
