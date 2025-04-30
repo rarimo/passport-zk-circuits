@@ -12,7 +12,7 @@ def bigint_to_array(n, k, x):
     ret = []
     x_temp = x
     for idx in range(k):
-        # Append x_temp mod mod to the list
+        # Append x_temp mod to the list
         ret.append(str(x_temp % mod))
         # Divide x_temp by mod for the next iteration
         x_temp //= mod  # Use integer division in Python
