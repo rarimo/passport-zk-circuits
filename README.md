@@ -26,59 +26,6 @@ To verify **signed attributes**, verification party uses the passport signature,
 
 ## Circuits
 
-### Voting circuits
-
-Voting circuits are used to prove that the user has registered for the voting. Technically, it is used to prove that the user knows the preimage of the leaf in the Merkle Tree.
-
-The Merkle Tree is built upon participants registration. After proving that the user is eligible to vote, `commitment` is added to the tree.
-
-*commitment = Poseidon(nullifier, secret)*.
-
-By using the knowledge of the commitment preimage and generating the corresponding proof, users can express their votes.
-
-#### Circuit parameters
-
-- **depth** - depth of a Merkle Tree used to prove leaf inclusion.
-
-#### Circuit public inputs
-
-- [0] **root** - Poseidon Hash is used for tree hashing;
-- [1] **nullifierHash** - Poseidon Hash is used for the *nullifier* hashing;
-- [2] **vote** - not taking part in any computations; binds the vote to the proof
-
-#### Circuit private inputs
-
-- **nullifier**
-- **secret**
-- **pathElements[levels]** - Merkle Branch
-- **pathIndices[levels]** - `0` - left, `1` - right
-
-### Passport Verification circuits
-
-Passport Verification circuits are used to prove that user is eligible to vote. Currently following checks are made:
-
-- Date of passport expiracy is less than the current date;
-- Current date is after date of birth + **18** years; (for now **18** years is a constant);
-- Passport issuer code is used as an output signal;
-
-#### Circuit public inputs
-
-- [0] **currentDateYear**
-- [1] **currentDateMonth**
-- [2] **currentDateDay**
-- [3] **credValidYear**
-- [4] **credValidMonth**
-- [5] **credValidDay**
-- [6] **ageLowerbound** - age limit for voting rights. The circuit verifies that the passport owner is older than *ageLowerbound* years at the *currentDate*.
-
-#### Circuits private inputs
-
-- **in** - passport **DG1** serialized in binary.
-
-The current date is needed to timestamp the date of proof generation. The circuit proves that at this date, the user is eligible to vote (and will be eligible by the protocol rules at least until the credValid date).
-
-Passport data is separated into *DataGroups*. The hashes of these datagroups are stored in **SOD** *(Security Object of the Document)*. All neccesary data is stored in *Data Group 1 (DG1)*. Currently, **SHA1** and **SHA256** hashes are supported (```passportDG1VerificationSHA256``` and ```passportDG1VerificationSHA256```).
-
 ### Identity platform
 
 To enhance user experience and eliminate the repetitive need for passport rescanning, we have implemented a user identity management platform. This platform streamlines the process, making it easier and more efficient for users to verify their identity.
