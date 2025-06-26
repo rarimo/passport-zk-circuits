@@ -6,18 +6,9 @@
 
 ## Usage
 
-The repository leverages `hardhat-zkit` environment to carry out the management of circuits. There are several scripts available:
-
-- `npm run zkit-make`, to compile and set up the keys for the circuits.
-- `npm run zkit-compile`, to compile just compile the circuits (witness testing).
-- `npm run zkit-verifiers`, to generate Solidity (or Vyper) smart contract verifiers.
-
-> [!NOTE]
-> Install the necessary packages via `npm install` before proceeding with the circuits.
-
-##
-
-[![hardhat-zkit](https://github.com/user-attachments/assets/f5e9a69a-93cb-4044-88fc-b9f9cadd29a7)](https://github.com/dl-solarity/hardhat-zkit)
+This repo provides tools for circuit generation for register identity by passport. To use it, u need a passport in json format. After putting passport into `test/inputs/passport` folder, run `npm i` or `yarn`, then run `npm run test` or `yarn run test`. It will generate main circuit and inputs for it in `ciruits/generated` and `inputs/generated`. 
+All of this generated circuits refer to RegisterIdentityBuilder, our circuit to manage almost all cases for any passport, so u can put params manually if u don`t have passport in json format.
+We also have query circuit, to reveal some data for already registered passport, description below.
 
 ## Biometric Passport Authentication
 
@@ -102,8 +93,8 @@ Poseidon(SHA256(signed_attributes\[:252bits])), while `dg15PubKeyHash` will be s
     "skIdentity": "123405...842587619674072055", // identity secret key
     "encapsulatedContent": [0, 1, 0],            // passport encapsulated content in binary
     "signedAttributes": [0, 1, 0],               // signed attributes in binary
-    "sign": ["64bit", "64bit..."],               // signature in 64 bit blocks
-    "modulus": ["64bit", "64bit..."],            // modulus in 64 bit blocks
+    "signature": ["64bit", "64bit..."],               // signature in 64 bit blocks
+    "pubkey": ["64bit", "64bit..."],            // modulus in 64 bit blocks
     "dg1": [0, 1, 0],                            // passport DG1 in binary
     "dg15": [0, 1, 0],                           // passport DG15 in binary
     "slaveMerkleRoot": "0x..", // root of the sparse Merkle tree with 2nd level keys (PUBLIC)
