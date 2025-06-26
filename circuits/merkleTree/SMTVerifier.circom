@@ -1,10 +1,10 @@
 // LICENSE: GPL-3.0
 pragma circom 2.1.6;
 
-include "circomlib/circuits/bitify.circom";
-include "circomlib/circuits/comparators.circom";
-include "circomlib/circuits/switcher.circom";
-include "circomlib/circuits/poseidon.circom";
+include "../lib/circuits/bitify/bitify.circom";
+include "../lib/circuits/bitify/comparators.circom";
+include "../lib/circuits/utils/switcher.circom";
+include "../lib/circuits/hasher/hash.circom";
 
 
 template SMTHash1() {
@@ -12,10 +12,10 @@ template SMTHash1() {
     signal input value;
     signal output out;
 
-    component h = Poseidon(3);
-    h.inputs[0] <== key;
-    h.inputs[1] <== value;
-    h.inputs[2] <== 1;
+    component h = PoseidonHash(3);
+    h.in[0] <== key;
+    h.in[1] <== value;
+    h.in[2] <== 1;
 
     out <== h.out;
 }
@@ -25,9 +25,9 @@ template SMTHash2() {
     signal input R;
     signal output out;
 
-    component h = Poseidon(2);
-    h.inputs[0] <== L;
-    h.inputs[1] <== R;
+    component h = PoseidonHash(2);
+    h.in[0] <== L;
+    h.in[1] <== R;
 
     out <== h.out;
 }
@@ -94,12 +94,12 @@ template SMTVerifierLevel() {
     component proofHash = SMTHash2();
     component switcher = Switcher();
 
-    switcher.L <== child;
-    switcher.R <== sibling;
+    switcher.in[0] <== child;
+    switcher.in[1] <== sibling;
 
-    switcher.sel <== lrbit;
-    proofHash.L <== switcher.outL;
-    proofHash.R <== switcher.outR;
+    switcher.bool <== lrbit;
+    proofHash.L <== switcher.out[0];
+    proofHash.R <== switcher.out[1];
 
     fromProof <== proofHash.out * st_top;
 
@@ -124,7 +124,7 @@ template SMTVerifier(N_LEVELS) {
     hash1New.value <== value;
 
 
-    component n2bNew = Num2Bits_strict();
+    component n2bNew = Num2Bits(254);
     n2bNew.in <== key;
 
     component smtLevIns = SMTLevIns(N_LEVELS);

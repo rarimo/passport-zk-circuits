@@ -1,64 +1,64 @@
 {
-    "name": "@rarimo/passport-circuits",
-    "version": "0.1.0",
-    "description": "Verifying biometric passports with zero knowledge proofs (SNARKs)",
-    "scripts": {
-        "test": "bash './test/test.bash'",
-        "wasm-test": "./node_modules/.bin/mocha -p 'tests/tests/automatisationTest.js'",
-        "compile": "npm run zkit-make && npm run zkit-verifiers && npm run solidity-compile",
-        "solidity-compile": "npx hardhat compile --force",
-        "zkit-make": "npx hardhat zkit make",
-        "zkit-compile": "npx hardhat zkit compile",
-        "zkit-verifiers": "npx hardhat zkit verifiers"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/rarimo/passport-zk-circuits"
-    },
-    "keywords": [
-        "circom",
-        "snarkjs",
-        "rarimo",
-        "zkp"
-    ],
-    "author": "Zero Block Global Foundation",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/rarimo/passport-zk-circuits/issues"
-    },
-    "homepage": "https://github.com/rarimo/passport-zk-circuits#readme",
-    "dependencies": {
-        "blake-hash": "^2.0.0",
-        "circomlib": "^2.0.5"
-    },
-    "devDependencies": {
-        "@iden3/js-crypto": "^1.0.3",
-        "@nomicfoundation/hardhat-toolbox": "^5.0.0",
-        "@solarity/chai-zkit": "^0.2.5",
-        "@solarity/hardhat-zkit": "^0.4.7",
-        "@typechain/ethers-v6": "^0.5.1",
-        "@types/chai": "^4.3.14",
-        "@types/mocha": "^10.0.6",
-        "@types/node": "^18.16.0",
-        "@types/snarkjs": "^0.7.8",
-        "chai": "^4.3.6",
-        "circomlibjs": "^0.1.7",
-        "dotenv": "^16.4.5",
-        "ethers": "^6.11.1",
-        "ffjavascript": "^0.2.60",
-        "fnv-plus": "^1.3.1",
-        "hardhat": "^2.22.0",
-        "logplease": "^1.2.15",
-        "mocha": "^10.3.0",
-        "prettier": "^3.2.5",
-        "prettier-plugin-solidity": "^1.3.1",
-        "r1csfile": "^0.0.47",
-        "snarkjs": "^0.7.0",
-        "tmp-promise": "^3.0.3",
-        "ts-node": "^10.9.2",
-        "tsconfig-paths": "^4.2.0",
-        "typechain": "^8.3.2",
-        "typescript": "^5.4.3",
-        "util": "^0.12.5"
-    }
+  "name": "@rarimo/passport-circuits",
+  "version": "0.1.0",
+  "description": "Verifying biometric passports with zero knowledge proofs (SNARKs)",
+  "scripts": {
+    "test": "./node_modules/.bin/mocha -p 'test/automatisationTest.js'",
+    "compile": "npm run zkit-make && npm run zkit-verifiers && npm run solidity-compile",
+    "solidity-compile": "npx hardhat compile --force",
+    "zkit-make": "npx hardhat zkit make",
+    "zkit-compile": "npx hardhat zkit compile",
+    "zkit-verifiers": "npx hardhat zkit verifiers"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rarimo/passport-zk-circuits"
+  },
+  "keywords": [
+    "circom",
+    "snarkjs",
+    "rarimo",
+    "zkp"
+  ],
+  "author": "Zero Block Global Foundation",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rarimo/passport-zk-circuits/issues"
+  },
+  "homepage": "https://github.com/rarimo/passport-zk-circuits#readme",
+  "dependencies": {
+    "blake-hash": "^2.0.0",
+    "circomlib": "^2.0.5"
+  },
+  "devDependencies": {
+    "@iden3/js-crypto": "^1.0.3",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@solarity/chai-zkit": "^0.2.5",
+    "@solarity/hardhat-zkit": "^0.4.7",
+    "@typechain/ethers-v6": "^0.5.1",
+    "@types/chai": "^4.3.14",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^18.16.0",
+    "@types/snarkjs": "^0.7.8",
+    "chai": "^4.3.6",
+    "circomlibjs": "^0.1.7",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.11.1",
+    "ffjavascript": "^0.2.60",
+    "fnv-plus": "^1.3.1",
+    "hardhat": "^2.22.0",
+    "logplease": "^1.2.15",
+    "mocha": "^10.3.0",
+    "prettier": "^3.6.1",
+    "prettier-plugin-solidity": "^1.3.1",
+    "r1csfile": "^0.0.47",
+    "snarkjs": "^0.7.0",
+    "tmp-promise": "^3.0.3",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typechain": "^8.3.2",
+    "typescript": "^5.4.3",
+    "util": "^0.12.5",
+    "circom_tester": "^0.0.20"
+  }
 }

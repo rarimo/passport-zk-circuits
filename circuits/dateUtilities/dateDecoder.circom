@@ -1,6 +1,6 @@
 pragma circom  2.1.6;
 
-include "circomlib/circuits/bitify.circom";
+include "../lib/circuits/bitify/bitify.circom";
 include "./dateEncoder.circom";
 
 template DateDecoder() {
