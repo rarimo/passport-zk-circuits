@@ -1,6 +1,6 @@
 pragma circom  2.1.6;
 
-include "circomlib/circuits/comparators.circom";
+include "../lib/circuits/bitify/comparators.circom";
 
 
 template PassportVerificationFlow( 

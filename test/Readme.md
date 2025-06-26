@@ -1,0 +1,1 @@
+To run test with your passport, put it in `./inputs/passport/` folder and run npm run test from root.
