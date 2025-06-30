@@ -29,13 +29,7 @@ The Sparce Merkle Tree, containing the ***identity state*** (which identity conn
 
 #### Register Identity Circuit
 
-To link an identity with a passport, we utilize the ***registerIdentity*** circuits. At present, we employ the ***registerIdentityUniversal*** circuit. This mechanism enables the complete passport verification process and establishes that a specific active authentication public key is associated with a valid passport, all while maintaining the confidentiality of the passport owner's personal information.
-
-***registerIdentityUniversal*** circuit is compiled with different parameters in order to support different signing algorithms. Currently we support ```RSA 2048``` and ```RSA 4096``` bits.
-
-Passports from different countries often vary in structure, and even within the same country, not all passports are identical. This variability can pose a challenge, as the verification circuits rely on a strict and precise algorithm. Even a minor discrepancy, such as a shift by a single byte, can disrupt the entire verification process, rendering it ineffective.
-
-To address these challenges, we employ a combination of verification flow and padded data hashing.
+To link an identity with a passport, we utilize the ***registerIdentity*** circuits and make universal ***registerIdentityBuilder*** for any circuit.
 
 ##### Padded data hashing
 
@@ -46,7 +40,7 @@ Padded data hashing enables the data padding to be handled outside the circuit. 
 
 To illustrate, let's consider the need to hash **2688** bits of data using the SHA-256 algorithm. If we directly use `SHA256(2688)`, it will only process exactly **2688** bits. However, if we need to hash **2704** bits, we would have to instantiate a new function, `SHA256(2704)`, leading to a significant increase in constraints.
 
-`SHA` hashing functions operates by dividing data into blocks (`512-bit` for `SHA256`) and applying padding to complete any remaining bits. So both **2688** bits and **2704** bits will be hashed as **512 bits * 6 blocks = 3072 bits**. We used `sha256NoPadding.circom` which is not adding padding to inputs. With this approach both cases can be handled with the same circuit, which allows us to handle small changes in passport structure without adding a lot of new constraints.
+`SHA` hashing functions operates by dividing data into blocks (`512-bit` for `SHA256`) and applying padding to complete any remaining bits. So both **2688** bits and **2704** bits will be hashed as **512 bits * 6 blocks = 3072 bits**. We used template which is not adding padding to inputs. With this approach both cases can be handled with the same circuit, which allows us to handle small changes in passport structure without adding a lot of new constraints.
 
 ##### Passport Verification Flows
 
@@ -59,15 +53,11 @@ For now we encountered several differences between passports:
 - different signed attributes size;
 - different signature and hashing algorithms;
 
-For different signature & hashing algorithm currently we are using different circuits, as merging all logic into one circuit makes it too complex to run on mobile devices.
-
 Other differences are handled using `VerificationFlows`. It allows to generate a specific verification circuit using by setting required parameters. Verification circuit returs either ***0*** or ***1*** (***failed***/***successfull*** verification);
 
 ![Verification flows](./imgs/VerificationFlow.png)
 
-Those verification flows than combined and verified that at least one of them was successful.
-
-![Passport verification](./imgs/PassportVerification.png)
+To handle this, we made **shifts** as circuit compile params.
 
 ##### Different active authentication
 
@@ -77,14 +67,12 @@ Active authentication is a procedure that allows you to verify the validity of t
 
 Some biometric passports either don`t have an active authentication or have different signature and/or hashing algorithm. Currently, the active authentication signature verification is handled by the smart contract, while circuits prove that a specific public key is present into a valid passport.
 
-`registerIdentityUniversal` circuit has `dg15PubKeyHash` and `passportHash` output signals. In case scanned passport does not have an active authentication, generated proof will have `passportHash` set with  
-Poseidon(SHA256(signed_attributes\[:252bits])), while `dg15PubKeyHash` will be set to `0`. Otherwise (if passport have an active auth) `dg15PubKeyHash` will contain hash of passport public key, while `passportHash` is set to `0`.
-
 *How active auth public key is hashed?*
 
 `RSA (1024 bit) case`: ***Poseidon5(200, 200, 200, 200, 224bits)***
 
-`ECDSA (256 bit field) case`: ***Poseidon2(X\[:31bytes], Y\[:31bytes])***
+`ECDSA (248>= bit field) case`: ***Poseidon2(X\[:31bytes], Y\[:31bytes])***
+`ECDSA (248< bit field) case`: ***Poseidon2(X\[:(field \ 8) bytes], Y\[:(field \ 8)])***
 
 ##### Register identity circuit inputs
 
@@ -93,8 +81,8 @@ Poseidon(SHA256(signed_attributes\[:252bits])), while `dg15PubKeyHash` will be s
     "skIdentity": "123405...842587619674072055", // identity secret key
     "encapsulatedContent": [0, 1, 0],            // passport encapsulated content in binary
     "signedAttributes": [0, 1, 0],               // signed attributes in binary
-    "signature": ["64bit", "64bit..."],               // signature in 64 bit blocks
-    "pubkey": ["64bit", "64bit..."],            // modulus in 64 bit blocks
+    "signature": ["64bit", "64bit..."],               // signature in 64 bit blocks || [r[0], ... r[last], s[0], ... s[last]] for ecdsa
+    "pubkey": ["64bit", "64bit..."],            // modulus in 64 bit blocks || [x[0], ... x[last], y[0], ... y[last]] for ecdsa
     "dg1": [0, 1, 0],                            // passport DG1 in binary
     "dg15": [0, 1, 0],                           // passport DG15 in binary
     "slaveMerkleRoot": "0x..", // root of the sparse Merkle tree with 2nd level keys (PUBLIC)
@@ -273,7 +261,7 @@ Points: `0x77fabbc6cb41a11d4fb6918696b3550d5d602f252436dd587f9065b7c4e62b`
 
 Identity V2 allows to generate anonymous ZK queries, without revealing any personal data about the user. Nullifier is query could potentially be used in order to prevent users from receiving airdrops multiple times.
 
-But if no additional restrictions are added to the system, the user can reissue the identity several times, each time receiving a new identity (with a new nullifier). Thus, user could potentially get airdrop multiple times. б
+But if no additional restrictions are added to the system, the user can reissue the identity several times, each time receiving a new identity (with a new nullifier). Thus, user could potentially get airdrop multiple times.
 
 Identity V2 allows to prove identity creation timestamp and identity counter (how many time identity have been reissued to a specific user). To prevent users from getting the airdrop multiple times, two additional constraints should be set up:
 
