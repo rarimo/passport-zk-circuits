@@ -237,7 +237,7 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
     smtVerifier.key <== pubkeyHash;
     smtVerifier.siblings <== slaveMerkleInclusionBranches;
     
-    // smtVerifier.isVerified === 1;
+    smtVerifier.isVerified === 1;
     
     component signedAttributesHashHasher = PoseidonHash(1);
     signedAttributesHashHasher.in[0] <== signedAttributesNum.out;
