@@ -81,10 +81,15 @@ template RsaVerifyPkcs1v15(CHUNK_SIZE, CHUNK_NUMBER, EXP, HASH_TYPE) {
 
         component bits2num[2];
         for (var i = 0; i < 2; i++){
-            bits2num[i] = Bits2Num(64);
+            bits2num[1 - i] = Bits2Num(64);
             for (var j = 0; j < 64; j++){
-                bits2num[i].in[j] <== hashed[159 - j - i * 64];
+                bits2num[1 - i].in[j] <== hashed[159 - j - i * 64];
             }
+            bits2num[1 - i].out ==> hashed_chunks[1 - i];
+        }
+
+        for (var i = 0; i < 2; i++) {
+            hashed_chunks[i] === pm.out[1-i];
         }
 
         component getBits = Num2Bits(CHUNK_SIZE);
@@ -109,6 +114,4 @@ template RsaVerifyPkcs1v15(CHUNK_SIZE, CHUNK_NUMBER, EXP, HASH_TYPE) {
         }
         pm.out[CHUNK_NUMBER - 1] === 562949953421311;
     }
-    
-   
 }
