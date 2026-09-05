@@ -639,16 +639,13 @@ function getFakeIdenData(ec, pk) {
       ]);
     }
   } else {
-    let pk_arr = bigintToArray(64, 15, BigInt("0x" + pk.n));
-    pk_hash = poseidon(
-      Array.from(
-        { length: 5 },
-        (_, i) =>
-          pk_arr[3 * i] * 2n ** 128n +
-          pk_arr[3 * i + 1] * 2n ** 64n +
-          pk_arr[3 * i + 2]
-      )
-    );
+    // SHA-256 over the FULL modulus (big-endian, exact byte length), high 248 bits.
+    // Must match extract_pk_hash (noir) and passportVerificationBuilder (circom):
+    // leaf = uint256(sha256(modulus)) >> 8
+    let nHex = pk.n;
+    if (nHex.length % 2) nHex = "0" + nHex;
+    const digest = createHash("sha256").update(Buffer.from(nHex, "hex")).digest();
+    pk_hash = BigInt("0x" + digest.toString("hex")) >> 8n;
   }
 
   const root = poseidon([pk_hash, pk_hash, 1n]).toString(16);

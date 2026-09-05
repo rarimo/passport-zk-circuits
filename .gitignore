@@ -34,3 +34,6 @@ test/circuits/generated/*.circom
 test/inputs/generated/*.json
 test/inputs/passport/*.json
 !test/inputs/passport/readme.md
+test/poc
+test/circuits/registerIdentity_*.circom
+regen_out/
