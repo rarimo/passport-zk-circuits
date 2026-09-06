@@ -7,6 +7,20 @@ import "@solarity/chai-zkit";
 
 import { HardhatUserConfig } from "hardhat/config";
 
+// 6 universal register-identity circuits, restored from 4468884^ with:
+//   - PassportVerificationFlow signature repaired (6-param for RSA, 8-param for PSS)
+//   - RSA/PSS exponent passed as a value (65537 / 3) instead of a bit count
+//   - PSS SALT_LEN/EXP argument order and the pubkey port name fixed
+//   - CSCA modulus leaf: full-key SHA256 (top 248 bits) instead of partial Poseidon(5)
+const universalMains = [
+  "registerIdentityUniversalRSA2048.circom",
+  "registerIdentityUniversalRSA2048TD1.circom",
+  "registerIdentityUniversalRSA4096.circom",
+  "registerIdentityUniversalRSAPss2048s32e17.circom",
+  "registerIdentityUniversalRSAPss2048s32e2.circom",
+  "registerIdentityUniversalRSAPss2048s64e17.circom",
+];
+
 const config: HardhatUserConfig = {
   networks: {
     hardhat: {
@@ -24,15 +38,15 @@ const config: HardhatUserConfig = {
     },
   },
   zkit: {
-    circuitsDir: "test/circuits",
+    circuitsDir: "circuits/identityManagement",
     compilationSettings: {
       c: true,
-      onlyFiles: ["queryIdentity.circom", "queryIdentityTD1.circom", "registerIdentity_1_256_3_4_600_248_1_1496_3_256.circom"],
+      onlyFiles: universalMains,
       skipFiles: []
     },
     setupSettings: {
       ptauDir: "zkit/ptau",
-      onlyFiles: ["queryIdentity.circom", "queryIdentityTD1.circom", "registerIdentity_1_256_3_4_600_248_1_1496_3_256.circom"],
+      onlyFiles: universalMains,
       skipFiles: []
     },
   },
