@@ -5,6 +5,7 @@ include "./passportVerificationFlow.circom";
 include "../lib/circuits/hasher/hash.circom";
 include "../lib/circuits/bitify/bitify.circom";
 include "../lib/circuits/hasher/hash.circom";
+include "../lib/circuits/hasher/sha2/sha256/sha256HashBits.circom";
 include "../lib/circuits/bitify/comparators.circom";
 include "../merkleTree/SMTVerifier.circom";
 
@@ -30,6 +31,9 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
     }
     if (SIGNATURE_TYPE == 14){
         CHUNK_NUMBER = 48;
+    }
+    if (SIGNATURE_TYPE == 15){
+        HASH_TYPE = 512;
     }
     
     if (SIGNATURE_TYPE >= 20){
@@ -180,14 +184,27 @@ template PassportVerificationBuilder(SIGNATURE_TYPE,DG_HASH_TYPE,EC_BLOCK_NUMBER
     //RSA || RSAPSS SIG
     
     if (SIGNATURE_TYPE < 20){
-        component pubkeyHasherRsa = PoseidonHash(5);
-        signal tempModulus[5];
-        for (var i = 0; i < 5; i++) {
-            var currIndex = i * 3;
-            tempModulus[i] <== pubkey[currIndex] * 2 ** 128 + pubkey[currIndex + 1] * 2 ** 64;
-            pubkeyHasherRsa.in[i] <== tempModulus[i] + pubkey[currIndex + 2];
+        var KEY_BITS = CHUNK_NUMBER * CHUNK_SIZE;
+
+        component num2bitsPk[CHUNK_NUMBER];
+        signal modBits[KEY_BITS];
+        for (var i = 0; i < CHUNK_NUMBER; i++){
+            num2bitsPk[i] = Num2Bits(CHUNK_SIZE);
+            num2bitsPk[i].in <== pubkey[i];
+            for (var b = 0; b < CHUNK_SIZE; b++){
+                // big-endian (MSB-first) bit stream for SHA
+                modBits[KEY_BITS - 1 - (i * CHUNK_SIZE + b)] <== num2bitsPk[i].out[b];
+            }
         }
-        pubkeyHash <== pubkeyHasherRsa.out;
+
+        component pubkeyHasherRsa = Sha256HashBits(KEY_BITS);
+        pubkeyHasherRsa.in <== modBits;
+
+        component pubkeyLeaf = Bits2Num(248);
+        for (var k = 0; k < 248; k++){
+            pubkeyLeaf.in[k] <== pubkeyHasherRsa.out[247 - k];
+        }
+        pubkeyHash <== pubkeyLeaf.out;
     }
     //ECDSA SIG
     else {
