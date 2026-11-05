@@ -8,7 +8,7 @@ include "../lib/circuits/signatures/ecdsa.circom";
 
 template VerifySignature(SIG_ALGO){
 
-    assert(((SIG_ALGO >= 1)&&(SIG_ALGO <= 4))||((SIG_ALGO >= 10)&&(SIG_ALGO <= 14))||((SIG_ALGO >= 20)&&(SIG_ALGO <= 25)));
+    assert(((SIG_ALGO >= 1)&&(SIG_ALGO <= 4))||((SIG_ALGO >= 10)&&(SIG_ALGO <= 15))||((SIG_ALGO >= 20)&&(SIG_ALGO <= 25)));
     
     var CHUNK_SIZE = 64;
     var CHUNK_NUMBER = 32;
@@ -73,6 +73,13 @@ template VerifySignature(SIG_ALGO){
         SIGNATURE_LEN = CHUNK_NUMBER;
         HASH_LEN = 256;
     }
+    if (SIG_ALGO == 15){
+        PUBKEY_LEN = CHUNK_NUMBER;
+        SIGNATURE_LEN = CHUNK_NUMBER;
+        HASH_LEN = 512;
+        SALT_LEN = 64;
+    }
+
 
     if (SIG_ALGO == 20){
         CHUNK_NUMBER = 4;
@@ -172,6 +179,12 @@ template VerifySignature(SIG_ALGO){
         rsaPssSha384Verification.pubkey <== pubkey;
         rsaPssSha384Verification.signature <== signature;
         rsaPssSha384Verification.hashed <== hashed;
+    }
+    if (SIG_ALGO == 15){
+        component rsaPssSha512Verification = VerifyRsaPssSig(CHUNK_SIZE, CHUNK_NUMBER, SALT_LEN, EXP, HASH_LEN);
+        rsaPssSha512Verification.pubkey <== pubkey;
+        rsaPssSha512Verification.signature <== signature;
+        rsaPssSha512Verification.hashed <== hashed;
     }
 
     if (SIG_ALGO == 20){
